@@ -22,8 +22,8 @@ import java.awt.*;
 public class SettingsState implements PersistentStateComponent<SettingsState> {
 
     private boolean showErrors = true;
-    private boolean highlightErrors = true;
-    private boolean showWarnings = false;
+    private boolean highlightErrors = false;
+    private boolean showWarnings = true;
     private boolean highlightWarnings = false;
     private boolean showWeakWarnings = false;
     private boolean highlightWeakWarnings = false;
@@ -43,7 +43,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private Color infoHighlightColor = infoBackgroundColor;
     private boolean drawBoxesAroundErrorLabels = true;
     private boolean roundedCornerBoxes = true;
-    private boolean forceErrorsInSameLine = false;
+    private boolean forceErrorsInSameLine = true;
     private int problemLineLengthOffsetPixels = 50;
     private String problemFilterList = "todo;fixme";
 
