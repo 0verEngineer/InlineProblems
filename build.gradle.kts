@@ -1,17 +1,17 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.9.0"
+    id("org.jetbrains.intellij") version "1.11.0"
     id("io.freefair.lombok") version "6.6"
 }
 
 group = "org.OverEngineer"
-version = "0.1.0"
+version = "0.1.1"
 
 repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("org.projectlombok:lombok:1.18.22")
+    implementation("org.projectlombok:lombok:1.18.24")
 }
 
 // Configure Gradle IntelliJ Plugin

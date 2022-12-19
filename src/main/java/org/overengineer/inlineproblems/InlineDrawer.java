@@ -1,10 +1,10 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.Inlay;
+import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.MarkupModel;
@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 public class InlineDrawer {
     private List<InlineProblem> activeProblems = new ArrayList<>();
+    private boolean addedMultiLineProblemOnLastUpdate = false;
 
     public void removeProblem(InlineProblem problem) {
         undrawErrorLineHighlight(problem);
@@ -32,10 +33,13 @@ public class InlineDrawer {
     }
 
     public void addProblem(InlineProblem problem) {
-        if (!shouldDrawProblemLabel(problem))
-            return;
+        if (shouldDrawProblemLabel(problem))
+            drawProblemLabel(problem);
 
-        drawProblemAndAddToList(problem);
+        if (shouldDrawProblemHighlighter(problem))
+            drawProblemLineHighlight(problem);
+
+        activeProblems.add(problem);
     }
 
     public void updateFromListOfNewActiveProblems(List<InlineProblem> problems, Project project) {
@@ -52,11 +56,16 @@ public class InlineDrawer {
 
         problems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
-                .forEach(p -> {processedProblems.add(p); addProblem(p);});
+                .forEach(this::addProblem);
 
+        // If caret is not visible, and we have added a multiline problem label it will be scrolled
+        if (addedMultiLineProblemOnLastUpdate && problems.size() > 0)
+            problems.get(0).getEditor().getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
+
+        addedMultiLineProblemOnLastUpdate = false;
     }
 
-    private void drawProblemAndAddToList(InlineProblem problem) {
+    private void drawProblemLabel(InlineProblem problem) {
         Editor editor = problem.getEditor();
         SettingsState settings = SettingsState.getInstance();
         var inlayModel = editor.getInlayModel();
@@ -103,6 +112,8 @@ public class InlineDrawer {
                     1,
                     inlineProblemLabel
             );
+
+            addedMultiLineProblemOnLastUpdate = true;
         }
         else {
             inlayModel.addAfterLineEndElement(
@@ -112,13 +123,7 @@ public class InlineDrawer {
             );
         }
 
-        if (shouldDrawProblemHighlighter(problem)) {
-            drawProblemLineHighlight(problem);
-        }
-
         problem.setInlineProblemLabelHashCode(inlineProblemLabel.hashCode());
-
-        activeProblems.add(problem);
     }
 
     private void drawProblemLineHighlight(InlineProblem problem) {
@@ -159,29 +164,26 @@ public class InlineDrawer {
         Document document = editor.getDocument();
 
         // Here is not checked if single or multi line, both are disposed beccause we do not have the info here
-        if (document.getLineCount() > problem.getLine()) {
+        // We search for all elements because they can move
+        int documentLineStartOffset = document.getLineStartOffset(0);
+        int documentLineEndOffset = document.getLineEndOffset(document.getLineCount() - 1);
+        editor.getInlayModel()
+                .getBlockElementsInRange(
+                        documentLineStartOffset,
+                        documentLineEndOffset
+                )
+                .stream()
+                .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
+                .forEach(this::disposeInlay);
 
-            // We search for all elements because they can move
-            int documentLineStartOffset = document.getLineStartOffset(0);
-            int documentLineEndOffset = document.getLineEndOffset(document.getLineCount() - 1);
-            editor.getInlayModel()
-                    .getBlockElementsInRange(
-                            documentLineStartOffset,
-                            documentLineEndOffset
-                    )
-                    .stream()
-                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                    .forEach(this::disposeInlay);
-
-            editor.getInlayModel()
-                    .getAfterLineEndElementsInRange(
-                            documentLineStartOffset,
-                            documentLineEndOffset
-                    )
-                    .stream()
-                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                    .forEach(this::disposeInlay);
-        }
+        editor.getInlayModel()
+                .getAfterLineEndElementsInRange(
+                        documentLineStartOffset,
+                        documentLineEndOffset
+                )
+                .stream()
+                .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
+                .forEach(this::disposeInlay);
     }
 
     private void disposeInlay(Inlay<?> inlay) {
@@ -192,14 +194,19 @@ public class InlineDrawer {
 
     private boolean shouldDrawProblemLabel(InlineProblem problem) {
         SettingsState settings = SettingsState.getInstance();
+        int severity = problem.getSeverity();
 
-        if (problem.getSeverity() >= HighlightSeverity.ERROR.myVal && settings.isShowErrors())
+        if (severity >= HighlightSeverity.ERROR.myVal &&
+                settings.isShowErrors())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.WARNING.myVal && settings.isShowWarnings())
+        else if (severity >= HighlightSeverity.WARNING.myVal &&
+                severity < HighlightSeverity.ERROR.myVal && settings.isShowWarnings())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.WEAK_WARNING.myVal && settings.isShowWeakWarnings())
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal &&
+                severity < HighlightSeverity.WARNING.myVal && settings.isShowWeakWarnings())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.INFORMATION.myVal && settings.isShowInfos())
+        else if (severity >= HighlightSeverity.INFORMATION.myVal &&
+                severity < HighlightSeverity.WEAK_WARNING.myVal && settings.isShowInfos())
             return true;
 
         return false;
@@ -207,14 +214,19 @@ public class InlineDrawer {
 
     private boolean shouldDrawProblemHighlighter(InlineProblem problem) {
         SettingsState settings = SettingsState.getInstance();
+        int severity = problem.getSeverity();
 
-        if (problem.getSeverity() >= HighlightSeverity.ERROR.myVal && settings.isHighlightErrors())
+        if (severity >= HighlightSeverity.ERROR.myVal &&
+                settings.isHighlightErrors())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.WARNING.myVal && settings.isHighlightWarnings())
+        else if (severity >= HighlightSeverity.WARNING.myVal &&
+                severity < HighlightSeverity.ERROR.myVal && settings.isHighlightWarnings())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.WEAK_WARNING.myVal && settings.isHighlightWeakWarnings())
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal &&
+                severity < HighlightSeverity.WARNING.myVal && settings.isHighlightWeakWarnings())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.INFORMATION.myVal && settings.isHighlightInfos())
+        else if (severity >= HighlightSeverity.INFORMATION.myVal &&
+                severity < HighlightSeverity.WEAK_WARNING.myVal && settings.isHighlightInfos())
             return true;
 
         return false;
