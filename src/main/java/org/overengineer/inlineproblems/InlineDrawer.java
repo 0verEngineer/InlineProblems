@@ -164,29 +164,26 @@ public class InlineDrawer {
         Document document = editor.getDocument();
 
         // Here is not checked if single or multi line, both are disposed beccause we do not have the info here
-        if (document.getLineCount() > problem.getLine()) {
+        // We search for all elements because they can move
+        int documentLineStartOffset = document.getLineStartOffset(0);
+        int documentLineEndOffset = document.getLineEndOffset(document.getLineCount() - 1);
+        editor.getInlayModel()
+                .getBlockElementsInRange(
+                        documentLineStartOffset,
+                        documentLineEndOffset
+                )
+                .stream()
+                .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
+                .forEach(this::disposeInlay);
 
-            // We search for all elements because they can move
-            int documentLineStartOffset = document.getLineStartOffset(0);
-            int documentLineEndOffset = document.getLineEndOffset(document.getLineCount() - 1);
-            editor.getInlayModel()
-                    .getBlockElementsInRange(
-                            documentLineStartOffset,
-                            documentLineEndOffset
-                    )
-                    .stream()
-                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                    .forEach(this::disposeInlay);
-
-            editor.getInlayModel()
-                    .getAfterLineEndElementsInRange(
-                            documentLineStartOffset,
-                            documentLineEndOffset
-                    )
-                    .stream()
-                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                    .forEach(this::disposeInlay);
-        }
+        editor.getInlayModel()
+                .getAfterLineEndElementsInRange(
+                        documentLineStartOffset,
+                        documentLineEndOffset
+                )
+                .stream()
+                .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
+                .forEach(this::disposeInlay);
     }
 
     private void disposeInlay(Inlay<?> inlay) {

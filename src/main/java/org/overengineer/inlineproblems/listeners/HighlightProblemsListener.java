@@ -32,6 +32,9 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
     }
 
     public void handleAccept(PsiFile file) {
+        if (file.getVirtualFile() == null)
+            return;
+
         Editor editor = FileEditorManager.getInstance(file.getProject()).getSelectedTextEditor();
 
         if (editor == null || !editor.getEditorKind().name().equalsIgnoreCase("main_editor"))
