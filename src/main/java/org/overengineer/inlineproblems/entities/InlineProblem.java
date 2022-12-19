@@ -14,8 +14,6 @@ import javax.annotation.Nullable;
 public class InlineProblem {
     private final int line;
     private final int severity;
-    private final int startOffset;
-    private final int endOffset;
     private final String text;
     private final String file;
     private final Editor editor;
@@ -26,8 +24,6 @@ public class InlineProblem {
 
     public InlineProblem(
             int line,
-            int startOffset,
-            int endOffset,
             int severity,
             String text,
             Editor editor,
@@ -35,8 +31,6 @@ public class InlineProblem {
             Project project
     ) {
         this.line = line;
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
         this.text = text;
         this.severity = severity;
         this.editor = editor;
@@ -53,8 +47,6 @@ public class InlineProblem {
         // The InlineProblemLabel is not used here because we do not have it if new InlineProblems come from the
         // HighlightProblemsListener
         return otherProblem.getLine() == line &&
-                otherProblem.getEndOffset() == endOffset &&
-                otherProblem.getStartOffset() == startOffset &&
                 otherProblem.getSeverity() == severity &&
                 otherProblem.getFile().equals(file) &&
                 otherProblem.getProject().equals(project) &&

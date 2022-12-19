@@ -64,22 +64,15 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
                         .noneMatch(p -> h.getText().toLowerCase().startsWith(p.toLowerCase())))
                 .forEach(h -> {
                     int usedEndOffset = h.getEndOffset();
-                    int usedStartOffset = h.getStartOffset();
 
                     if (fileEndOffset < h.getEndOffset()) {
                         usedEndOffset = fileEndOffset;
-                    }
-
-                    if (fileEndOffset < h.getStartOffset()) {
-                        usedStartOffset = fileEndOffset;
                     }
 
                     int line = editor.getDocument().getLineNumber(usedEndOffset);
 
                     problems.add(new InlineProblem(
                             line,
-                            usedStartOffset,
-                            usedEndOffset,
                             h.getSeverity().myVal,
                             h.getDescription(),
                             editor,
