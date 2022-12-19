@@ -56,7 +56,7 @@ public class InlineDrawer {
 
         problems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
-                .forEach(p -> {processedProblems.add(p); addProblem(p);});
+                .forEach(this::addProblem);
 
         // If caret is not visible, and we have added a multiline problem label it will be scrolled
         if (addedMultiLineProblemOnLastUpdate && problems.size() > 0)
@@ -194,14 +194,19 @@ public class InlineDrawer {
 
     private boolean shouldDrawProblemLabel(InlineProblem problem) {
         SettingsState settings = SettingsState.getInstance();
+        int severity = problem.getSeverity();
 
-        if (problem.getSeverity() >= HighlightSeverity.ERROR.myVal && settings.isShowErrors())
+        if (severity >= HighlightSeverity.ERROR.myVal &&
+                settings.isShowErrors())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.WARNING.myVal && settings.isShowWarnings())
+        else if (severity >= HighlightSeverity.WARNING.myVal &&
+                severity < HighlightSeverity.ERROR.myVal && settings.isShowWarnings())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.WEAK_WARNING.myVal && settings.isShowWeakWarnings())
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal &&
+                severity < HighlightSeverity.WARNING.myVal && settings.isShowWeakWarnings())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.INFORMATION.myVal && settings.isShowInfos())
+        else if (severity >= HighlightSeverity.INFORMATION.myVal &&
+                severity < HighlightSeverity.WEAK_WARNING.myVal && settings.isShowInfos())
             return true;
 
         return false;
@@ -209,14 +214,19 @@ public class InlineDrawer {
 
     private boolean shouldDrawProblemHighlighter(InlineProblem problem) {
         SettingsState settings = SettingsState.getInstance();
+        int severity = problem.getSeverity();
 
-        if (problem.getSeverity() >= HighlightSeverity.ERROR.myVal && settings.isHighlightErrors())
+        if (severity >= HighlightSeverity.ERROR.myVal &&
+                settings.isHighlightErrors())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.WARNING.myVal && settings.isHighlightWarnings())
+        else if (severity >= HighlightSeverity.WARNING.myVal &&
+                severity < HighlightSeverity.ERROR.myVal && settings.isHighlightWarnings())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.WEAK_WARNING.myVal && settings.isHighlightWeakWarnings())
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal &&
+                severity < HighlightSeverity.WARNING.myVal && settings.isHighlightWeakWarnings())
             return true;
-        else if (problem.getSeverity() >= HighlightSeverity.INFORMATION.myVal && settings.isHighlightInfos())
+        else if (severity >= HighlightSeverity.INFORMATION.myVal &&
+                severity < HighlightSeverity.WEAK_WARNING.myVal && settings.isHighlightInfos())
             return true;
 
         return false;
