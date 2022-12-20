@@ -46,10 +46,9 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
 
         List<InlineProblem> problems = new ArrayList<>();
 
-        List<String> problemTextBeginningFilterList = new ArrayList<>();
-        for (var filterItem : SettingsState.getInstance().getProblemFilterList().split(";")) {
-            problemTextBeginningFilterList.add(filterItem);
-        }
+        List<String> problemTextBeginningFilterList = new ArrayList<>(
+                Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
+        );
 
         int lineCount = editor.getDocument().getLineCount();
         int fileEndOffset = editor.getDocument().getLineEndOffset(lineCount - 1);
@@ -61,7 +60,7 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
                 .filter(h -> h.getDescription() != null)
                 .filter(h -> problemTextBeginningFilterList
                         .stream()
-                        .noneMatch(p -> h.getText().toLowerCase().startsWith(p.toLowerCase())))
+                        .noneMatch(p -> h.getDescription().stripLeading().toLowerCase().startsWith(p.stripLeading().toLowerCase())))
                 .forEach(h -> {
                     int usedEndOffset = h.getEndOffset();
 
