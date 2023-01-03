@@ -29,7 +29,7 @@
   </p>
 </div>
 
-[GIF](https://github.com/0verEngineer/InlineProblems/resources/gif1.gif)
+![GIF](https://github.com/0verEngineer/InlineProblems/blob/main/resources/gif1.gif?raw=true)
 
 ---
 
