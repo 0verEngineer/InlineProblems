@@ -14,8 +14,29 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-Plugin to show problems inside the text editor for IDEs based on the IntelliJ Platform
+Plugin to show problems inside the text editor (inline) for IDEs based on the IntelliJ Platform
 ]]></description>
+
+    <change-notes><![CDATA[
+      <ul>
+      <li>
+      <li>0.1.2 Bugfixes</li>
+        <ul>
+          <li>- Problem filtering fix</li>
+          <li>- Removal / flicker of problems in dual pane mode fix </li>
+          <li>- Reload after settings change</li>
+        </ul>
+      <li>0.1.1 Bugfixes</li>
+        <ul>
+          <li>- Removal of labels fix</li>
+          <li>- Duplicated problems shown fix</li>
+          <li>- Severity checks fix</li>
+          <li>- Improves default settings</li>
+        </ul>
+      <li>0.1.0 Initial release. Basic functionality.</li>
+      </ul>
+    ]]>
+    </change-notes>
 
     <idea-version since-build="212.48"/>
 
@@ -30,6 +51,7 @@ Plugin to show problems inside the text editor for IDEs based on the IntelliJ Pl
                                  id="org.overengineer.inlineproblems.settings.SettingsConfigurable"
                                  displayName="InlineProblems"/>
         <applicationService serviceImplementation="org.overengineer.inlineproblems.settings.SettingsState"/>
+        <applicationService serviceImplementation="org.overengineer.inlineproblems.InlineDrawer"/>
         <daemon.highlightInfoFilter implementation="org.overengineer.inlineproblems.listeners.HighlightProblemsListener" id="org.overengineer.inlineproblems.listeners.HighlightProblemsListener" />
     </extensions>
 </idea-plugin>

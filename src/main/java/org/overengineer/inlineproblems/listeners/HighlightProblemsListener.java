@@ -3,10 +3,12 @@ package org.overengineer.inlineproblems.listeners;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoFilter;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +22,11 @@ import java.util.List;
 
 
 public class HighlightProblemsListener implements HighlightInfoFilter {
-    private final InlineDrawer inlineDrawer = new InlineDrawer();
+    private final InlineDrawer inlineDrawer;
+
+    HighlightProblemsListener() {
+        inlineDrawer = ApplicationManager.getApplication().getService(InlineDrawer.class);
+    }
 
     @Override
     public boolean accept(@NotNull HighlightInfo highlightInfo, @Nullable PsiFile file) {
@@ -35,24 +41,30 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
         if (file.getVirtualFile() == null)
             return;
 
-        Editor editor = FileEditorManager.getInstance(file.getProject()).getSelectedTextEditor();
-
-        if (editor == null || !editor.getEditorKind().name().equalsIgnoreCase("main_editor"))
+        FileEditor editor = FileEditorManager.getInstance(file.getProject()).getSelectedEditor(file.getVirtualFile());
+        if (editor == null) {
             return;
-
-        var highlighters = DocumentMarkupModel
-                .forDocument(editor.getDocument(), file.getProject(), false)
-                .getAllHighlighters();
-
-        List<InlineProblem> problems = new ArrayList<>();
-
-        List<String> problemTextBeginningFilterList = new ArrayList<>();
-        for (var filterItem : SettingsState.getInstance().getProblemFilterList().split(";")) {
-            problemTextBeginningFilterList.add(filterItem);
         }
 
-        int lineCount = editor.getDocument().getLineCount();
-        int fileEndOffset = editor.getDocument().getLineEndOffset(lineCount - 1);
+        TextEditor textEditor = (TextEditor) editor;
+        Document document = textEditor.getEditor().getDocument();
+        List<InlineProblem> problems = new ArrayList<>();
+
+        int lineCount = document.getLineCount();
+        if (lineCount <= 0) {
+            // Can be triggered when a file is deleted -> update with empty list
+            inlineDrawer.updateFromListOfNewActiveProblems(problems, file.getProject(), textEditor.getFile().getPath());
+        }
+
+        int fileEndOffset = document.getLineEndOffset(lineCount - 1);
+
+        RangeHighlighter[] highlighters = DocumentMarkupModel
+                .forDocument(document, file.getProject(), false)
+                .getAllHighlighters();
+
+        List<String> problemTextBeginningFilterList = new ArrayList<>(
+                Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
+        );
 
         Arrays.stream(highlighters)
                 .map(RangeHighlighter::getErrorStripeTooltip)
@@ -61,7 +73,7 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
                 .filter(h -> h.getDescription() != null)
                 .filter(h -> problemTextBeginningFilterList
                         .stream()
-                        .noneMatch(p -> h.getText().toLowerCase().startsWith(p.toLowerCase())))
+                        .noneMatch(p -> h.getDescription().stripLeading().toLowerCase().startsWith(p.stripLeading().toLowerCase())))
                 .forEach(h -> {
                     int usedEndOffset = h.getEndOffset();
 
@@ -69,18 +81,18 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
                         usedEndOffset = fileEndOffset;
                     }
 
-                    int line = editor.getDocument().getLineNumber(usedEndOffset);
+                    int line = document.getLineNumber(usedEndOffset);
 
                     problems.add(new InlineProblem(
                             line,
                             h.getSeverity().myVal,
                             h.getDescription(),
-                            editor,
-                            file.getVirtualFile().getPath(),
+                            textEditor.getEditor(),
+                            textEditor.getFile().getPath(),
                             file.getProject()
                     ));}
                 );
 
-        inlineDrawer.updateFromListOfNewActiveProblems(problems, file.getProject());
+        inlineDrawer.updateFromListOfNewActiveProblems(problems, file.getProject(), textEditor.getFile().getPath());
     }
 }

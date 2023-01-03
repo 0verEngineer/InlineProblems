@@ -25,7 +25,6 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private final boolean isDrawBox;
     private final boolean isRoundedCorners;
 
-
     @Setter
     private boolean isMultiLine;
     private final FontMetrics fontMetrics;

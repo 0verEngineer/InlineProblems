@@ -1,8 +1,10 @@
 package org.overengineer.inlineproblems.settings;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.util.NlsContexts;
 import org.jetbrains.annotations.Nullable;
+import org.overengineer.inlineproblems.InlineDrawer;
 
 import javax.swing.*;
 
@@ -10,6 +12,11 @@ import javax.swing.*;
 public class SettingsConfigurable implements Configurable {
 
     private SettingsComponent settingsComponent;
+    private final InlineDrawer inlineDrawer;
+
+    SettingsConfigurable() {
+        inlineDrawer = ApplicationManager.getApplication().getService(InlineDrawer.class);
+    }
 
     @Override
     @NlsContexts.ConfigurableName
@@ -97,6 +104,8 @@ public class SettingsConfigurable implements Configurable {
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
 
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
+
+        inlineDrawer.reset();
     }
 
     @Override

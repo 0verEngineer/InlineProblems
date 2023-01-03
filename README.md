@@ -29,6 +29,9 @@
   </p>
 </div>
 
+[GIF](https://github.com/0verEngineer/InlineProblems/resources/gif1.gif)
+
+---
 
 
 <!-- TABLE OF CONTENTS -->
