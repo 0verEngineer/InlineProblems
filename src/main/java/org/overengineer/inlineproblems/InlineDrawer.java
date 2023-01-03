@@ -1,10 +1,8 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.Inlay;
-import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.MarkupModel;
@@ -24,7 +22,6 @@ import java.util.stream.Collectors;
 
 public class InlineDrawer {
     private List<InlineProblem> activeProblems = new ArrayList<>();
-    private boolean addedMultiLineProblemOnLastUpdate = false;
 
     public void reset() {
         final List<InlineProblem> activeProblemSnapShot = new ArrayList<>(activeProblems);
@@ -48,6 +45,7 @@ public class InlineDrawer {
     }
 
     public void updateFromListOfNewActiveProblems(List<InlineProblem> problems, Project project, String filePath) {
+
         if (problems.size() == 0 && problems == activeProblems)
             return;
 
@@ -63,12 +61,6 @@ public class InlineDrawer {
         problems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
                 .forEach(this::addProblem);
-
-        // If caret is not visible, and we have added a multiline problem label it will be scrolled
-        if (addedMultiLineProblemOnLastUpdate && problems.size() > 0)
-            problems.get(0).getEditor().getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
-
-        addedMultiLineProblemOnLastUpdate = false;
     }
 
     private void drawProblemLabel(InlineProblem problem) {
@@ -118,8 +110,6 @@ public class InlineDrawer {
                     1,
                     inlineProblemLabel
             );
-
-            addedMultiLineProblemOnLastUpdate = true;
         }
         else {
             inlayModel.addAfterLineEndElement(
