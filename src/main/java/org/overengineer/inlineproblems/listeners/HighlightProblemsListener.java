@@ -38,26 +38,29 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
             return;
 
         FileEditor editor = FileEditorManager.getInstance(file.getProject()).getSelectedEditor(file.getVirtualFile());
-
         if (editor == null) {
             return;
         }
 
         TextEditor textEditor = (TextEditor) editor;
         Document document = textEditor.getEditor().getDocument();
+        List<InlineProblem> problems = new ArrayList<>();
+
+        int lineCount = document.getLineCount();
+        if (lineCount <= 0) {
+            // Can be triggered when a file is deleted -> update with empty list
+            inlineDrawer.updateFromListOfNewActiveProblems(problems, file.getProject(), textEditor.getFile().getPath());
+        }
+
+        int fileEndOffset = document.getLineEndOffset(lineCount - 1);
 
         RangeHighlighter[] highlighters = DocumentMarkupModel
                 .forDocument(document, file.getProject(), false)
                 .getAllHighlighters();
 
-        List<InlineProblem> problems = new ArrayList<>();
-
         List<String> problemTextBeginningFilterList = new ArrayList<>(
                 Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
         );
-
-        int lineCount = document.getLineCount();
-        int fileEndOffset = document.getLineEndOffset(lineCount - 1);
 
         Arrays.stream(highlighters)
                 .map(RangeHighlighter::getErrorStripeTooltip)
