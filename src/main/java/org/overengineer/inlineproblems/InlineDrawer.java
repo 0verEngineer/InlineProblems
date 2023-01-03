@@ -1,7 +1,6 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
