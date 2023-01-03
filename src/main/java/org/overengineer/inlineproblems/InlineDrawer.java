@@ -26,6 +26,11 @@ public class InlineDrawer {
     private List<InlineProblem> activeProblems = new ArrayList<>();
     private boolean addedMultiLineProblemOnLastUpdate = false;
 
+    public void reset() {
+        final List<InlineProblem> activeProblemSnapShot = new ArrayList<>(activeProblems);
+        activeProblemSnapShot.forEach(this::removeProblem);
+    }
+
     public void removeProblem(InlineProblem problem) {
         undrawErrorLineHighlight(problem);
         undrawInlineProblemLabel(problem);

@@ -22,7 +22,11 @@ import java.util.List;
 
 
 public class HighlightProblemsListener implements HighlightInfoFilter {
-    private final InlineDrawer inlineDrawer = new InlineDrawer();
+    private final InlineDrawer inlineDrawer;
+
+    HighlightProblemsListener() {
+        inlineDrawer = ApplicationManager.getApplication().getService(InlineDrawer.class);
+    }
 
     @Override
     public boolean accept(@NotNull HighlightInfo highlightInfo, @Nullable PsiFile file) {

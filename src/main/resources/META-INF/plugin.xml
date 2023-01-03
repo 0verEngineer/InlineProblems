@@ -30,6 +30,7 @@ Plugin to show problems inside the text editor for IDEs based on the IntelliJ Pl
                                  id="org.overengineer.inlineproblems.settings.SettingsConfigurable"
                                  displayName="InlineProblems"/>
         <applicationService serviceImplementation="org.overengineer.inlineproblems.settings.SettingsState"/>
+        <applicationService serviceImplementation="org.overengineer.inlineproblems.InlineDrawer"/>
         <daemon.highlightInfoFilter implementation="org.overengineer.inlineproblems.listeners.HighlightProblemsListener" id="org.overengineer.inlineproblems.listeners.HighlightProblemsListener" />
     </extensions>
 </idea-plugin>
