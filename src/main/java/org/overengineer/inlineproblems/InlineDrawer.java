@@ -42,13 +42,14 @@ public class InlineDrawer {
         activeProblems.add(problem);
     }
 
-    public void updateFromListOfNewActiveProblems(List<InlineProblem> problems, Project project) {
+    public void updateFromListOfNewActiveProblems(List<InlineProblem> problems, Project project, String filePath) {
         if (problems.size() == 0 && problems == activeProblems)
             return;
 
         final List<InlineProblem> processedProblems = new ArrayList<>();
         final List<InlineProblem> activeProblemsSnapShot = activeProblems.stream()
-                .filter(p -> p.getProject().equals(project)).collect(Collectors.toList());
+                .filter(p -> p.getProject().equals(project) && p.getFile().equals(filePath))
+                .collect(Collectors.toList());
 
         activeProblemsSnapShot.stream()
                 .filter(p -> !problems.contains(p))

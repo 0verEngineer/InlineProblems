@@ -44,4 +44,9 @@ tasks {
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
     }
+
+    runIde {
+        maxHeapSize = "4g"
+        minHeapSize = "2g"
+    }
 }
