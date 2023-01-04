@@ -27,9 +27,9 @@
     ·
     <a href="https://github.com/0verEngineer/InlineProblems/issues">Request Feature</a>
   </p>
-</div>
 
 ![GIF](https://github.com/0verEngineer/InlineProblems/blob/main/resources/gif1.gif?raw=true)
+</div>
 
 ---
 

@@ -158,7 +158,7 @@ public class InlineDrawer {
         Editor editor = problem.getEditor();
         Document document = editor.getDocument();
 
-        // Here is not checked if single or multi line, both are disposed beccause we do not have the info here
+        // Here is not checked if single or multi line, both are disposed because we do not have the info here
         // We search for all elements because they can move
         int documentLineStartOffset = document.getLineStartOffset(0);
         int documentLineEndOffset = document.getLineEndOffset(document.getLineCount() - 1);
