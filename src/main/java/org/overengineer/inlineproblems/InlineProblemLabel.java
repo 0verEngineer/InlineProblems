@@ -30,8 +30,9 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private final FontMetrics fontMetrics;
     private final Font font;
 
-    private static final int HEIGHT_OFFSET = 2;
-    private static final int WIDTH_OFFSET = 5;
+    private static final int WIDTH_OFFSET = 7;
+    private static final int DRAW_BOX_HEIGHT_OFFSET = -2; // Makes the box lines visible even if line below / above is highlighted
+    private static final int DRAW_BOX_WIDTH_OFFSET = -2; // To have space between 2 boxes
     private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_Y = -1;
     private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_X = 3;
 
@@ -98,8 +99,8 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
                 graphics.drawRoundRect(
                         targetRegion.x,
                         targetRegion.y,
-                        calcWidthInPixels(inlay),
-                        calcHeightInPixels(inlay) - HEIGHT_OFFSET, // Makes the box lines visible even if line below / above is highlighted
+                        calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET,
+                        calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET,
                         5,
                         5
                 );
@@ -110,8 +111,8 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
                 graphics.drawRect(
                         targetRegion.x,
                         targetRegion.y,
-                        calcWidthInPixels(inlay),
-                        calcHeightInPixels(inlay) - HEIGHT_OFFSET
+                        calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET,
+                        calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET
                 );
             }
         }
