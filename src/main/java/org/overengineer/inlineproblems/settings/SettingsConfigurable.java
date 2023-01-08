@@ -40,10 +40,11 @@ public class SettingsConfigurable implements Configurable {
     public boolean isModified() {
         SettingsState state = SettingsState.getInstance();
 
-        return state.isForceErrorsInSameLine() != settingsComponent.isForceErrorsInSameLine() ||
-                state.isDrawBoxesAroundErrorLabels() != settingsComponent.isDrawBoxesAroundErrorLabels() ||
+        return state.isForceProblemsInSameLine() != settingsComponent.isForceErrorsInSameLine() ||
+                state.isDrawBoxesAroundErrorLabels() != settingsComponent.getDrawBoxesAroundProblemLabels() ||
                 state.isRoundedCornerBoxes() != settingsComponent.isRoundedCornerBoxes() ||
                 state.isUseEditorFont() != settingsComponent.isUseEditorFont() ||
+                state.isFillProblemLabels() != settingsComponent.isFillProblemLabels() ||
 
                 state.getErrorTextColor() != settingsComponent.getErrorTextColor() ||
                 state.getErrorBackgroundColor() != settingsComponent.getErrorLabelBackgroundColor() ||
@@ -100,10 +101,11 @@ public class SettingsConfigurable implements Configurable {
         state.setInfoBackgroundColor(settingsComponent.getInfoLabelBackgroundColor());
         state.setInfoHighlightColor(settingsComponent.getInfoHighlightColor());
 
-        state.setForceErrorsInSameLine(settingsComponent.isForceErrorsInSameLine());
-        state.setDrawBoxesAroundErrorLabels(settingsComponent.isDrawBoxesAroundErrorLabels());
+        state.setForceProblemsInSameLine(settingsComponent.isForceErrorsInSameLine());
+        state.setDrawBoxesAroundErrorLabels(settingsComponent.getDrawBoxesAroundProblemLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
+        state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
 
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
@@ -138,10 +140,11 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setInfoLabelBackgroundColor(state.getInfoBackgroundColor());
         settingsComponent.setInfoHighlightColor(state.getInfoHighlightColor());
 
-        settingsComponent.setForceErrorsInSameLine(state.isForceErrorsInSameLine());
-        settingsComponent.setDrawBoxesAroundErrorLabels(state.isDrawBoxesAroundErrorLabels());
+        settingsComponent.setForceErrorsInSameLine(state.isForceProblemsInSameLine());
+        settingsComponent.setDrawBoxesAroundProblemLabels(state.isDrawBoxesAroundErrorLabels());
         settingsComponent.setRoundedCornerBoxes(state.isRoundedCornerBoxes());
         settingsComponent.setUseEditorFont(state.isUseEditorFont());
+        settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
 
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
     }

@@ -9,7 +9,6 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.util.ui.UIUtil;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
@@ -22,11 +21,6 @@ import java.util.stream.Collectors;
 
 public class InlineDrawer {
     private List<InlineProblem> activeProblems = new ArrayList<>();
-
-    public void reset() {
-        final List<InlineProblem> activeProblemSnapShot = new ArrayList<>(activeProblems);
-        activeProblemSnapShot.forEach(this::removeProblem);
-    }
 
     public void removeProblem(InlineProblem problem) {
         undrawErrorLineHighlight(problem);
@@ -42,6 +36,11 @@ public class InlineDrawer {
             drawProblemLineHighlight(problem);
 
         activeProblems.add(problem);
+    }
+
+    public void reset() {
+        final List<InlineProblem> activeProblemSnapShot = new ArrayList<>(activeProblems);
+        activeProblemSnapShot.forEach(this::removeProblem);
     }
 
     public void updateFromListOfNewActiveProblems(List<InlineProblem> problems, Project project, String filePath) {
@@ -93,12 +92,14 @@ public class InlineDrawer {
 
         int editorWidth = editor.getScrollingModel().getVisibleArea().width;
 
+        Font editorFont = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
+
         int problemWidth = inlineProblemLabel.calcWidthInPixels() +
-                getStringWidth(lineText, settings, editor) +
+                new Canvas().getFontMetrics(editorFont).stringWidth(lineText) +
                 existingInlineElementsWidth;
 
         // We add 50 as offset here because the calculation is somehow not exact
-        if (problemWidth + 50 > editorWidth && !settings.isForceErrorsInSameLine())
+        if (problemWidth + 50 > editorWidth && !settings.isForceProblemsInSameLine())
         {
             inlineProblemLabel.setMultiLine(true);
 
@@ -119,17 +120,6 @@ public class InlineDrawer {
         }
 
         problem.setInlineProblemLabelHashCode(inlineProblemLabel.hashCode());
-    }
-
-    private int getStringWidth(String text, SettingsState settings, Editor editor) {
-        Font font;
-
-        if (settings.isUseEditorFont())
-            font = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
-        else
-            font = UIUtil.getToolTipFont();
-
-        return new Canvas().getFontMetrics(font).stringWidth(text);
     }
 
     private void drawProblemLineHighlight(InlineProblem problem) {

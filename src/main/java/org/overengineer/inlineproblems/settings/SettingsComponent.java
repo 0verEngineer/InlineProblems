@@ -2,6 +2,7 @@ package org.overengineer.inlineproblems.settings;
 
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import lombok.Getter;
@@ -31,10 +32,11 @@ public class SettingsComponent {
     private final ColorPanel infoTextColor = new ColorPanel();
     private final ColorPanel infoLabelBackgroundColor = new ColorPanel();
     private final ColorPanel infoHighlightColor = new ColorPanel();
-    private final JBCheckBox forceErrorsInSameLine = new JBCheckBox("Force errors in the same line even if they are to long to fit");
-    private final JBCheckBox drawBoxesAroundErrorLabels = new JBCheckBox("Draw boxes around error labels");
+    private final JBCheckBox forceErrorsInSameLine = new JBCheckBox("Force problems in the same line even if they are to long to fit");
+    private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox("Draw boxes around problem labels");
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox("Rounded corners");
     private final JBCheckBox useEditorFont = new JBCheckBox("Use editor font instead of tooltip font");
+    private final JBCheckBox fillProblemLabals = new JBCheckBox("Fill problem label background");
     private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
 
     @Getter
@@ -68,20 +70,26 @@ public class SettingsComponent {
         infoLabelBackgroundColor.setSelectedColor(settingsState.getInfoBackgroundColor());
         infoHighlightColor.setSelectedColor(settingsState.getInfoHighlightColor());
 
-        forceErrorsInSameLine.setSelected(settingsState.isForceErrorsInSameLine());
-        drawBoxesAroundErrorLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
+        forceErrorsInSameLine.setSelected(settingsState.isForceProblemsInSameLine());
+        drawBoxesAroundProblemLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
         roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
         useEditorFont.setSelected(settingsState.isUseEditorFont());
+        fillProblemLabals.setSelected(settingsState.isFillProblemLabels());
         problemFilterList.setText(settingsState.getProblemFilterList());
 
         settingsPanel = FormBuilder.createFormBuilder()
-                .addComponent(forceErrorsInSameLine, 0)
-                .addComponent(drawBoxesAroundErrorLabels, 0)
+                .addComponent(new JBLabel("Box / Label"))
+                .addComponent(drawBoxesAroundProblemLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
+                .addComponent(fillProblemLabals, 0)
+                .addSeparator()
+                .addComponent(new JBLabel("General"))
+                .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
                 .addLabeledComponent(new JLabel("Problem filter list"), problemFilterList)
                 .addTooltip("Semicolon separated list of problem text beginnings that will not be handled")
                 .addSeparator()
+                .addComponent(new JBLabel("Colors"))
                 .addComponent(showErrors)
                 .addComponent(highlightErrors)
                 .addLabeledComponent(new JLabel("Error text color:"), errorTextColor)
@@ -121,12 +129,12 @@ public class SettingsComponent {
         forceErrorsInSameLine.setSelected(isSelected);
     }
 
-    public boolean isDrawBoxesAroundErrorLabels() {
-        return drawBoxesAroundErrorLabels.isSelected();
+    public boolean getDrawBoxesAroundProblemLabels() {
+        return drawBoxesAroundProblemLabels.isSelected();
     }
 
-    public void setDrawBoxesAroundErrorLabels(final boolean isSelected) {
-        drawBoxesAroundErrorLabels.setSelected(isSelected);
+    public void setDrawBoxesAroundProblemLabels(final boolean isSelected) {
+        drawBoxesAroundProblemLabels.setSelected(isSelected);
     }
 
     public boolean isRoundedCornerBoxes() {
@@ -143,6 +151,14 @@ public class SettingsComponent {
 
     public void setUseEditorFont(boolean isSelected) {
         useEditorFont.setSelected(isSelected);
+    }
+
+    public boolean isFillProblemLabels() {
+        return fillProblemLabals.isSelected();
+    }
+
+    public void setFillProblemLabels(boolean isSelected) {
+        fillProblemLabals.setSelected(isSelected);
     }
 
     public boolean isShowErrors() {

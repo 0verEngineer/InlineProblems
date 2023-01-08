@@ -89,31 +89,53 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Override
     public void paint(@NotNull Inlay inlay, @NotNull Graphics graphics, @NotNull Rectangle targetRegion, @NotNull TextAttributes textAttributes) {
         Editor editor = inlay.getEditor();
+        SettingsState settings = SettingsState.getInstance();
 
         graphics.setFont(font);
 
-        if (isDrawBox) {
-            if (isRoundedCorners) {
-                graphics.setColor(backgroundColor);
+        int width = calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET;
+        int height = calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET;
 
+        if (isDrawBox) {
+            graphics.setColor(backgroundColor);
+
+            if (isRoundedCorners) {
                 graphics.drawRoundRect(
                         targetRegion.x,
                         targetRegion.y,
-                        calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET,
-                        calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET,
+                        width,
+                        height,
                         5,
                         5
                 );
+
+                if (settings.isFillProblemLabels()) {
+                    graphics.fillRoundRect(
+                            targetRegion.x,
+                            targetRegion.y,
+                            width,
+                            height,
+                            5,
+                            5
+                    );
+                }
             }
             else {
-                graphics.setColor(backgroundColor);
+            graphics.drawRect(
+                    targetRegion.x,
+                    targetRegion.y,
+                    width,
+                    height
+            );
 
-                graphics.drawRect(
-                        targetRegion.x,
-                        targetRegion.y,
-                        calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET,
-                        calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET
-                );
+                if (settings.isFillProblemLabels()) {
+                    graphics.fillRect(
+                            targetRegion.x,
+                            targetRegion.y,
+                            width,
+                            height
+                    );
+                }
             }
         }
 
