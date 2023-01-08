@@ -32,6 +32,18 @@
 </div>
 
 ---
+<details>
+    <summary>Screenshots</summary>
+
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/1.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/2.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/3.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/4.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/5.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/6.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/7.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/settings.png)
+</details>
 
 
 <!-- TABLE OF CONTENTS -->

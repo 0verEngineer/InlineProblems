@@ -3,15 +3,15 @@ package org.overengineer.inlineproblems;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.awt.*;
 
@@ -19,7 +19,7 @@ import java.awt.*;
 @Getter
 public class InlineProblemLabel implements EditorCustomElementRenderer {
 
-    private final JBLabel label;
+    private final String text;
     private final Color textColor;
     private final Color backgroundColor;
     private final boolean isDrawBox;
@@ -28,6 +28,13 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Setter
     private boolean isMultiLine;
     private final FontMetrics fontMetrics;
+    private final Font font;
+
+    private static final int WIDTH_OFFSET = 7;
+    private static final int DRAW_BOX_HEIGHT_OFFSET = -2; // Makes the box lines visible even if line below / above is highlighted
+    private static final int DRAW_BOX_WIDTH_OFFSET = -2; // To have space between 2 boxes
+    private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_Y = -1;
+    private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_X = 3;
 
     public InlineProblemLabel(
             final String problemMessage,
@@ -43,10 +50,26 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         this.isMultiLine = isMultiLine;
         this.isDrawBox = isDrawBox;
         this.isRoundedCorners = isRoundedCorners;
+        this.text = problemMessage;
 
-        this.label = new JBLabel(problemMessage);
+        SettingsState settings = SettingsState.getInstance();
 
-        fontMetrics = new Canvas().getFontMetrics(editor.getColorsScheme().getFont(EditorFontType.PLAIN));
+        if (settings.isUseEditorFont()) {
+            font = UIUtil.getFontWithFallback(
+                    editor.getColorsScheme().getFont(EditorFontType.PLAIN).getFontName(),
+                    Font.PLAIN,
+                    editor.getColorsScheme().getEditorFontSize()
+            );
+        }
+        else {
+            font = UIUtil.getFontWithFallback(
+                    UIUtil.getToolTipFont().getFontName(),
+                    Font.PLAIN,
+                    editor.getColorsScheme().getEditorFontSize()
+            );
+        }
+
+        fontMetrics = new Canvas().getFontMetrics(font);
     }
 
     @Override
@@ -55,55 +78,73 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     }
 
     public int calcWidthInPixels() {
-        return fontMetrics.stringWidth(label.getText()) + 2;
+        return fontMetrics.stringWidth(text) + WIDTH_OFFSET;
     }
 
     @Override
     public int calcHeightInPixels(@NotNull Inlay inlay) {
-        return calcHeightInPixels();
-    }
-
-    public int calcHeightInPixels() {
-        // Not guaranteed to be correct, because we are not able to draw the label in the paint method, we use
-        // drawString so the height does not matter to much
-        return label.getPreferredSize().height;
+        return inlay.getEditor().getLineHeight();
     }
 
     @Override
     public void paint(@NotNull Inlay inlay, @NotNull Graphics graphics, @NotNull Rectangle targetRegion, @NotNull TextAttributes textAttributes) {
         Editor editor = inlay.getEditor();
-        EditorColorsScheme colorsScheme = editor.getColorsScheme();
+        SettingsState settings = SettingsState.getInstance();
 
-        graphics.setFont(colorsScheme.getFont(EditorFontType.PLAIN));
+        graphics.setFont(font);
+
+        int width = calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET;
+        int height = calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET;
 
         if (isDrawBox) {
-            if (isRoundedCorners) {
-                graphics.setColor(backgroundColor);
+            graphics.setColor(backgroundColor);
 
-                // The box is somehow a bit off, adjust it here, the text is also moved by 2 pixels
+            if (isRoundedCorners) {
                 graphics.drawRoundRect(
-                        targetRegion.x + 2,
-                        targetRegion.y + 1, // Not centered without the + 1
-                        calcWidthInPixels(),
-                        calcHeightInPixels(),
+                        targetRegion.x,
+                        targetRegion.y,
+                        width,
+                        height,
                         5,
                         5
                 );
+
+                if (settings.isFillProblemLabels()) {
+                    graphics.fillRoundRect(
+                            targetRegion.x,
+                            targetRegion.y,
+                            width,
+                            height,
+                            5,
+                            5
+                    );
+                }
             }
             else {
-                graphics.setColor(backgroundColor);
+            graphics.drawRect(
+                    targetRegion.x,
+                    targetRegion.y,
+                    width,
+                    height
+            );
 
-                graphics.drawRect(
-                        targetRegion.x + 2,
-                        targetRegion.y + 1,
-                        calcWidthInPixels(),
-                        calcHeightInPixels()
-                );
+                if (settings.isFillProblemLabels()) {
+                    graphics.fillRect(
+                            targetRegion.x,
+                            targetRegion.y,
+                            width,
+                            height
+                    );
+                }
             }
         }
 
         graphics.setColor(textColor);
-        graphics.drawString(label.getText(), targetRegion.x + 3, targetRegion.y - 1 + editor.getAscent());
+        graphics.drawString(
+                text,
+                targetRegion.x + DRAW_STRING_LINE_PLACEMENT_OFFSET_X,
+                targetRegion.y + DRAW_STRING_LINE_PLACEMENT_OFFSET_Y + editor.getAscent()
+        );
     }
 
     @Override

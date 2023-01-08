@@ -19,20 +19,30 @@ Plugin to show problems inside the text editor (inline) for IDEs based on the In
 
     <change-notes><![CDATA[
       <ul>
-      <li>
-      <li>0.1.2 Bugfixes</li>
+      <li>0.2.0
+        <ul>
+          <li>- Fixes label size calculation</li>
+          <li>- Adds option to change between editor and tooltip font</li>
+          <li>- Adds fallback font loading</li>
+          <li>- Fixes spacing between two inlay boxes</li>
+          <li>- Adds option for filled inlay boxes</li>
+        </ul>
+      </li>
+      <li>0.1.2 Bugfixes
         <ul>
           <li>- Problem filtering fix</li>
           <li>- Removal / flicker of problems in dual pane mode fix </li>
           <li>- Reload after settings change</li>
         </ul>
-      <li>0.1.1 Bugfixes</li>
+      </li>
+      <li>0.1.1 Bugfixes
         <ul>
           <li>- Removal of labels fix</li>
           <li>- Duplicated problems shown fix</li>
           <li>- Severity checks fix</li>
           <li>- Improves default settings</li>
         </ul>
+      </li>
       <li>0.1.0 Initial release. Basic functionality.</li>
       </ul>
     ]]>

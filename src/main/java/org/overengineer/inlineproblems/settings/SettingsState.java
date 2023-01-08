@@ -43,7 +43,9 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private Color infoHighlightColor = infoBackgroundColor;
     private boolean drawBoxesAroundErrorLabels = true;
     private boolean roundedCornerBoxes = true;
-    private boolean forceErrorsInSameLine = true;
+    private boolean forceProblemsInSameLine = true;
+    private boolean useEditorFont = false;
+    private boolean fillProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
     private String problemFilterList = "todo;fixme";
 
