@@ -19,7 +19,6 @@ Plugin to show problems inside the text editor (inline) for IDEs based on the In
 
     <change-notes><![CDATA[
       <ul>
-      <li>
       <li>0.1.2 Bugfixes</li>
         <ul>
           <li>- Problem filtering fix</li>

@@ -34,6 +34,7 @@ public class SettingsComponent {
     private final JBCheckBox forceErrorsInSameLine = new JBCheckBox("Force errors in the same line even if they are to long to fit");
     private final JBCheckBox drawBoxesAroundErrorLabels = new JBCheckBox("Draw boxes around error labels");
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox("Rounded corners");
+    private final JBCheckBox useEditorFont = new JBCheckBox("Use editor font instead of tooltip font");
     private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
 
     @Getter
@@ -47,28 +48,37 @@ public class SettingsComponent {
         highlightErrors.setSelected(settingsState.isHighlightErrors());
         errorTextColor.setSelectedColor(settingsState.getErrorTextColor());
         errorLabelBackgroundColor.setSelectedColor(settingsState.getErrorBackgroundColor());
+        errorHighlightColor.setSelectedColor(settingsState.getErrorHighlightColor());
 
         showWarnings.setSelected(settingsState.isShowWarnings());
         highlightWarnings.setSelected(settingsState.isHighlightWarnings());
         warningTextColor.setSelectedColor(settingsState.getWarningTextColor());
         warningLabelBackgroundColor.setSelectedColor(settingsState.getWarningBackgroundColor());
+        warningHighlightColor.setSelectedColor(settingsState.getWarningHighlightColor());
 
         showWeakWarnings.setSelected(settingsState.isShowWeakWarnings());
         highlightWeakWarnings.setSelected(settingsState.isHighlightWeakWarnings());
         weakWarningTextColor.setSelectedColor(settingsState.getWeakWarningTextColor());
         weakWarningLabelBackgroundColor.setSelectedColor(settingsState.getWeakWarningBackgroundColor());
+        weakWarningHighlightColor.setSelectedColor(settingsState.getWeakWarningHighlightColor());
 
         showInfos.setSelected(settingsState.isShowInfos());
         highlightInfo.setSelected(settingsState.isHighlightInfos());
         infoTextColor.setSelectedColor(settingsState.getInfoTextColor());
         infoLabelBackgroundColor.setSelectedColor(settingsState.getInfoBackgroundColor());
+        infoHighlightColor.setSelectedColor(settingsState.getInfoHighlightColor());
 
+        forceErrorsInSameLine.setSelected(settingsState.isForceErrorsInSameLine());
+        drawBoxesAroundErrorLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
+        roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
+        useEditorFont.setSelected(settingsState.isUseEditorFont());
         problemFilterList.setText(settingsState.getProblemFilterList());
 
         settingsPanel = FormBuilder.createFormBuilder()
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(drawBoxesAroundErrorLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
+                .addComponent(useEditorFont, 0)
                 .addLabeledComponent(new JLabel("Problem filter list"), problemFilterList)
                 .addTooltip("Semicolon separated list of problem text beginnings that will not be handled")
                 .addSeparator()
@@ -125,6 +135,14 @@ public class SettingsComponent {
 
     public void setRoundedCornerBoxes(boolean isSelected) {
         roundedCornerBoxes.setSelected(isSelected);
+    }
+
+    public boolean isUseEditorFont() {
+        return useEditorFont.isSelected();
+    }
+
+    public void setUseEditorFont(boolean isSelected) {
+        useEditorFont.setSelected(isSelected);
     }
 
     public boolean isShowErrors() {

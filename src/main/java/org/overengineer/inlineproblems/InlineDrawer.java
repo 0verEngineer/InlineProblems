@@ -9,6 +9,7 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.util.ui.UIUtil;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
@@ -92,9 +93,8 @@ public class InlineDrawer {
 
         int editorWidth = editor.getScrollingModel().getVisibleArea().width;
 
-        FontMetrics fontMetrics = new Canvas().getFontMetrics(editor.getColorsScheme().getFont(EditorFontType.PLAIN));
         int problemWidth = inlineProblemLabel.calcWidthInPixels() +
-                fontMetrics.stringWidth(lineText) +
+                getStringWidth(lineText, settings, editor) +
                 existingInlineElementsWidth;
 
         // We add 50 as offset here because the calculation is somehow not exact
@@ -119,6 +119,17 @@ public class InlineDrawer {
         }
 
         problem.setInlineProblemLabelHashCode(inlineProblemLabel.hashCode());
+    }
+
+    private int getStringWidth(String text, SettingsState settings, Editor editor) {
+        Font font;
+
+        if (settings.isUseEditorFont())
+            font = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
+        else
+            font = UIUtil.getToolTipFont();
+
+        return new Canvas().getFontMetrics(font).stringWidth(text);
     }
 
     private void drawProblemLineHighlight(InlineProblem problem) {

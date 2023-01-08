@@ -43,6 +43,7 @@ public class SettingsConfigurable implements Configurable {
         return state.isForceErrorsInSameLine() != settingsComponent.isForceErrorsInSameLine() ||
                 state.isDrawBoxesAroundErrorLabels() != settingsComponent.isDrawBoxesAroundErrorLabels() ||
                 state.isRoundedCornerBoxes() != settingsComponent.isRoundedCornerBoxes() ||
+                state.isUseEditorFont() != settingsComponent.isUseEditorFont() ||
 
                 state.getErrorTextColor() != settingsComponent.getErrorTextColor() ||
                 state.getErrorBackgroundColor() != settingsComponent.getErrorLabelBackgroundColor() ||
@@ -102,6 +103,7 @@ public class SettingsConfigurable implements Configurable {
         state.setForceErrorsInSameLine(settingsComponent.isForceErrorsInSameLine());
         state.setDrawBoxesAroundErrorLabels(settingsComponent.isDrawBoxesAroundErrorLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
+        state.setUseEditorFont(settingsComponent.isUseEditorFont());
 
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
@@ -139,6 +141,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setForceErrorsInSameLine(state.isForceErrorsInSameLine());
         settingsComponent.setDrawBoxesAroundErrorLabels(state.isDrawBoxesAroundErrorLabels());
         settingsComponent.setRoundedCornerBoxes(state.isRoundedCornerBoxes());
+        settingsComponent.setUseEditorFont(state.isUseEditorFont());
 
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
     }
