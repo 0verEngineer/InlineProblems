@@ -47,7 +47,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean useEditorFont = false;
     private boolean fillProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
-    private String problemFilterList = "todo;fixme";
+    private String problemFilterList = "todo;fixme;open in browser";
 
     public static SettingsState getInstance() {
         return ApplicationManager.getApplication().getService(SettingsState.class);
