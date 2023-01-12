@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.OverEngineer"
-version = "0.2.0"
+version = "0.2.1"
 
 repositories {
     mavenCentral()
@@ -17,8 +17,8 @@ dependencies {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2022.1.4")
-    type.set("IC") // Target IDE Platform
+    version.set("2021.2.4")
+    type.set("IC")
 
     plugins.set(listOf(/* Plugin Dependencies */))
 }
@@ -35,7 +35,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("221")
+        sinceBuild.set("212.48")
         untilBuild.set("231.*")
     }
 

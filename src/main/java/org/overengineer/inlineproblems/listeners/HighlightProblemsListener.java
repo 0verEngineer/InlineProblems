@@ -54,6 +54,7 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
         if (lineCount <= 0) {
             // Can be triggered when a file is deleted -> update with empty list
             inlineDrawer.updateFromListOfNewActiveProblems(problems, file.getProject(), textEditor.getFile().getPath());
+            return;
         }
 
         int fileEndOffset = document.getLineEndOffset(lineCount - 1);
@@ -70,7 +71,7 @@ public class HighlightProblemsListener implements HighlightInfoFilter {
                 .map(RangeHighlighter::getErrorStripeTooltip)
                 .filter(h -> h instanceof HighlightInfo)
                 .map(h -> (HighlightInfo)h)
-                .filter(h -> h.getDescription() != null)
+                .filter(h -> h.getDescription() != null && !h.getDescription().isEmpty())
                 .filter(h -> problemTextBeginningFilterList
                         .stream()
                         .noneMatch(p -> h.getDescription().stripLeading().toLowerCase().startsWith(p.stripLeading().toLowerCase())))
