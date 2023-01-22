@@ -5,10 +5,12 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.util.xmlb.annotations.OptionTag;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.overengineer.inlineproblems.utils.ColorConverter;
 
 import java.awt.*;
 
@@ -29,18 +31,43 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean highlightWeakWarnings = false;
     private boolean showInfos = false;
     private boolean highlightInfos = false;
+
+    @OptionTag(converter = ColorConverter.class)
     private Color errorTextColor = new Color(0xEC5151);
+
+    @OptionTag(converter = ColorConverter.class)
     private Color errorBackgroundColor = new Color(0x654243);
+
+    @OptionTag(converter = ColorConverter.class)
     private Color errorHighlightColor = errorBackgroundColor;
+
+    @OptionTag(converter = ColorConverter.class)
     private Color warningTextColor = new Color(0xEC821F);
+
+    @OptionTag(converter = ColorConverter.class)
     private Color warningBackgroundColor = new Color(0x815125);
+
+    @OptionTag(converter = ColorConverter.class)
     private Color warningHighlightColor = warningBackgroundColor;
+
+    @OptionTag(converter = ColorConverter.class)
     private Color weakWarningTextColor = new Color(0xC07937);
+
+    @OptionTag(converter = ColorConverter.class)
     private Color weakWarningBackgroundColor = new Color(0xA47956);
+
+    @OptionTag(converter = ColorConverter.class)
     private Color weakWarningHighlightColor = weakWarningBackgroundColor;
+
+    @OptionTag(converter = ColorConverter.class)
     private Color infoTextColor = new Color(0x3BB1CE);
+
+    @OptionTag(converter = ColorConverter.class)
     private Color infoBackgroundColor = new Color(0x1E5664);
+
+    @OptionTag(converter = ColorConverter.class)
     private Color infoHighlightColor = infoBackgroundColor;
+
     private boolean drawBoxesAroundErrorLabels = true;
     private boolean roundedCornerBoxes = true;
     private boolean forceProblemsInSameLine = true;
