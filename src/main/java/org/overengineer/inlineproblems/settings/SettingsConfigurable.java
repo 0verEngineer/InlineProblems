@@ -40,37 +40,39 @@ public class SettingsConfigurable implements Configurable {
     public boolean isModified() {
         SettingsState state = SettingsState.getInstance();
 
-        return state.isForceProblemsInSameLine() != settingsComponent.isForceErrorsInSameLine() ||
-                state.isDrawBoxesAroundErrorLabels() != settingsComponent.getDrawBoxesAroundProblemLabels() ||
-                state.isRoundedCornerBoxes() != settingsComponent.isRoundedCornerBoxes() ||
-                state.isUseEditorFont() != settingsComponent.isUseEditorFont() ||
-                state.isFillProblemLabels() != settingsComponent.isFillProblemLabels() ||
+        boolean oldStateEqualsNewState = state.isForceProblemsInSameLine() == settingsComponent.isForceErrorsInSameLine() &&
+                state.isDrawBoxesAroundErrorLabels() == settingsComponent.getDrawBoxesAroundProblemLabels() &&
+                state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
+                state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
+                state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
 
-                state.getErrorTextColor() != settingsComponent.getErrorTextColor() ||
-                state.getErrorBackgroundColor() != settingsComponent.getErrorLabelBackgroundColor() ||
-                state.getErrorHighlightColor() != settingsComponent.getErrorHighlightColor() ||
-                state.isShowErrors() != settingsComponent.isShowErrors() ||
-                state.isHighlightErrors() != settingsComponent.isHighlightErrors() ||
+                state.getErrorTextColor().equals(settingsComponent.getErrorTextColor()) &&
+                state.getErrorBackgroundColor().equals(settingsComponent.getErrorLabelBackgroundColor()) &&
+                state.getErrorHighlightColor().equals(settingsComponent.getErrorHighlightColor()) &&
+                state.isShowErrors() == settingsComponent.isShowErrors() &&
+                state.isHighlightErrors() == settingsComponent.isHighlightErrors() &&
 
-                state.getWarningTextColor() != settingsComponent.getWarningTextColor() ||
-                state.getWarningBackgroundColor() != settingsComponent.getWarningLabelBackgroundColor() ||
-                state.getWarningHighlightColor() != settingsComponent.getWarningHighlightColor() ||
-                state.isShowWarnings() != settingsComponent.isShowWarnings() ||
-                state.isHighlightWarnings() != settingsComponent.isHighlightWarnings() ||
+                state.getWarningTextColor().equals(settingsComponent.getWarningTextColor()) &&
+                state.getWarningBackgroundColor().equals(settingsComponent.getWarningLabelBackgroundColor()) &&
+                state.getWarningHighlightColor().equals(settingsComponent.getWarningHighlightColor()) &&
+                state.isShowWarnings() == settingsComponent.isShowWarnings() &&
+                state.isHighlightWarnings() == settingsComponent.isHighlightWarnings() &&
 
-                state.getWeakWarningTextColor() != settingsComponent.getWeakWarningTextColor() ||
-                state.getWeakWarningBackgroundColor() != settingsComponent.getWeakWarningLabelBackgroundColor() ||
-                state.getWeakWarningHighlightColor() != settingsComponent.getWeakWarningHighlightColor() ||
-                state.isShowWeakWarnings() != settingsComponent.isShowWeakWarnings() ||
-                state.isHighlightWeakWarnings() != settingsComponent.isHighlightWeakWarnings() ||
+                state.getWeakWarningTextColor().equals(settingsComponent.getWeakWarningTextColor()) &&
+                state.getWeakWarningBackgroundColor().equals(settingsComponent.getWeakWarningLabelBackgroundColor()) &&
+                state.getWeakWarningHighlightColor().equals(settingsComponent.getWeakWarningHighlightColor()) &&
+                state.isShowWeakWarnings() == settingsComponent.isShowWeakWarnings() &&
+                state.isHighlightWeakWarnings() == settingsComponent.isHighlightWeakWarnings() &&
 
-                state.getInfoTextColor() != settingsComponent.getInfoTextColor() ||
-                state.getInfoBackgroundColor() != settingsComponent.getInfoLabelBackgroundColor() ||
-                state.getInfoHighlightColor() != settingsComponent.getInfoHighlightColor() ||
-                state.isShowInfos() != settingsComponent.isShowInfos() ||
-                state.isHighlightInfos() != settingsComponent.isHighlightInfo() ||
+                state.getInfoTextColor().equals(settingsComponent.getInfoTextColor()) &&
+                state.getInfoBackgroundColor().equals(settingsComponent.getInfoLabelBackgroundColor()) &&
+                state.getInfoHighlightColor().equals(settingsComponent.getInfoHighlightColor()) &&
+                state.isShowInfos() == settingsComponent.isShowInfos() &&
+                state.isHighlightInfos() == settingsComponent.isHighlightInfo() &&
 
-                state.getProblemFilterList() != settingsComponent.getProblemFilterList();
+                state.getProblemFilterList().equals(settingsComponent.getProblemFilterList());
+
+        return !oldStateEqualsNewState;
     }
 
     @Override
