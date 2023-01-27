@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.overengineer.inlineproblems.entities.enums.Listeners;
 
 import java.awt.*;
 
@@ -47,6 +48,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean useEditorFont = false;
     private boolean fillProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
+    private int enabledListener = Listeners.HIGHLIGHT_PROBLEMS_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";
 
     public static SettingsState getInstance() {

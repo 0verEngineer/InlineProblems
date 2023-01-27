@@ -1,11 +1,14 @@
 package org.overengineer.inlineproblems.settings;
 
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import lombok.Getter;
+import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
+import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,12 +39,14 @@ public class SettingsComponent {
     private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox("Draw boxes around problem labels");
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox("Rounded corners");
     private final JBCheckBox useEditorFont = new JBCheckBox("Use editor font instead of tooltip font");
-    private final JBCheckBox fillProblemLabals = new JBCheckBox("Fill problem label background");
+    private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
     private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
+
+    private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME};
+    private final JComboBox<String> enabledListener = new ComboBox<>(availableListeners);
 
     @Getter
     private final JPanel settingsPanel;
-
 
     public SettingsComponent() {
         SettingsState settingsState = SettingsState.getInstance();
@@ -74,16 +79,23 @@ public class SettingsComponent {
         drawBoxesAroundProblemLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
         roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
         useEditorFont.setSelected(settingsState.isUseEditorFont());
-        fillProblemLabals.setSelected(settingsState.isFillProblemLabels());
+        fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
         problemFilterList.setText(settingsState.getProblemFilterList());
+
+        enabledListener.setSelectedItem(settingsState.getEnabledListener());
+
+        Dimension enabledListenerDimension = enabledListener.getPreferredSize();
+        enabledListenerDimension.width += 100;
+        enabledListener.setPreferredSize(enabledListenerDimension);
 
         settingsPanel = FormBuilder.createFormBuilder()
                 .addComponent(new JBLabel("Box / Label"))
                 .addComponent(drawBoxesAroundProblemLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
-                .addComponent(fillProblemLabals, 0)
+                .addComponent(fillProblemLabels, 0)
                 .addSeparator()
                 .addComponent(new JBLabel("General"))
+                .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
                 .addLabeledComponent(new JLabel("Problem filter list"), problemFilterList)
@@ -154,11 +166,11 @@ public class SettingsComponent {
     }
 
     public boolean isFillProblemLabels() {
-        return fillProblemLabals.isSelected();
+        return fillProblemLabels.isSelected();
     }
 
     public void setFillProblemLabels(boolean isSelected) {
-        fillProblemLabals.setSelected(isSelected);
+        fillProblemLabels.setSelected(isSelected);
     }
 
     public boolean isShowErrors() {
@@ -327,5 +339,13 @@ public class SettingsComponent {
 
     public void setProblemFilterList(final String newText) {
         problemFilterList.setText(newText);
+    }
+
+    public int getEnabledListener() {
+        return enabledListener.getSelectedIndex();
+    }
+
+    public void setEnabledListener(int index) {
+        enabledListener.setSelectedIndex(index);
     }
 }

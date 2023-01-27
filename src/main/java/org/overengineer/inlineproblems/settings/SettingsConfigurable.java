@@ -70,12 +70,15 @@ public class SettingsConfigurable implements Configurable {
                 state.isShowInfos() != settingsComponent.isShowInfos() ||
                 state.isHighlightInfos() != settingsComponent.isHighlightInfo() ||
 
+                state.getEnabledListener() != settingsComponent.getEnabledListener() ||
                 state.getProblemFilterList() != settingsComponent.getProblemFilterList();
     }
 
     @Override
     public void apply() {
         SettingsState state = SettingsState.getInstance();
+
+        boolean listenerChanged = state.getEnabledListener() != settingsComponent.getEnabledListener();
 
         state.setShowErrors(settingsComponent.isShowErrors());
         state.setHighlightErrors(settingsComponent.isHighlightErrors());
@@ -107,9 +110,10 @@ public class SettingsConfigurable implements Configurable {
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
 
+        state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
-        inlineDrawer.reset();
+        inlineDrawer.reset(state.getEnabledListener(), listenerChanged);
     }
 
     @Override
@@ -146,6 +150,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setUseEditorFont(state.isUseEditorFont());
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
 
+        settingsComponent.setEnabledListener(state.getEnabledListener());
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
     }
 

@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.awt.*;
@@ -37,7 +38,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_X = 3;
 
     public InlineProblemLabel(
-            final String problemMessage,
+            final InlineProblem problem,
             final Color textColor,
             final Color backgroundColor,
             final boolean isMultiLine,
@@ -50,7 +51,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         this.isMultiLine = isMultiLine;
         this.isDrawBox = isDrawBox;
         this.isRoundedCorners = isRoundedCorners;
-        this.text = problemMessage;
+        this.text = problem.getText();
 
         SettingsState settings = SettingsState.getInstance();
 
