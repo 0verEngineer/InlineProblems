@@ -5,6 +5,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.util.NlsContexts;
 import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.InlineDrawer;
+import org.overengineer.inlineproblems.ProblemManager;
 
 import javax.swing.*;
 
@@ -12,10 +13,10 @@ import javax.swing.*;
 public class SettingsConfigurable implements Configurable {
 
     private SettingsComponent settingsComponent;
-    private final InlineDrawer inlineDrawer;
+    private final ProblemManager problemManager;
 
     SettingsConfigurable() {
-        inlineDrawer = ApplicationManager.getApplication().getService(InlineDrawer.class);
+        problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
     }
 
     @Override
@@ -69,6 +70,7 @@ public class SettingsConfigurable implements Configurable {
                 state.getInfoHighlightColor().equals(settingsComponent.getInfoHighlightColor()) &&
                 state.isShowInfos() == settingsComponent.isShowInfos() &&
                 state.isHighlightInfos() == settingsComponent.isHighlightInfo() &&
+                state.getEnabledListener() == settingsComponent.getEnabledListener() &&
 
                 state.getProblemFilterList().equals(settingsComponent.getProblemFilterList());
 
@@ -114,7 +116,7 @@ public class SettingsConfigurable implements Configurable {
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
-        inlineDrawer.reset(state.getEnabledListener(), listenerChanged);
+        problemManager.reset(state.getEnabledListener(), listenerChanged);
     }
 
     @Override

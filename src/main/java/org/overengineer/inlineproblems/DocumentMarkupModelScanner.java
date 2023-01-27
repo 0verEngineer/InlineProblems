@@ -17,7 +17,7 @@ import java.util.List;
 
 
 public class DocumentMarkupModelScanner {
-    private final InlineDrawer inlineDrawer = ApplicationManager.getApplication().getService(InlineDrawer.class);
+    private final ProblemManager problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
 
     public void scanForProblemsManually(TextEditor textEditor) {
         Editor editor = textEditor.getEditor();
@@ -28,7 +28,7 @@ public class DocumentMarkupModelScanner {
         int lineCount = document.getLineCount();
         if (lineCount <= 0) {
             // Can be triggered when a file is deleted -> update with empty list
-            inlineDrawer.updateFromListOfNewActiveProblems(problems, project, textEditor.getFile().getPath());
+            problemManager.updateFromListOfNewActiveProblems(problems, project, textEditor.getFile().getPath());
             return;
         }
 
@@ -67,6 +67,6 @@ public class DocumentMarkupModelScanner {
                     }
                 });
 
-        inlineDrawer.updateFromListOfNewActiveProblems(problems, editor.getProject(), textEditor.getFile().getPath());
+        problemManager.updateFromListOfNewActiveProblems(problems, editor.getProject(), textEditor.getFile().getPath());
     }
 }

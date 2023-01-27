@@ -10,7 +10,7 @@ import com.intellij.openapi.editor.impl.event.MarkupModelListener;
 import com.intellij.openapi.fileEditor.TextEditor;
 import org.jetbrains.annotations.NotNull;
 import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
-import org.overengineer.inlineproblems.InlineDrawer;
+import org.overengineer.inlineproblems.ProblemManager;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listeners;
 import org.overengineer.inlineproblems.settings.SettingsState;
@@ -18,7 +18,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 
 public class MarkupModelProblemListener implements MarkupModelListener {
     private final SettingsState settingsState;
-    private final InlineDrawer inlineDrawer;
+    private final ProblemManager problemManager;
     private final DocumentMarkupModelScanner markupModelScanner = new DocumentMarkupModelScanner();
     private final String filePath;
     private final TextEditor textEditor;
@@ -36,7 +36,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         this.textEditor = textEditor;
         this.filePath = textEditor.getFile().getPath();
 
-        inlineDrawer = ApplicationManager.getApplication().getService(InlineDrawer.class);
+        problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
         settingsState = SettingsState.getInstance();
     }
 
@@ -64,7 +64,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         }
 
         ((MarkupModelEx) documentMarkupModel).addMarkupModelListener(
-                ApplicationManager.getApplication().getService(InlineDrawer.class),
+                ApplicationManager.getApplication().getService(ProblemManager.class),
                 new MarkupModelProblemListener(textEditor)
         );
     }
@@ -108,19 +108,19 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
         switch (type) {
             case ADD:
-                inlineDrawer.addProblem(problem);
+                problemManager.addProblem(problem);
                 break;
             case REMOVE:
-                if (!inlineDrawer.removeProblemWithRefreshFromActiveProblems(problem)) {
+                if (!problemManager.removeProblemWithRefreshFromActiveProblems(problem)) {
                     markupModelScanner.scanForProblemsManually(textEditor);
                 }
                 break;
             case CHANGE:
-                if(!inlineDrawer.removeProblemWithRefreshFromActiveProblems(problem)) {
+                if(!problemManager.removeProblemWithRefreshFromActiveProblems(problem)) {
                     markupModelScanner.scanForProblemsManually(textEditor);
                 }
                 else {
-                    inlineDrawer.addProblem(problem);
+                    problemManager.addProblem(problem);
                 }
                 break;
         }
