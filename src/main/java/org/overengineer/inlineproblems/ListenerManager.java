@@ -8,11 +8,18 @@ import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 
 
 public class ListenerManager {
-    private final Logger logger;
+    private final Logger logger = Logger.getInstance(ListenerManager.class);
 
-    public ListenerManager() {
-        logger = Logger.getInstance(ListenerManager.class);
+    private static ListenerManager instance;
+
+    public static ListenerManager getInstance() {
+        if (instance == null)
+            instance = new ListenerManager();
+
+        return instance;
     }
+
+    private ListenerManager() {}
 
     public void installMarkupModelListenerOnAllProjects() {
         ProjectManager manager = ProjectManager.getInstanceIfCreated();

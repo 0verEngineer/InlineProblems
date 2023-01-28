@@ -19,6 +19,7 @@ public class HighlightProblemListener implements HighlightInfoFilter {
     private final SettingsState settingsState = SettingsState.getInstance();
 
     public static final String NAME = "HighlightProblemListener";
+    public static final int MANUAL_SCAN_FREQUENCY_MILLIS = 2000;
 
     @Override
     public boolean accept(@NotNull HighlightInfo highlightInfo, @Nullable PsiFile file) {

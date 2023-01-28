@@ -81,8 +81,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
         if (isUnityProject) {
             // todo does not work reliably at all
-            //  -> use a typedHandler and a timer
-            //  -> or use something like invokeLater but with a delay
+            //  -> use manual scanning with frequency
 
             markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
             return;

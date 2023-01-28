@@ -5,7 +5,6 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.overengineer.inlineproblems.entities.InlineProblem;
-import org.overengineer.inlineproblems.entities.enums.Listeners;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +13,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProblemManager implements Disposable {
     private final List<InlineProblem> activeProblems = new ArrayList<>();
-
-    private final ListenerManager listenerManager = new ListenerManager();
 
     private final InlineDrawer inlineDrawer = new InlineDrawer();
 
@@ -90,14 +87,6 @@ public class ProblemManager implements Disposable {
         inlineDrawer.drawProblemLineHighlight(problem);
 
         activeProblems.add(problem);
-    }
-
-    public void reset(int enabledListener, boolean listenerChanged) {
-        reset();
-
-        if (listenerChanged && enabledListener == Listeners.MARKUP_MODEL_LISTENER) {
-            listenerManager.installMarkupModelListenerOnAllProjects();
-        }
     }
 
     public void reset() {

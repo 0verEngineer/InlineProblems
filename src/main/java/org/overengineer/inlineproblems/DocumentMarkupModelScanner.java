@@ -10,15 +10,22 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.ProjectManager;
 import org.overengineer.inlineproblems.entities.InlineProblem;
+import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class DocumentMarkupModelScanner {
     private final ProblemManager problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
+
+    private final AtomicBoolean isManualScanEnabled = new AtomicBoolean(true);
+
+    private final AtomicInteger frequencyMilliseconds = new AtomicInteger(HighlightProblemListener.MANUAL_SCAN_FREQUENCY_MILLIS);
 
     private static DocumentMarkupModelScanner instance;
 
@@ -29,7 +36,23 @@ public class DocumentMarkupModelScanner {
         return instance;
     }
 
-    private DocumentMarkupModelScanner() {}
+    private DocumentMarkupModelScanner() {
+        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+            @Override
+            public void run() {
+                if (isManualScanEnabled.get())
+                    ApplicationManager.getApplication().invokeLater(() -> {scanForProblemsManually();});
+
+                try {
+                    Thread.sleep(frequencyMilliseconds.get());
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                run();
+            }
+        });
+    }
 
     public void scanForProblemsManually() {
         ProjectManager projectManager = ProjectManager.getInstanceIfCreated();
@@ -88,7 +111,7 @@ public class DocumentMarkupModelScanner {
                         .stream()
                         .noneMatch(p -> h.getDescription().stripLeading().toLowerCase().startsWith(p.stripLeading().toLowerCase())))
                 .forEach(h -> {
-                    if (fileEndOffset > h.getEndOffset()) {
+                    if (fileEndOffset >= h.getEndOffset()) {
                         int line = document.getLineNumber(h.getEndOffset());
 
                         InlineProblem newProblem = new InlineProblem(
@@ -105,5 +128,13 @@ public class DocumentMarkupModelScanner {
                 });
 
         return problems;
+    }
+
+    public void setIsManualScanEnabled(boolean isEnabled) {
+        isManualScanEnabled.set(isEnabled);
+    }
+
+    public void setFrequencyMilliseconds(int newFrequencyMilliseconds) {
+        frequencyMilliseconds.set(newFrequencyMilliseconds);
     }
 }

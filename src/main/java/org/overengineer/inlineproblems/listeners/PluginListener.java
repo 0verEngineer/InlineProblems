@@ -11,7 +11,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 public class PluginListener implements DynamicPluginListener {
     private SettingsState settingsState = SettingsState.getInstance();
     private final static String PLUGIN_ID = "org.overengineer.inlineproblems";
-    private final ListenerManager listenerManager = new ListenerManager();
+    private final ListenerManager listenerManager = ListenerManager.getInstance();
 
     @Override
     public void pluginLoaded(@NotNull IdeaPluginDescriptor descriptor) {

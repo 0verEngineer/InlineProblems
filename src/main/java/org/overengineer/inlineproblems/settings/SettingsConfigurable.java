@@ -5,7 +5,10 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.util.NlsContexts;
 import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
+import org.overengineer.inlineproblems.ListenerManager;
 import org.overengineer.inlineproblems.ProblemManager;
+import org.overengineer.inlineproblems.entities.enums.Listeners;
+import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 
 import javax.swing.*;
 
@@ -16,11 +19,11 @@ public class SettingsConfigurable implements Configurable {
 
     private final ProblemManager problemManager;
 
-    private final DocumentMarkupModelScanner documentMarkupModelScanner;
+    private final DocumentMarkupModelScanner documentMarkupModelScanner = DocumentMarkupModelScanner.getInstance();
+    private final ListenerManager listenerManager = ListenerManager.getInstance();
 
     SettingsConfigurable() {
         problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
-        documentMarkupModelScanner = DocumentMarkupModelScanner.getInstance();
     }
 
     @Override
@@ -120,7 +123,16 @@ public class SettingsConfigurable implements Configurable {
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
-        problemManager.reset(state.getEnabledListener(), listenerChanged);
+        if (listenerChanged && state.getEnabledListener() == Listeners.MARKUP_MODEL_LISTENER) {
+            documentMarkupModelScanner.setIsManualScanEnabled(false);
+            listenerManager.installMarkupModelListenerOnAllProjects();
+        }
+        else if (listenerChanged && state.getEnabledListener() == Listeners.HIGHLIGHT_PROBLEMS_LISTENER) {
+            documentMarkupModelScanner.setIsManualScanEnabled(true);
+            documentMarkupModelScanner.setFrequencyMilliseconds(HighlightProblemListener.MANUAL_SCAN_FREQUENCY_MILLIS);
+        }
+
+        problemManager.reset();
         documentMarkupModelScanner.scanForProblemsManually();
     }
 
