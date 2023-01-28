@@ -63,10 +63,11 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             );
         }
         else {
+            Font toolTipFont = UIUtil.getToolTipFont();
             font = UIUtil.getFontWithFallback(
-                    UIUtil.getToolTipFont().getFontName(),
-                    Font.PLAIN,
-                    editor.getColorsScheme().getEditorFontSize()
+                    toolTipFont.getFontName(),
+                    toolTipFont.getStyle(),
+                    toolTipFont.getSize()
             );
         }
 

@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
-    private List<InlineProblem> activeProblems = new ArrayList<>();
+    private final List<InlineProblem> activeProblems = new ArrayList<>();
 
-    private ListenerManager listenerManager = new ListenerManager();
+    private final ListenerManager listenerManager = new ListenerManager();
 
-    private InlineDrawer inlineDrawer = new InlineDrawer();
+    private final InlineDrawer inlineDrawer = new InlineDrawer();
 
-    private Logger logger = Logger.getInstance(ProblemManager.class);
+    private final Logger logger = Logger.getInstance(ProblemManager.class);
 
     private static final String RIDER_NAME = "JetBrains Rider";
 
