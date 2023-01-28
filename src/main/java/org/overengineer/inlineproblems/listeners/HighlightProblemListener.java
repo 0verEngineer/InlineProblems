@@ -15,7 +15,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 
 
 public class HighlightProblemListener implements HighlightInfoFilter {
-    private final DocumentMarkupModelScanner markupModelScanner = new DocumentMarkupModelScanner();
+    private final DocumentMarkupModelScanner markupModelScanner = DocumentMarkupModelScanner.getInstance();
     private final SettingsState settingsState = SettingsState.getInstance();
 
     public static final String NAME = "HighlightProblemListener";
@@ -43,6 +43,6 @@ public class HighlightProblemListener implements HighlightInfoFilter {
 
         TextEditor textEditor = (TextEditor) editor;
 
-        markupModelScanner.scanForProblemsManually(textEditor);
+        markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
     }
 }

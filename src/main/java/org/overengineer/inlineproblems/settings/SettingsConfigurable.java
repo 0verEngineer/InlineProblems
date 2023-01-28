@@ -4,7 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.util.NlsContexts;
 import org.jetbrains.annotations.Nullable;
-import org.overengineer.inlineproblems.InlineDrawer;
+import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.ProblemManager;
 
 import javax.swing.*;
@@ -13,10 +13,14 @@ import javax.swing.*;
 public class SettingsConfigurable implements Configurable {
 
     private SettingsComponent settingsComponent;
+
     private final ProblemManager problemManager;
+
+    private final DocumentMarkupModelScanner documentMarkupModelScanner;
 
     SettingsConfigurable() {
         problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
+        documentMarkupModelScanner = DocumentMarkupModelScanner.getInstance();
     }
 
     @Override
@@ -117,6 +121,7 @@ public class SettingsConfigurable implements Configurable {
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
         problemManager.reset(state.getEnabledListener(), listenerChanged);
+        documentMarkupModelScanner.scanForProblemsManually();
     }
 
     @Override

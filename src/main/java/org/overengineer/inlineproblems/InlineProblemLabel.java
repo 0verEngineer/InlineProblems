@@ -95,6 +95,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
 
         graphics.setFont(font);
 
+        // This offsets are applied here and not in the calc functions itself because we use it to shrink the drawn stuff a little bit
         int width = calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET;
         int height = calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET;
 

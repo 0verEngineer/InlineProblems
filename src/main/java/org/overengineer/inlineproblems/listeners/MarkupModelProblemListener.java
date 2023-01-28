@@ -19,7 +19,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 public class MarkupModelProblemListener implements MarkupModelListener {
     private final SettingsState settingsState;
     private final ProblemManager problemManager;
-    private final DocumentMarkupModelScanner markupModelScanner = new DocumentMarkupModelScanner();
+    private final DocumentMarkupModelScanner markupModelScanner;
     private final String filePath;
     private final TextEditor textEditor;
     private boolean isUnityProject = false;
@@ -37,6 +37,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         this.filePath = textEditor.getFile().getPath();
 
         problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
+        markupModelScanner = DocumentMarkupModelScanner.getInstance();
         settingsState = SettingsState.getInstance();
     }
 
@@ -76,12 +77,14 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         Editor editor = textEditor.getEditor();
 
         if (editor.isDisposed())
+            return;
 
         if (isUnityProject) {
             // todo does not work reliably at all
             //  -> use a typedHandler and a timer
+            //  -> or use something like invokeLater but with a delay
 
-            markupModelScanner.scanForProblemsManually(textEditor);
+            markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
             return;
         }
 
@@ -112,12 +115,12 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                 break;
             case REMOVE:
                 if (!problemManager.removeProblemWithRefreshFromActiveProblems(problem)) {
-                    markupModelScanner.scanForProblemsManually(textEditor);
+                    markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
                 }
                 break;
             case CHANGE:
                 if(!problemManager.removeProblemWithRefreshFromActiveProblems(problem)) {
-                    markupModelScanner.scanForProblemsManually(textEditor);
+                    markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
                 }
                 else {
                     problemManager.addProblem(problem);

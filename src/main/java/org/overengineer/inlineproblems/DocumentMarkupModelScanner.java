@@ -6,8 +6,9 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
@@ -19,17 +20,53 @@ import java.util.List;
 public class DocumentMarkupModelScanner {
     private final ProblemManager problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
 
-    public void scanForProblemsManually(TextEditor textEditor) {
+    private static DocumentMarkupModelScanner instance;
+
+    public static DocumentMarkupModelScanner getInstance() {
+        if (instance == null)
+            instance = new DocumentMarkupModelScanner();
+
+        return instance;
+    }
+
+    private DocumentMarkupModelScanner() {}
+
+    public void scanForProblemsManually() {
+        ProjectManager projectManager = ProjectManager.getInstanceIfCreated();
+
+        if (projectManager != null) {
+            List<InlineProblem> problems = new ArrayList<>();
+
+            for (var project : projectManager.getOpenProjects()) {
+                FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+                for (var editor : fileEditorManager.getAllEditors()) {
+                    if (editor instanceof TextEditor) {
+                        problems.addAll(getProblemsInEditor((TextEditor) editor));
+                    }
+                }
+            }
+
+            problemManager.updateFromNewActiveProblems(problems);
+        }
+    }
+
+    public void scanForProblemsManuallyInEditor(TextEditor textEditor) {
+        List<InlineProblem> problems = getProblemsInEditor(textEditor);
+        problemManager.updateFromNewActiveProblemsForProjectAndFile(
+                problems,
+                textEditor.getEditor().getProject(),
+                textEditor.getFile().getPath()
+        );
+    }
+
+    private List<InlineProblem> getProblemsInEditor(TextEditor textEditor) {
         Editor editor = textEditor.getEditor();
         Document document = editor.getDocument();
-        Project project = editor.getProject();
         List<InlineProblem> problems = new ArrayList<>();
 
         int lineCount = document.getLineCount();
         if (lineCount <= 0) {
-            // Can be triggered when a file is deleted -> update with empty list
-            problemManager.updateFromListOfNewActiveProblems(problems, project, textEditor.getFile().getPath());
-            return;
+            return problems;
         }
 
         int fileEndOffset = document.getLineEndOffset(lineCount - 1);
@@ -67,6 +104,6 @@ public class DocumentMarkupModelScanner {
                     }
                 });
 
-        problemManager.updateFromListOfNewActiveProblems(problems, editor.getProject(), textEditor.getFile().getPath());
+        return problems;
     }
 }

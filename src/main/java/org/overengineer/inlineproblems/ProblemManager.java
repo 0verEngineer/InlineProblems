@@ -10,7 +10,6 @@ import org.overengineer.inlineproblems.entities.enums.Listeners;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
@@ -42,7 +41,10 @@ public class ProblemManager implements Disposable {
 
         inlineDrawer.undrawErrorLineHighlight(problem);
         inlineDrawer.undrawInlineProblemLabel(problem);
-        activeProblems.remove(problem);
+
+        if (!activeProblems.remove(problem)) {
+            logger.error("Removal of problem failed");
+        }
     }
 
     public boolean removeProblemWithRefreshFromActiveProblems(InlineProblem problem) {
@@ -55,10 +57,10 @@ public class ProblemManager implements Disposable {
 
         List<InlineProblem> problemsToRemove = activeProblemSnapShot.stream()
                 .filter(p -> p.equals(problem))
-                .collect(Collectors.toList());
+                .toList();
 
         if (problemsToRemove.size() != 1) {
-            logger.info("Problem to remove not found, resetting");
+            logger.warn("Problem to remove not found, resetting");
             reset();
             return false;
         }
@@ -103,15 +105,22 @@ public class ProblemManager implements Disposable {
         activeProblemSnapShot.forEach(this::removeProblem);
     }
 
-    public void updateFromListOfNewActiveProblems(List<InlineProblem> problems, Project project, String filePath) {
+    public void updateFromNewActiveProblems(List<InlineProblem> problems) {
+        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
 
-        if (problems.size() == 0 && problems == activeProblems)
-            return;
+        updateFromNewActiveProblems(problems, activeProblemsSnapShot);
+    }
 
-        final List<InlineProblem> processedProblems = new ArrayList<>();
+    public void updateFromNewActiveProblemsForProjectAndFile(List<InlineProblem> problems, Project project, String filePath) {
         final List<InlineProblem> activeProblemsSnapShot = activeProblems.stream()
                 .filter(p -> p.getProject().equals(project) && p.getFile().equals(filePath))
-                .collect(Collectors.toList());
+                .toList();
+
+        updateFromNewActiveProblems(problems, activeProblemsSnapShot);
+    }
+
+    private void updateFromNewActiveProblems(List<InlineProblem> problems, List<InlineProblem> activeProblemsSnapShot) {
+        final List<InlineProblem> processedProblems = new ArrayList<>();
 
         activeProblemsSnapShot.stream()
                 .filter(p -> !problems.contains(p))
