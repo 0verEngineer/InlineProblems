@@ -4,6 +4,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -103,6 +104,7 @@ public class DocumentMarkupModelScanner {
         );
 
         Arrays.stream(highlighters)
+                .filter(RangeMarker::isValid)
                 .map(RangeHighlighter::getErrorStripeTooltip)
                 .filter(h -> h instanceof HighlightInfo)
                 .map(h -> (HighlightInfo)h)
@@ -111,8 +113,8 @@ public class DocumentMarkupModelScanner {
                         .stream()
                         .noneMatch(p -> h.getDescription().stripLeading().toLowerCase().startsWith(p.stripLeading().toLowerCase())))
                 .forEach(h -> {
-                    if (fileEndOffset >= h.getEndOffset()) {
-                        int line = document.getLineNumber(h.getEndOffset());
+                    if (fileEndOffset >= h.getStartOffset()) {
+                        int line = document.getLineNumber(h.getStartOffset());
 
                         InlineProblem newProblem = new InlineProblem(
                                 line,

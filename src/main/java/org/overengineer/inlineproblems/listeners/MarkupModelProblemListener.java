@@ -93,7 +93,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
         int fileEndOffset = editor.getDocument().getLineEndOffset(lineCount - 1);
 
-        if (fileEndOffset < highlighter.getEndOffset()) {
+        if (fileEndOffset < highlighter.getStartOffset()) {
             return;
         }
 
@@ -101,7 +101,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             return;
 
         InlineProblem problem = constructProblem(
-                editor.getDocument().getLineNumber(highlighter.getEndOffset()),
+                editor.getDocument().getLineNumber(highlighter.getStartOffset()),
                 (HighlightInfo) highlighter.getErrorStripeTooltip()
         );
 
