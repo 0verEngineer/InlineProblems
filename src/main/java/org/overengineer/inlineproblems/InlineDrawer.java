@@ -2,7 +2,6 @@ package org.overengineer.inlineproblems;
 
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
@@ -22,7 +21,7 @@ public class InlineDrawer {
         if (!shouldDrawProblemLabel(problem))
             return;
 
-        Editor editor = problem.getEditor();
+        Editor editor = problem.getTextEditor().getEditor();
         SettingsState settings = SettingsState.getInstance();
         var inlayModel = editor.getInlayModel();
 
@@ -36,9 +35,7 @@ public class InlineDrawer {
                 problem,
                 getTextColor(problem, editor),
                 getBackgroundColor(problem, editor),
-                false,
-                settings.isDrawBoxesAroundErrorLabels(),
-                settings.isRoundedCornerBoxes(),
+                settings,
                 editor
         );
 
@@ -71,9 +68,14 @@ public class InlineDrawer {
             );
         }
         else {
+            InlayProperties properties = new InlayProperties()
+                    .relatesToPrecedingText(true)
+                    .disableSoftWrapping(true)
+                    .priority(1);
+
             inlayModel.addAfterLineEndElement(
-                    editor.getDocument().getLineEndOffset(problem.getLine()),
-                    true,
+                    problem.getActualEndOffset(),
+                    properties,
                     inlineProblemLabel
             );
         }
@@ -85,7 +87,7 @@ public class InlineDrawer {
         if (!shouldDrawProblemHighlighter(problem))
             return;
 
-        Editor editor = problem.getEditor();
+        Editor editor = problem.getTextEditor().getEditor();
         TextAttributes textAttributes = new TextAttributes(
                 editor.getColorsScheme().getDefaultForeground(),
                 getHighlightColor(problem, editor),
@@ -106,7 +108,7 @@ public class InlineDrawer {
     }
 
     public void undrawErrorLineHighlight(InlineProblem problem) {
-        MarkupModel markupModel = problem.getEditor().getMarkupModel();
+        MarkupModel markupModel = problem.getTextEditor().getEditor().getMarkupModel();
 
         Arrays.stream(markupModel.getAllHighlighters())
                 .filter(h -> h.isValid() && h.hashCode() == problem.getProblemLineHighlighterHashCode())
@@ -114,7 +116,7 @@ public class InlineDrawer {
     }
 
     public void undrawInlineProblemLabel(InlineProblem problem) {
-        Editor editor = problem.getEditor();
+        Editor editor = problem.getTextEditor().getEditor();
         Document document = editor.getDocument();
 
         // Here is not checked if single or multi line, both are disposed because we do not have the info here

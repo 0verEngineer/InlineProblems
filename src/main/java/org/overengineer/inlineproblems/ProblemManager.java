@@ -3,12 +3,12 @@ package org.overengineer.inlineproblems;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class ProblemManager implements Disposable {
@@ -31,58 +31,25 @@ public class ProblemManager implements Disposable {
     }
 
     public void removeProblem(InlineProblem problem) {
-        if (problem.getProblemInLineCount() > 0) {
-            problem.setProblemInLineCount(problem.getProblemInLineCount() - 1);
+        InlineProblem problemToRemove = findActiveProblemByRangeHighlighterHashCode(problem.getRangeHighlighterHashCode());
+
+        if (problemToRemove == null) {
+            logger.warn("Removal of problem failed, not found by RangeHighlighterHashCode");
+            resetForEditor(problem.getTextEditor().getEditor());
             return;
         }
 
-        inlineDrawer.undrawErrorLineHighlight(problem);
-        inlineDrawer.undrawInlineProblemLabel(problem);
+        inlineDrawer.undrawErrorLineHighlight(problemToRemove);
+        inlineDrawer.undrawInlineProblemLabel(problemToRemove);
 
-        if (!activeProblems.remove(problem)) {
-            logger.error("Removal of problem failed");
+        if (!activeProblems.remove(problemToRemove)) {
+            logger.warn("Removal of problem failed, resetting");
+            resetForEditor(problemToRemove.getTextEditor().getEditor());
+            return;
         }
-    }
-
-    public boolean removeProblemWithRefreshFromActiveProblems(InlineProblem problem) {
-        if (problem.getProblemInLineCount() > 0) {
-            problem.setProblemInLineCount(problem.getProblemInLineCount() - 1);
-            return true;
-        }
-
-        final List<InlineProblem> activeProblemSnapShot = new ArrayList<>(activeProblems);
-
-        List<InlineProblem> problemsToRemove = activeProblemSnapShot.stream()
-                .filter(p -> p.equals(problem))
-                .toList();
-
-        if (problemsToRemove.size() != 1) {
-            logger.warn("Problem to remove not found, resetting");
-            reset();
-            return false;
-        }
-
-        for (var problemToRemove : problemsToRemove) {
-            removeProblem(problemToRemove);
-        }
-
-        return true;
     }
 
     public void addProblem(InlineProblem problem) {
-        AtomicBoolean problemExistsInLine = new AtomicBoolean(false);
-
-        activeProblems.stream()
-                .filter(p -> p.getText().equals(problem.getText()) && p.getLine() == problem.getLine())
-                .findFirst()
-                .ifPresent(p -> {
-                    p.setProblemInLineCount(p.getProblemInLineCount() + 1);
-                    problemExistsInLine.set(true);
-                });
-
-        if (problemExistsInLine.get())
-            return;
-
         inlineDrawer.drawProblemLabel(problem);
         inlineDrawer.drawProblemLineHighlight(problem);
 
@@ -90,8 +57,16 @@ public class ProblemManager implements Disposable {
     }
 
     public void reset() {
-        final List<InlineProblem> activeProblemSnapShot = new ArrayList<>(activeProblems);
+        final List<InlineProblem> activeProblemSnapShot = List.copyOf(activeProblems);
         activeProblemSnapShot.forEach(this::removeProblem);
+    }
+
+    public void resetForEditor(Editor editor) {
+        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
+
+        activeProblemsSnapShot.stream()
+                .filter(aP -> aP.getTextEditor().getEditor().equals(editor))
+                .forEach(this::removeProblem);
     }
 
     public void updateFromNewActiveProblems(List<InlineProblem> problems) {
@@ -118,5 +93,12 @@ public class ProblemManager implements Disposable {
         problems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
                 .forEach(this::addProblem);
+    }
+
+    private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
+        return activeProblems.stream()
+                .filter(p -> p.getRangeHighlighterHashCode() == hashCode)
+                .findFirst()
+                .orElse(null);
     }
 }

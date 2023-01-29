@@ -74,7 +74,7 @@ public class DocumentMarkupModelScanner {
         }
     }
 
-    public void scanForProblemsManuallyInEditor(TextEditor textEditor) {
+    public void scanForProblemsManuallyInTextEditor(TextEditor textEditor) {
         List<InlineProblem> problems = getProblemsInEditor(textEditor);
         problemManager.updateFromNewActiveProblemsForProjectAndFile(
                 problems,
@@ -105,25 +105,27 @@ public class DocumentMarkupModelScanner {
 
         Arrays.stream(highlighters)
                 .filter(RangeMarker::isValid)
-                .map(RangeHighlighter::getErrorStripeTooltip)
-                .filter(h -> h instanceof HighlightInfo)
-                .map(h -> (HighlightInfo)h)
-                .filter(h -> h.getDescription() != null && !h.getDescription().isEmpty())
-                .filter(h -> problemTextBeginningFilterList
-                        .stream()
-                        .noneMatch(p -> h.getDescription().stripLeading().toLowerCase().startsWith(p.stripLeading().toLowerCase())))
+                .filter(h -> {
+                    if (h.getErrorStripeTooltip() instanceof HighlightInfo highlightInfo) {
+                        return highlightInfo.getDescription() != null &&
+                                !highlightInfo.getDescription().isEmpty() &&
+                                problemTextBeginningFilterList.stream()
+                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.stripLeading().toLowerCase()));
+                    }
+
+                    return false;
+                })
                 .forEach(h -> {
-                    if (fileEndOffset >= h.getStartOffset()) {
-                        int line = document.getLineNumber(h.getStartOffset());
+                    HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
+                    if (fileEndOffset >= highlightInfo.getStartOffset()) {
+                        int line = document.getLineNumber(highlightInfo.getStartOffset());
 
                         InlineProblem newProblem = new InlineProblem(
                                 line,
-                                h.getSeverity().myVal,
-                                h.getDescription(),
-                                textEditor.getEditor(),
-                                textEditor.getFile().getPath(),
-                                editor.getProject()
-                        );
+                                highlightInfo,
+                                textEditor,
+                                h
+                                );
 
                         problems.add(newProblem);
                     }

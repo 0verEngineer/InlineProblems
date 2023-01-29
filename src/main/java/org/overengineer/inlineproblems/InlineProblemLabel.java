@@ -25,9 +25,11 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private final Color backgroundColor;
     private final boolean isDrawBox;
     private final boolean isRoundedCorners;
+    private final boolean isFillBackground;
 
     @Setter
     private boolean isMultiLine;
+
     private final FontMetrics fontMetrics;
     private final Font font;
 
@@ -41,19 +43,16 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             final InlineProblem problem,
             final Color textColor,
             final Color backgroundColor,
-            final boolean isMultiLine,
-            final boolean isDrawBox,
-            final boolean isRoundedCorners,
+            final SettingsState settings,
             final Editor editor
     ) {
         this.textColor = textColor;
         this.backgroundColor = backgroundColor;
-        this.isMultiLine = isMultiLine;
-        this.isDrawBox = isDrawBox;
-        this.isRoundedCorners = isRoundedCorners;
+        this.isDrawBox = settings.isDrawBoxesAroundErrorLabels();
+        this.isRoundedCorners = settings.isRoundedCornerBoxes();
         this.text = problem.getText();
-
-        SettingsState settings = SettingsState.getInstance();
+        this.isMultiLine = false;
+        this.isFillBackground = settings.isFillProblemLabels();
 
         if (settings.isUseEditorFont()) {
             font = UIUtil.getFontWithFallback(
@@ -91,7 +90,6 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Override
     public void paint(@NotNull Inlay inlay, @NotNull Graphics graphics, @NotNull Rectangle targetRegion, @NotNull TextAttributes textAttributes) {
         Editor editor = inlay.getEditor();
-        SettingsState settings = SettingsState.getInstance();
 
         graphics.setFont(font);
 
@@ -112,7 +110,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
                         5
                 );
 
-                if (settings.isFillProblemLabels()) {
+                if (isFillBackground) {
                     graphics.fillRoundRect(
                             targetRegion.x,
                             targetRegion.y,
@@ -131,7 +129,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
                     height
             );
 
-                if (settings.isFillProblemLabels()) {
+                if (isFillBackground) {
                     graphics.fillRect(
                             targetRegion.x,
                             targetRegion.y,

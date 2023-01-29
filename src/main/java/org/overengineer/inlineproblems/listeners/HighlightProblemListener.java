@@ -44,6 +44,6 @@ public class HighlightProblemListener implements HighlightInfoFilter {
 
         TextEditor textEditor = (TextEditor) editor;
 
-        markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
+        markupModelScanner.scanForProblemsManuallyInTextEditor(textEditor);
     }
 }

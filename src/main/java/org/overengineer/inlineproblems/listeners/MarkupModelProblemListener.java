@@ -7,6 +7,7 @@ import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.impl.event.MarkupModelListener;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.TextEditor;
 import org.jetbrains.annotations.NotNull;
 import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
@@ -83,7 +84,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             // todo does not work reliably at all
             //  -> use manual scanning with frequency
 
-            markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
+            markupModelScanner.scanForProblemsManuallyInTextEditor(textEditor);
             return;
         }
 
@@ -102,7 +103,8 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
         InlineProblem problem = constructProblem(
                 editor.getDocument().getLineNumber(highlighter.getStartOffset()),
-                (HighlightInfo) highlighter.getErrorStripeTooltip()
+                (HighlightInfo) highlighter.getErrorStripeTooltip(),
+                highlighter
         );
 
         if (problem.getText().equals(""))
@@ -113,35 +115,21 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                 problemManager.addProblem(problem);
                 break;
             case REMOVE:
-                if (!problemManager.removeProblemWithRefreshFromActiveProblems(problem)) {
-                    markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
-                }
+                problemManager.removeProblem(problem);
                 break;
             case CHANGE:
-                if(!problemManager.removeProblemWithRefreshFromActiveProblems(problem)) {
-                    markupModelScanner.scanForProblemsManuallyInEditor(textEditor);
-                }
-                else {
-                    problemManager.addProblem(problem);
-                }
+                problemManager.removeProblem(problem);
+                problemManager.addProblem(problem);
                 break;
         }
     }
 
-    private InlineProblem constructProblem(int line, HighlightInfo info) {
-        String usedText = info.getDescription();
-        if (usedText == null)
-            usedText = "";
-
-        var problem =  new InlineProblem(
+    private InlineProblem constructProblem(int line, HighlightInfo info, RangeHighlighter highlighter) {
+        return new InlineProblem(
                 line,
-                info.getSeverity().myVal,
-                usedText,
-                textEditor.getEditor(),
-                filePath,
-                textEditor.getEditor().getProject()
+                info,
+                textEditor,
+                highlighter
         );
-
-        return problem;
     }
 }
