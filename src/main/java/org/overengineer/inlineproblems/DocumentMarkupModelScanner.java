@@ -11,24 +11,31 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.ProjectManager;
 import org.overengineer.inlineproblems.entities.InlineProblem;
+import org.overengineer.inlineproblems.entities.enums.Listeners;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class DocumentMarkupModelScanner {
     private final ProblemManager problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
 
-    private final AtomicBoolean isManualScanEnabled = new AtomicBoolean(true);
+    private final SettingsState settingsState = SettingsState.getInstance();
 
-    private final AtomicInteger frequencyMilliseconds = new AtomicInteger(HighlightProblemListener.MANUAL_SCAN_FREQUENCY_MILLIS);
+    private final AtomicInteger frequencyMilliseconds = new AtomicInteger(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_FREQUENCY_MILLIS);
+
+    // Used to bypass the listener setting
+    private boolean isManualScanEnabled = true;
 
     private static DocumentMarkupModelScanner instance;
+
+    public static final String NAME = "ManualScanner";
+
+    public static final int MANUAL_SCAN_FREQUENCY_MILLIS = 250;
 
     public static DocumentMarkupModelScanner getInstance() {
         if (instance == null)
@@ -41,8 +48,7 @@ public class DocumentMarkupModelScanner {
         ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
             @Override
             public void run() {
-                if (isManualScanEnabled.get())
-                    ApplicationManager.getApplication().invokeLater(() -> {scanForProblemsManually();});
+                ApplicationManager.getApplication().invokeLater(() -> {scanForProblemsManuallyIfEnabled();});
 
                 try {
                     Thread.sleep(frequencyMilliseconds.get());
@@ -53,6 +59,11 @@ public class DocumentMarkupModelScanner {
                 run();
             }
         });
+    }
+
+    private void scanForProblemsManuallyIfEnabled() {
+        if (settingsState.getEnabledListener() == Listeners.MANUAL_SCANNING || isManualScanEnabled)
+            scanForProblemsManually();
     }
 
     public void scanForProblemsManually() {
@@ -106,7 +117,8 @@ public class DocumentMarkupModelScanner {
         Arrays.stream(highlighters)
                 .filter(RangeMarker::isValid)
                 .filter(h -> {
-                    if (h.getErrorStripeTooltip() instanceof HighlightInfo highlightInfo) {
+                    if (h.getErrorStripeTooltip() instanceof HighlightInfo) {
+                        HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
                         return highlightInfo.getDescription() != null &&
                                 !highlightInfo.getDescription().isEmpty() &&
                                 problemTextBeginningFilterList.stream()
@@ -135,7 +147,7 @@ public class DocumentMarkupModelScanner {
     }
 
     public void setIsManualScanEnabled(boolean isEnabled) {
-        isManualScanEnabled.set(isEnabled);
+        isManualScanEnabled = isEnabled;
     }
 
     public void setFrequencyMilliseconds(int newFrequencyMilliseconds) {

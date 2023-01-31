@@ -7,6 +7,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import lombok.Getter;
+import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 
@@ -42,7 +43,7 @@ public class SettingsComponent {
     private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
     private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
 
-    private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME};
+    private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME, DocumentMarkupModelScanner.NAME};
     private final JComboBox<String> enabledListener = new ComboBox<>(availableListeners);
 
     @Getter

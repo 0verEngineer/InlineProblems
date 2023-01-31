@@ -70,6 +70,8 @@ Plugin to show problems inside the text editor (inline) for IDEs based on the In
         <applicationService serviceImplementation="org.overengineer.inlineproblems.settings.SettingsState"/>
         <applicationService serviceImplementation="org.overengineer.inlineproblems.ProblemManager"/>
         <daemon.highlightInfoFilter implementation="org.overengineer.inlineproblems.listeners.HighlightProblemListener" id="org.overengineer.inlineproblems.listeners.HighlightProblemListener" />
+
+        <postStartupActivity implementation="org.overengineer.inlineproblems.ProjectStartupActivity" />
     </extensions>
 
     <projectListeners>

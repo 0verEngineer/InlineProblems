@@ -2,6 +2,7 @@ package org.overengineer.inlineproblems.listeners;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
@@ -23,7 +24,6 @@ public class MarkupModelProblemListener implements MarkupModelListener {
     private final DocumentMarkupModelScanner markupModelScanner;
     private final String filePath;
     private final TextEditor textEditor;
-    private boolean isUnityProject = false;
 
     public static final String NAME = "MarkupModelListener";
 
@@ -79,14 +79,6 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
         if (editor.isDisposed())
             return;
-
-        if (isUnityProject) {
-            // todo does not work reliably at all
-            //  -> use manual scanning with frequency
-
-            markupModelScanner.scanForProblemsManuallyInTextEditor(textEditor);
-            return;
-        }
 
         int lineCount = editor.getDocument().getLineCount();
         if (lineCount <= 0)

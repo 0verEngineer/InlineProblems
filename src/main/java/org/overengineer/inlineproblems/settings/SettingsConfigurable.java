@@ -9,6 +9,7 @@ import org.overengineer.inlineproblems.ListenerManager;
 import org.overengineer.inlineproblems.ProblemManager;
 import org.overengineer.inlineproblems.entities.enums.Listeners;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
+import org.overengineer.inlineproblems.scanners.UnityProjectScanner;
 
 import javax.swing.*;
 
@@ -129,7 +130,11 @@ public class SettingsConfigurable implements Configurable {
         }
         else if (listenerChanged && state.getEnabledListener() == Listeners.HIGHLIGHT_PROBLEMS_LISTENER) {
             documentMarkupModelScanner.setIsManualScanEnabled(true);
-            documentMarkupModelScanner.setFrequencyMilliseconds(HighlightProblemListener.MANUAL_SCAN_FREQUENCY_MILLIS);
+            documentMarkupModelScanner.setFrequencyMilliseconds(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_FREQUENCY_MILLIS);
+        }
+        else if (listenerChanged && state.getEnabledListener() == Listeners.MANUAL_SCANNING) {
+            documentMarkupModelScanner.setIsManualScanEnabled(true);
+            documentMarkupModelScanner.setFrequencyMilliseconds(DocumentMarkupModelScanner.MANUAL_SCAN_FREQUENCY_MILLIS);
         }
 
         problemManager.reset();

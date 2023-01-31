@@ -9,6 +9,7 @@ import org.overengineer.inlineproblems.entities.InlineProblem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
@@ -17,14 +18,6 @@ public class ProblemManager implements Disposable {
     private final InlineDrawer inlineDrawer = new InlineDrawer();
 
     private final Logger logger = Logger.getInstance(ProblemManager.class);
-
-    private static final String RIDER_NAME = "JetBrains Rider";
-
-    public ProblemManager() {
-        if (ApplicationInfo.getInstance().getFullApplicationName().startsWith(RIDER_NAME)) {
-            // todo unity detection
-        }
-    }
 
     public void dispose() {
         reset();
@@ -78,7 +71,7 @@ public class ProblemManager implements Disposable {
     public void updateFromNewActiveProblemsForProjectAndFile(List<InlineProblem> problems, Project project, String filePath) {
         final List<InlineProblem> activeProblemsSnapShot = activeProblems.stream()
                 .filter(p -> p.getProject().equals(project) && p.getFile().equals(filePath))
-                .toList();
+                .collect(Collectors.toList());
 
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
     }
