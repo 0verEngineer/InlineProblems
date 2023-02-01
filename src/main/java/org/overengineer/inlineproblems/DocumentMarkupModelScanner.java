@@ -2,6 +2,7 @@ package org.overengineer.inlineproblems;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.RangeMarker;
@@ -10,6 +11,7 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listeners;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
@@ -18,7 +20,8 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 
 public class DocumentMarkupModelScanner {
@@ -26,12 +29,16 @@ public class DocumentMarkupModelScanner {
 
     private final SettingsState settingsState = SettingsState.getInstance();
 
-    private final AtomicInteger frequencyMilliseconds = new AtomicInteger(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_FREQUENCY_MILLIS);
+    private final Logger logger = Logger.getInstance(DocumentMarkupModelScanner.class);
+
+    private int frequencyMilliseconds = HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_FREQUENCY_MILLIS;
 
     // Used to bypass the listener setting
     private boolean isManualScanEnabled = true;
 
     private static DocumentMarkupModelScanner instance;
+
+    private ScheduledFuture<?> scheduledFuture;
 
     public static final String NAME = "ManualScanner";
 
@@ -45,25 +52,11 @@ public class DocumentMarkupModelScanner {
     }
 
     private DocumentMarkupModelScanner() {
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-            @Override
-            public void run() {
-                ApplicationManager.getApplication().invokeLater(() -> {scanForProblemsManuallyIfEnabled();});
+        if (settingsState.getEnabledListener() == Listeners.MANUAL_SCANNING) {
+            frequencyMilliseconds = MANUAL_SCAN_FREQUENCY_MILLIS;
+        }
 
-                try {
-                    Thread.sleep(frequencyMilliseconds.get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-
-                run();
-            }
-        });
-    }
-
-    private void scanForProblemsManuallyIfEnabled() {
-        if (settingsState.getEnabledListener() == Listeners.MANUAL_SCANNING || isManualScanEnabled)
-            scanForProblemsManually();
+        createAndStartScheduledFuture();
     }
 
     public void scanForProblemsManually() {
@@ -148,9 +141,35 @@ public class DocumentMarkupModelScanner {
 
     public void setIsManualScanEnabled(boolean isEnabled) {
         isManualScanEnabled = isEnabled;
+
+        if (isEnabled && scheduledFuture.isCancelled()) {
+            createAndStartScheduledFuture();
+        }
+        else if (!isEnabled && !scheduledFuture.isCancelled()) {
+            cancelScheduledFuture();
+        }
     }
 
     public void setFrequencyMilliseconds(int newFrequencyMilliseconds) {
-        frequencyMilliseconds.set(newFrequencyMilliseconds);
+        frequencyMilliseconds = newFrequencyMilliseconds;
+        cancelScheduledFuture();
+        createAndStartScheduledFuture();
+    }
+
+    private void cancelScheduledFuture() {
+        if (!scheduledFuture.cancel(false)) {
+            if (!scheduledFuture.cancel(true)) {
+                logger.warn("Unable to cancel scheduledFuture");
+            }
+        }
+    }
+
+    private void createAndStartScheduledFuture() {
+        scheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(
+                () -> ApplicationManager.getApplication().invokeLater(this::scanForProblemsManually),
+                0,
+                frequencyMilliseconds,
+                TimeUnit.MILLISECONDS
+        );
     }
 }
