@@ -4,7 +4,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.entities.enums.Listeners;
-import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.io.*;

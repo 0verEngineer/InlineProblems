@@ -1,9 +1,12 @@
 package org.overengineer.inlineproblems;
 
+import com.intellij.ide.ui.AntialiasingType;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
 import com.intellij.openapi.editor.colors.EditorFontType;
+import com.intellij.openapi.editor.impl.FontInfo;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.util.ui.UIUtil;
@@ -15,6 +18,7 @@ import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
 
 
 @Getter
@@ -30,8 +34,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Setter
     private boolean isMultiLine;
 
-    private final FontMetrics fontMetrics;
-    private final Font font;
+    private boolean isUseEditorFont = false;
 
     private static final int WIDTH_OFFSET = 7;
     private static final int DRAW_BOX_HEIGHT_OFFSET = -2; // Makes the box lines visible even if line below / above is highlighted
@@ -43,8 +46,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             final InlineProblem problem,
             final Color textColor,
             final Color backgroundColor,
-            final SettingsState settings,
-            final Editor editor
+            final SettingsState settings
     ) {
         this.textColor = textColor;
         this.backgroundColor = backgroundColor;
@@ -54,31 +56,22 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         this.isMultiLine = false;
         this.isFillBackground = settings.isFillProblemLabels();
 
-        if (settings.isUseEditorFont()) {
-            font = UIUtil.getFontWithFallback(
-                    editor.getColorsScheme().getFont(EditorFontType.PLAIN).getFontName(),
-                    Font.PLAIN,
-                    editor.getColorsScheme().getEditorFontSize()
-            );
-        }
-        else {
-            Font toolTipFont = UIUtil.getToolTipFont();
-            font = UIUtil.getFontWithFallback(
-                    toolTipFont.getFontName(),
-                    toolTipFont.getStyle(),
-                    toolTipFont.getSize()
-            );
-        }
-
-        fontMetrics = new Canvas().getFontMetrics(font);
+        this.isUseEditorFont = settings.isUseEditorFont();
     }
 
     @Override
     public int calcWidthInPixels(@NotNull Inlay inlay) {
-        return calcWidthInPixels();
+        return calcWidthInPixels(inlay.getEditor());
     }
 
-    public int calcWidthInPixels() {
+    public int calcWidthInPixels(@NotNull Editor editor) {
+        var editorContext = FontInfo.getFontRenderContext(editor.getComponent());
+        var context = new FontRenderContext(editorContext.getTransform(),
+                AntialiasingType.getKeyForCurrentScope(false),
+                UISettings.getEditorFractionalMetricsHint());
+
+        var fontMetrics = FontInfo.getFontMetrics(getActiveFont(editor), context);
+
         return fontMetrics.stringWidth(text) + WIDTH_OFFSET;
     }
 
@@ -91,7 +84,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     public void paint(@NotNull Inlay inlay, @NotNull Graphics graphics, @NotNull Rectangle targetRegion, @NotNull TextAttributes textAttributes) {
         Editor editor = inlay.getEditor();
 
-        graphics.setFont(font);
+        graphics.setFont(getActiveFont(editor));
 
         // This offsets are applied here and not in the calc functions itself because we use it to shrink the drawn stuff a little bit
         int width = calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET;
@@ -151,5 +144,23 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Override
     public @Nullable GutterIconRenderer calcGutterIconRenderer(@NotNull Inlay inlay) {
         return EditorCustomElementRenderer.super.calcGutterIconRenderer(inlay);
+    }
+
+    private Font getActiveFont(Editor editor) {
+        if (isUseEditorFont) {
+            return UIUtil.getFontWithFallback(
+                    editor.getColorsScheme().getFont(EditorFontType.PLAIN).getFontName(),
+                    Font.PLAIN,
+                    editor.getColorsScheme().getEditorFontSize()
+            );
+        }
+        else {
+            Font toolTipFont = UIUtil.getToolTipFont();
+            return UIUtil.getFontWithFallback(
+                    toolTipFont.getFontName(),
+                    toolTipFont.getStyle(),
+                    editor.getColorsScheme().getEditorFontSize() // to have the labels change when changing font size
+            );
+        }
     }
 }

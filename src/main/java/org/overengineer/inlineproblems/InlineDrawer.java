@@ -35,8 +35,7 @@ public class InlineDrawer {
                 problem,
                 getTextColor(problem, editor),
                 getBackgroundColor(problem, editor),
-                settings,
-                editor
+                settings
         );
 
         // To get the potential width of the whole line with the problem text including existent inline elements
@@ -50,7 +49,7 @@ public class InlineDrawer {
 
         Font editorFont = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
 
-        int problemWidth = inlineProblemLabel.calcWidthInPixels() +
+        int problemWidth = inlineProblemLabel.calcWidthInPixels(editor) +
                 new Canvas().getFontMetrics(editorFont).stringWidth(lineText) +
                 existingInlineElementsWidth;
 
