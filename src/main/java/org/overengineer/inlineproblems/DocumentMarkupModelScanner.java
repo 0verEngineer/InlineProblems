@@ -115,7 +115,7 @@ public class DocumentMarkupModelScanner {
                         return highlightInfo.getDescription() != null &&
                                 !highlightInfo.getDescription().isEmpty() &&
                                 problemTextBeginningFilterList.stream()
-                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.stripLeading().toLowerCase()));
+                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase()));
                     }
 
                     return false;

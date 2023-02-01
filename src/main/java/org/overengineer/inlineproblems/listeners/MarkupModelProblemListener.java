@@ -2,7 +2,6 @@ package org.overengineer.inlineproblems.listeners;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
@@ -17,11 +16,14 @@ import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listeners;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 
 public class MarkupModelProblemListener implements MarkupModelListener {
     private final SettingsState settingsState;
     private final ProblemManager problemManager;
-    private final DocumentMarkupModelScanner markupModelScanner;
     private final String filePath;
     private final TextEditor textEditor;
 
@@ -38,7 +40,6 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         this.filePath = textEditor.getFile().getPath();
 
         problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
-        markupModelScanner = DocumentMarkupModelScanner.getInstance();
         settingsState = SettingsState.getInstance();
     }
 
@@ -99,8 +100,17 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                 highlighter
         );
 
-        if (problem.getText().equals(""))
+        List<String> problemTextBeginningFilterList = new ArrayList<>(
+                Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
+        );
+
+        if (
+                problem.getText().equals("") ||
+                        problemTextBeginningFilterList.stream()
+                                .anyMatch(f -> problem.getText().toLowerCase().startsWith(f.toLowerCase()))
+        ) {
             return;
+        }
 
         switch (type) {
             case ADD:

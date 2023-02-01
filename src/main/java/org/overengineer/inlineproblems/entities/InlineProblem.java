@@ -48,6 +48,8 @@ public class InlineProblem {
         String usedText = highlightInfo.getDescription();
         if (usedText == null)
             usedText = "";
+        else
+            usedText = usedText.stripLeading();
 
         this.line = line;
         this.text = usedText;
