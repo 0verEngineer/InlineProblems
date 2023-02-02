@@ -1,7 +1,6 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;

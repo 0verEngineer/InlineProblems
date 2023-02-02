@@ -1,6 +1,7 @@
 package org.overengineer.inlineproblems.listeners;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.MarkupModelEx;
@@ -9,8 +10,9 @@ import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.impl.event.MarkupModelListener;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
-import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
+import org.overengineer.inlineproblems.InlineDrawer;
 import org.overengineer.inlineproblems.ProblemManager;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listeners;
@@ -26,6 +28,8 @@ public class MarkupModelProblemListener implements MarkupModelListener {
     private final ProblemManager problemManager;
     private final String filePath;
     private final TextEditor textEditor;
+
+    private static final List<Disposable> disposables = new ArrayList<>();
 
     public static final String NAME = "MarkupModelListener";
 
@@ -66,10 +70,23 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             return;
         }
 
+        Disposable disposable = new MarkupModelProblemListenerDisposable();
+        Disposer.register(ApplicationManager.getApplication().getService(ProblemManager.class), disposable);
+
         ((MarkupModelEx) documentMarkupModel).addMarkupModelListener(
-                ApplicationManager.getApplication().getService(ProblemManager.class),
+                disposable,
                 new MarkupModelProblemListener(textEditor)
         );
+
+        disposables.add(disposable);
+    }
+
+    public static void disposeAll() {
+        List.copyOf(disposables)
+                .forEach(d -> {
+                    Disposer.dispose(d);
+                    disposables.remove(d);
+                });
     }
 
     private void handleEvent(EventType type, @NotNull RangeHighlighterEx highlighter) {

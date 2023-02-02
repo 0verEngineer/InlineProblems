@@ -9,6 +9,7 @@ import org.overengineer.inlineproblems.ListenerManager;
 import org.overengineer.inlineproblems.ProblemManager;
 import org.overengineer.inlineproblems.entities.enums.Listeners;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
+import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 import org.overengineer.inlineproblems.scanners.UnityProjectScanner;
 
 import javax.swing.*;
@@ -123,6 +124,10 @@ public class SettingsConfigurable implements Configurable {
 
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
+
+        if (listenerChanged && state.getEnabledListener() != Listeners.MARKUP_MODEL_LISTENER) {
+            MarkupModelProblemListener.disposeAll();
+        }
 
         if (listenerChanged && state.getEnabledListener() == Listeners.MARKUP_MODEL_LISTENER) {
             documentMarkupModelScanner.setIsManualScanEnabled(false);
