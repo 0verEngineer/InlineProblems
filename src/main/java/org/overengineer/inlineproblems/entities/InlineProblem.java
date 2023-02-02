@@ -4,6 +4,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +50,7 @@ public class InlineProblem {
         if (usedText == null)
             usedText = "";
         else
-            usedText = usedText.stripLeading();
+            usedText = getTextWithoutHtmlOrXml(usedText.stripLeading());
 
         this.line = line;
         this.text = usedText;
@@ -64,5 +65,15 @@ public class InlineProblem {
             this.actualEndOffset = highlightInfo.getActualEndOffset();
         else
             this.actualEndOffset = highlightInfo.getActualEndOffset() -1;
+    }
+
+    private String getTextWithoutHtmlOrXml(String text) {
+        if (text.contains("<"))
+            text = StringUtil.stripHtml(text, " ");
+
+        if (text.contains("&"))
+            text = StringUtil.unescapeXmlEntities(text);
+
+        return text;
     }
 }

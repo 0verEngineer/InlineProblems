@@ -23,6 +23,8 @@
     Plugin to show problems inside the text editor for IDEs based on the IntelliJ Platform
     <br />
     <br />
+    <a href="https://plugins.jetbrains.com/plugin/20789-inlineproblems">Jetbrains Marketplace</a>
+    .
     <a href="https://github.com/0verEngineer/InlineProblems/issues">Report Bug</a>
     ·
     <a href="https://github.com/0verEngineer/InlineProblems/issues">Request Feature</a>

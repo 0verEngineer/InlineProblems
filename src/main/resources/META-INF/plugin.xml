@@ -14,7 +14,7 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-Plugin to show problems inside the text editor (inline) for IDEs based on the IntelliJ Platform
+Plugin to show problems like errors and warnings inside the text editor (inline) for IDEs based on the IntelliJ Platform, inspired by Error Lens and InlineError
 ]]></description>
 
     <change-notes><![CDATA[
