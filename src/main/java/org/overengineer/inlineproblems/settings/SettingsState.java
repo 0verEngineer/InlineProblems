@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.utils.ColorConverter;
 
 import java.awt.*;
@@ -33,17 +34,18 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean showInfos = false;
     private boolean highlightInfos = false;
 
-    @OptionTag(converter = ColorConverter.class)
-    private Color errorTextCol = new Color(0xEC5151);
-
     /**
-     * Rename {@code errorBackgroundColor} to {@code errorBackgroundCol} to solve
+     * Colors renamed from '<NAME>Color' to '<NAME>Col' to solve
      * the compatibility issue with old version persisted xml setting file.
      *
      * @see <a href="https://github.com/0verEngineer/InlineProblems/pull/10">Github discussion</a>
      */
+
     @OptionTag(converter = ColorConverter.class)
     private Color errorBackgroundCol = new Color(0x654243);
+
+    @OptionTag(converter = ColorConverter.class)
+    private Color errorTextCol = new Color(0xEC5151);
 
     @OptionTag(converter = ColorConverter.class)
     private Color errorHighlightCol = errorBackgroundCol;
@@ -81,6 +83,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean useEditorFont = false;
     private boolean fillProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
+    private int enabledListener = Listener.HIGHLIGHT_PROBLEMS_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";
 
     public static SettingsState getInstance() {
