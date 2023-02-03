@@ -1,16 +1,9 @@
 package org.overengineer.inlineproblems.settings;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.util.NlsContexts;
 import org.jetbrains.annotations.Nullable;
-import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.ListenerManager;
-import org.overengineer.inlineproblems.ProblemManager;
-import org.overengineer.inlineproblems.entities.enums.Listeners;
-import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
-import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
-import org.overengineer.inlineproblems.scanners.UnityProjectScanner;
 
 import javax.swing.*;
 
@@ -19,14 +12,9 @@ public class SettingsConfigurable implements Configurable {
 
     private SettingsComponent settingsComponent;
 
-    private final ProblemManager problemManager;
-
-    private final DocumentMarkupModelScanner documentMarkupModelScanner = DocumentMarkupModelScanner.getInstance();
     private final ListenerManager listenerManager = ListenerManager.getInstance();
 
-    SettingsConfigurable() {
-        problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
-    }
+    SettingsConfigurable() {}
 
     @Override
     @NlsContexts.ConfigurableName
@@ -125,25 +113,9 @@ public class SettingsConfigurable implements Configurable {
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
-        if (listenerChanged && state.getEnabledListener() != Listeners.MARKUP_MODEL_LISTENER) {
-            MarkupModelProblemListener.disposeAll();
+        if (listenerChanged) {
+            listenerManager.changeListener();
         }
-
-        if (listenerChanged && state.getEnabledListener() == Listeners.MARKUP_MODEL_LISTENER) {
-            documentMarkupModelScanner.setIsManualScanEnabled(false);
-            listenerManager.installMarkupModelListenerOnAllProjects();
-        }
-        else if (listenerChanged && state.getEnabledListener() == Listeners.HIGHLIGHT_PROBLEMS_LISTENER) {
-            documentMarkupModelScanner.setIsManualScanEnabled(true);
-            documentMarkupModelScanner.setFrequencyMilliseconds(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_FREQUENCY_MILLIS);
-        }
-        else if (listenerChanged && state.getEnabledListener() == Listeners.MANUAL_SCANNING) {
-            documentMarkupModelScanner.setIsManualScanEnabled(true);
-            documentMarkupModelScanner.setFrequencyMilliseconds(DocumentMarkupModelScanner.MANUAL_SCAN_FREQUENCY_MILLIS);
-        }
-
-        problemManager.reset();
-        documentMarkupModelScanner.scanForProblemsManually();
     }
 
     @Override

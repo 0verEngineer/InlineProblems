@@ -13,7 +13,7 @@ import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.overengineer.inlineproblems.entities.InlineProblem;
-import org.overengineer.inlineproblems.entities.enums.Listeners;
+import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
@@ -52,7 +52,7 @@ public class DocumentMarkupModelScanner {
     }
 
     private DocumentMarkupModelScanner() {
-        if (settingsState.getEnabledListener() == Listeners.MANUAL_SCANNING) {
+        if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
             frequencyMilliseconds = MANUAL_SCAN_FREQUENCY_MILLIS;
         }
 

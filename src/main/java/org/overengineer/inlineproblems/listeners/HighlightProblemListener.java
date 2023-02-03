@@ -10,7 +10,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
-import org.overengineer.inlineproblems.entities.enums.Listeners;
+import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 
@@ -22,7 +22,7 @@ public class HighlightProblemListener implements HighlightInfoFilter {
 
     @Override
     public boolean accept(@NotNull HighlightInfo highlightInfo, @Nullable PsiFile file) {
-        if (settingsState.getEnabledListener() != Listeners.HIGHLIGHT_PROBLEMS_LISTENER)
+        if (settingsState.getEnabledListener() != Listener.HIGHLIGHT_PROBLEMS_LISTENER)
             return true;
 
         if (file == null || !file.isValid())

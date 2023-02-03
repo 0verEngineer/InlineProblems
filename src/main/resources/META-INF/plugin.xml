@@ -80,5 +80,6 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
 
     <applicationListeners>
         <listener class="org.overengineer.inlineproblems.listeners.PluginListener" topic="com.intellij.ide.plugins.DynamicPluginListener" />
+        <listener class="org.overengineer.inlineproblems.listeners.ProjectCloseListener" topic="com.intellij.openapi.project.ProjectManagerListener" />
     </applicationListeners>
 </idea-plugin>

@@ -12,10 +12,9 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
-import org.overengineer.inlineproblems.InlineDrawer;
 import org.overengineer.inlineproblems.ProblemManager;
 import org.overengineer.inlineproblems.entities.InlineProblem;
-import org.overengineer.inlineproblems.entities.enums.Listeners;
+import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.util.ArrayList;
@@ -90,7 +89,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
     }
 
     private void handleEvent(EventType type, @NotNull RangeHighlighterEx highlighter) {
-        if (settingsState.getEnabledListener() != Listeners.MARKUP_MODEL_LISTENER)
+        if (settingsState.getEnabledListener() != Listener.MARKUP_MODEL_LISTENER)
             return;
 
         Editor editor = textEditor.getEditor();

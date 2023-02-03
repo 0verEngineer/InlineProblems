@@ -2,9 +2,6 @@ package org.overengineer.inlineproblems.scanners;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
-import org.overengineer.inlineproblems.entities.enums.Listeners;
-import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.io.*;
 
@@ -12,10 +9,6 @@ import java.io.*;
 public class UnityProjectScanner {
 
     Logger logger = Logger.getInstance(UnityProjectScanner.class);
-
-    DocumentMarkupModelScanner documentMarkupModelScanner = DocumentMarkupModelScanner.getInstance();
-
-    SettingsState settingsState = SettingsState.getInstance();
 
     private final String[] unityReferences = {
             "UnityEngine",
@@ -25,15 +18,15 @@ public class UnityProjectScanner {
             "UnityEditor.CoreModule"
     };
 
-    public void scanAndHandleUnityProject(Project project) {
+    public boolean isUnityProject(Project project) {
         if (project.getBasePath() == null)
-            return;
+            return false;
 
         File dir = new File(project.getBasePath());
 
         File[] files = dir.listFiles();
         if (files == null)
-            return;
+            return false;
 
         for (File file : files) {
             if (file.isFile() && file.exists() && file.getName().endsWith(".csproj")) {
@@ -44,8 +37,7 @@ public class UnityProjectScanner {
                     while (line != null) {
                         for (String reference : unityReferences) {
                             if (line.contains(reference)) {
-                                handleUnityProject();
-                                return;
+                                return true;
                             }
                         }
 
@@ -58,10 +50,7 @@ public class UnityProjectScanner {
                 }
             }
         }
-    }
 
-    private void handleUnityProject() {
-        settingsState.setEnabledListener(Listeners.MANUAL_SCANNING);
-        documentMarkupModelScanner.setFrequencyMilliseconds(DocumentMarkupModelScanner.MANUAL_SCAN_FREQUENCY_MILLIS);
+        return false;
     }
 }
