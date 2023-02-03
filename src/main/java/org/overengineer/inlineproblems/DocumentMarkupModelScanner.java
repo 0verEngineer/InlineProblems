@@ -31,7 +31,7 @@ public class DocumentMarkupModelScanner {
 
     private final Logger logger = Logger.getInstance(DocumentMarkupModelScanner.class);
 
-    private int frequencyMilliseconds = HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_FREQUENCY_MILLIS;
+    private int delayMilliseconds = HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS;
 
     // Used to bypass the listener setting
     private boolean isManualScanEnabled = true;
@@ -42,7 +42,7 @@ public class DocumentMarkupModelScanner {
 
     public static final String NAME = "ManualScanner";
 
-    public static final int MANUAL_SCAN_FREQUENCY_MILLIS = 250;
+    public static final int MANUAL_SCAN_DELAY_MILLIS = 250;
 
     public static DocumentMarkupModelScanner getInstance() {
         if (instance == null)
@@ -53,7 +53,7 @@ public class DocumentMarkupModelScanner {
 
     private DocumentMarkupModelScanner() {
         if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
-            frequencyMilliseconds = MANUAL_SCAN_FREQUENCY_MILLIS;
+            delayMilliseconds = MANUAL_SCAN_DELAY_MILLIS;
         }
 
         createAndStartScheduledFuture();
@@ -150,8 +150,8 @@ public class DocumentMarkupModelScanner {
         }
     }
 
-    public void setFrequencyMilliseconds(int newFrequencyMilliseconds) {
-        frequencyMilliseconds = newFrequencyMilliseconds;
+    public void setDelayMilliseconds(int newDelayMilliseconds) {
+        delayMilliseconds = newDelayMilliseconds;
         cancelScheduledFuture();
         createAndStartScheduledFuture();
     }
@@ -168,7 +168,7 @@ public class DocumentMarkupModelScanner {
         scheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(
                 () -> ApplicationManager.getApplication().invokeLater(this::scanForProblemsManually),
                 0,
-                frequencyMilliseconds,
+                delayMilliseconds,
                 TimeUnit.MILLISECONDS
         );
     }

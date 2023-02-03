@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.OverEngineer"
-version = "0.2.1"
+version = "0.3.1"
 
 repositories {
     mavenCentral()
@@ -35,7 +35,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("212.48")
+        sinceBuild.set("212.5")
         untilBuild.set("231.*")
     }
 

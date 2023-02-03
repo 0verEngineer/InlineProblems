@@ -59,11 +59,11 @@ public class ListenerManager {
         }
         else if (settings.getEnabledListener() == Listener.HIGHLIGHT_PROBLEMS_LISTENER) {
             documentMarkupModelScanner.setIsManualScanEnabled(true);
-            documentMarkupModelScanner.setFrequencyMilliseconds(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_FREQUENCY_MILLIS);
+            documentMarkupModelScanner.setDelayMilliseconds(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS);
         }
         else if (settings.getEnabledListener() == Listener.MANUAL_SCANNING) {
             documentMarkupModelScanner.setIsManualScanEnabled(true);
-            documentMarkupModelScanner.setFrequencyMilliseconds(DocumentMarkupModelScanner.MANUAL_SCAN_FREQUENCY_MILLIS);
+            documentMarkupModelScanner.setDelayMilliseconds(DocumentMarkupModelScanner.MANUAL_SCAN_DELAY_MILLIS);
         }
 
         problemManager.reset();

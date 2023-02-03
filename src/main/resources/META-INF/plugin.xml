@@ -19,6 +19,19 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
 
     <change-notes><![CDATA[
       <ul>
+      <li>0.3.1
+        <ul>
+          <li>- Fix: SettingsState serialization issue (error on start)</li>
+          <li>- Fix: Settings always modified</li>
+          <li>- Adding MarkupModelListener for problem collecting</li>
+          <li>- Adding reset & rescan of all problems on settings change</li>
+          <li>- Adding ManualScan per delay of 250ms between finishing of the previous scan and starting a new one for problem collecting</li>
+          <li>- Fix: Invalid problems were shown</li>
+          <li>- Works now in Rider when Unity projects are opened, it will switch to the ManualScan listener automatically when Unity projects are open</li>
+          <li>- Fix: Font width calculation wrong and font size change was not working</li>
+          <li>- Handle xml and html in problem text</li>
+        </ul>
+      </li
       <li>0.2.1 Bugfixes
         <ul>
           <li>- Stop showing empty problems</li>
