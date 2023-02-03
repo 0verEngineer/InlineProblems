@@ -1,10 +1,9 @@
 package org.overengineer.inlineproblems.settings;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.util.NlsContexts;
 import org.jetbrains.annotations.Nullable;
-import org.overengineer.inlineproblems.InlineDrawer;
+import org.overengineer.inlineproblems.ListenerManager;
 
 import javax.swing.*;
 
@@ -12,11 +11,10 @@ import javax.swing.*;
 public class SettingsConfigurable implements Configurable {
 
     private SettingsComponent settingsComponent;
-    private final InlineDrawer inlineDrawer;
 
-    SettingsConfigurable() {
-        inlineDrawer = ApplicationManager.getApplication().getService(InlineDrawer.class);
-    }
+    private final ListenerManager listenerManager = ListenerManager.getInstance();
+
+    SettingsConfigurable() {}
 
     @Override
     @NlsContexts.ConfigurableName
@@ -69,6 +67,7 @@ public class SettingsConfigurable implements Configurable {
                 state.getInfoHighlightColor().equals(settingsComponent.getInfoHighlightColor()) &&
                 state.isShowInfos() == settingsComponent.isShowInfos() &&
                 state.isHighlightInfos() == settingsComponent.isHighlightInfo() &&
+                state.getEnabledListener() == settingsComponent.getEnabledListener() &&
 
                 state.getProblemFilterList().equals(settingsComponent.getProblemFilterList());
 
@@ -78,6 +77,8 @@ public class SettingsConfigurable implements Configurable {
     @Override
     public void apply() {
         SettingsState state = SettingsState.getInstance();
+
+        boolean listenerChanged = state.getEnabledListener() != settingsComponent.getEnabledListener();
 
         state.setShowErrors(settingsComponent.isShowErrors());
         state.setHighlightErrors(settingsComponent.isHighlightErrors());
@@ -109,9 +110,12 @@ public class SettingsConfigurable implements Configurable {
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
 
+        state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
-        inlineDrawer.reset();
+        if (listenerChanged) {
+            listenerManager.changeListener();
+        }
     }
 
     @Override
@@ -148,6 +152,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setUseEditorFont(state.isUseEditorFont());
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
 
+        settingsComponent.setEnabledListener(state.getEnabledListener());
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
     }
 

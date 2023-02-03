@@ -1,69 +1,27 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.MarkupModel;
-import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class InlineDrawer {
-    private List<InlineProblem> activeProblems = new ArrayList<>();
 
-    public void removeProblem(InlineProblem problem) {
-        undrawErrorLineHighlight(problem);
-        undrawInlineProblemLabel(problem);
-        activeProblems.remove(problem);
-    }
-
-    public void addProblem(InlineProblem problem) {
-        if (shouldDrawProblemLabel(problem))
-            drawProblemLabel(problem);
-
-        if (shouldDrawProblemHighlighter(problem))
-            drawProblemLineHighlight(problem);
-
-        activeProblems.add(problem);
-    }
-
-    public void reset() {
-        final List<InlineProblem> activeProblemSnapShot = new ArrayList<>(activeProblems);
-        activeProblemSnapShot.forEach(this::removeProblem);
-    }
-
-    public void updateFromListOfNewActiveProblems(List<InlineProblem> problems, Project project, String filePath) {
-
-        if (problems.size() == 0 && problems == activeProblems)
+    public void drawProblemLabel(InlineProblem problem) {
+        if (!shouldDrawProblemLabel(problem))
             return;
 
-        final List<InlineProblem> processedProblems = new ArrayList<>();
-        final List<InlineProblem> activeProblemsSnapShot = activeProblems.stream()
-                .filter(p -> p.getProject().equals(project) && p.getFile().equals(filePath))
-                .collect(Collectors.toList());
-
-        activeProblemsSnapShot.stream()
-                .filter(p -> !problems.contains(p))
-                .forEach(p -> {processedProblems.add(p); removeProblem(p);});
-
-        problems.stream()
-                .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
-                .forEach(this::addProblem);
-    }
-
-    private void drawProblemLabel(InlineProblem problem) {
-        Editor editor = problem.getEditor();
+        Editor editor = problem.getTextEditor().getEditor();
         SettingsState settings = SettingsState.getInstance();
         var inlayModel = editor.getInlayModel();
 
@@ -74,13 +32,10 @@ public class InlineDrawer {
         String lineText = editor.getDocument().getText(textRange);
 
         InlineProblemLabel inlineProblemLabel = new InlineProblemLabel(
-                problem.getText(),
+                problem,
                 getTextColor(problem, editor),
                 getBackgroundColor(problem, editor),
-                false,
-                settings.isDrawBoxesAroundErrorLabels(),
-                settings.isRoundedCornerBoxes(),
-                editor
+                settings
         );
 
         // To get the potential width of the whole line with the problem text including existent inline elements
@@ -94,7 +49,7 @@ public class InlineDrawer {
 
         Font editorFont = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
 
-        int problemWidth = inlineProblemLabel.calcWidthInPixels() +
+        int problemWidth = inlineProblemLabel.calcWidthInPixels(editor) +
                 new Canvas().getFontMetrics(editorFont).stringWidth(lineText) +
                 existingInlineElementsWidth;
 
@@ -112,9 +67,14 @@ public class InlineDrawer {
             );
         }
         else {
+            InlayProperties properties = new InlayProperties()
+                    .relatesToPrecedingText(true)
+                    .disableSoftWrapping(true)
+                    .priority(1);
+
             inlayModel.addAfterLineEndElement(
-                    editor.getDocument().getLineEndOffset(problem.getLine()),
-                    true,
+                    problem.getActualEndOffset(),
+                    properties,
                     inlineProblemLabel
             );
         }
@@ -122,8 +82,11 @@ public class InlineDrawer {
         problem.setInlineProblemLabelHashCode(inlineProblemLabel.hashCode());
     }
 
-    private void drawProblemLineHighlight(InlineProblem problem) {
-        Editor editor = problem.getEditor();
+    public void drawProblemLineHighlight(InlineProblem problem) {
+        if (!shouldDrawProblemHighlighter(problem))
+            return;
+
+        Editor editor = problem.getTextEditor().getEditor();
         TextAttributes textAttributes = new TextAttributes(
                 editor.getColorsScheme().getDefaultForeground(),
                 getHighlightColor(problem, editor),
@@ -133,30 +96,26 @@ public class InlineDrawer {
         );
 
         Document document = editor.getDocument();
-        
-        problem.setProblemLineHighlighter(editor.getMarkupModel().addRangeHighlighter(
+
+        problem.setProblemLineHighlighterHashCode(editor.getMarkupModel().addRangeHighlighter(
                 document.getLineStartOffset(problem.getLine()),
                 document.getLineEndOffset(problem.getLine()),
                 problem.getSeverity(), // Use the severity as layer, hopefully it will not overdraw some important stuff
                 textAttributes,
                 HighlighterTargetArea.EXACT_RANGE
-        ));
+        ).hashCode());
     }
 
-    private void undrawErrorLineHighlight(InlineProblem problem) {
-        MarkupModel markupModel = problem.getEditor().getMarkupModel();
-        RangeHighlighter highlighter = problem.getProblemLineHighlighter();
-
-        if (highlighter == null)
-            return;
+    public void undrawErrorLineHighlight(InlineProblem problem) {
+        MarkupModel markupModel = problem.getTextEditor().getEditor().getMarkupModel();
 
         Arrays.stream(markupModel.getAllHighlighters())
-                .filter(h -> h.isValid() && h.equals(highlighter))
+                .filter(h -> h.isValid() && h.hashCode() == problem.getProblemLineHighlighterHashCode())
                 .forEach(markupModel::removeHighlighter);
     }
 
-    private void undrawInlineProblemLabel(InlineProblem problem) {
-        Editor editor = problem.getEditor();
+    public void undrawInlineProblemLabel(InlineProblem problem) {
+        Editor editor = problem.getTextEditor().getEditor();
         Document document = editor.getDocument();
 
         // Here is not checked if single or multi line, both are disposed because we do not have the info here
@@ -170,7 +129,8 @@ public class InlineDrawer {
                 )
                 .stream()
                 .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                .forEach(this::disposeInlay);
+                .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
+                .forEach(Disposable::dispose);
 
         editor.getInlayModel()
                 .getAfterLineEndElementsInRange(
@@ -179,13 +139,8 @@ public class InlineDrawer {
                 )
                 .stream()
                 .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                .forEach(this::disposeInlay);
-    }
-
-    private void disposeInlay(Inlay<?> inlay) {
-        if (inlay.getRenderer() instanceof InlineProblemLabel) {
-            inlay.dispose();
-        }
+                .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
+                .forEach(Disposable::dispose);
     }
 
     private boolean shouldDrawProblemLabel(InlineProblem problem) {
