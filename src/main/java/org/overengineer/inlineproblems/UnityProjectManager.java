@@ -1,6 +1,5 @@
 package org.overengineer.inlineproblems;
 
-import com.intellij.configurationStore.StoreUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -98,7 +97,9 @@ public class UnityProjectManager {
         if (settings.getEnabledListener() == Listener.MANUAL_SCANNING) {
             settings.setEnabledListener(enabledListenerBefore);
             ListenerManager.getInstance().changeListener();
-            StoreUtil.saveSettings(ApplicationManager.getApplication());
+
+            // PersistentStateComponent is somehow not working (Settings change is not persisted)
+            ApplicationManager.getApplication().saveSettings();
         }
     }
 }
