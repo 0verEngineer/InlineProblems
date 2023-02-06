@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 
 import java.util.ArrayList;
@@ -42,8 +43,10 @@ public class ProblemManager implements Disposable {
     }
 
     public void addProblem(InlineProblem problem) {
-        inlineDrawer.drawProblemLabel(problem);
-        inlineDrawer.drawProblemLineHighlight(problem);
+        DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
+
+        inlineDrawer.drawProblemLabel(problem, drawDetails);
+        inlineDrawer.drawProblemLineHighlight(problem, drawDetails);
 
         activeProblems.add(problem);
     }
