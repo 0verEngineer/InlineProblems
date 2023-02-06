@@ -113,6 +113,8 @@ public class SettingsConfigurable implements Configurable {
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
+        listenerManager.resetAndRescan();
+
         if (listenerChanged) {
             listenerManager.changeListener();
         }

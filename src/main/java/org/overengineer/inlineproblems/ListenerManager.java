@@ -48,6 +48,11 @@ public class ListenerManager {
         }
     }
 
+    public void resetAndRescan() {
+        problemManager.reset();
+        documentMarkupModelScanner.scanForProblemsManually();
+    }
+
     public void changeListener() {
         if (settings.getEnabledListener() != Listener.MARKUP_MODEL_LISTENER) {
             MarkupModelProblemListener.disposeAll();
@@ -65,8 +70,5 @@ public class ListenerManager {
             documentMarkupModelScanner.setIsManualScanEnabled(true);
             documentMarkupModelScanner.setDelayMilliseconds(DocumentMarkupModelScanner.MANUAL_SCAN_DELAY_MILLIS);
         }
-
-        problemManager.reset();
-        documentMarkupModelScanner.scanForProblemsManually();
     }
 }
