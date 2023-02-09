@@ -34,6 +34,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Setter
     private boolean isMultiLine;
 
+    private int inlayFontSize;
     private boolean isUseEditorFont = false;
 
     private static final int WIDTH_OFFSET = 7;
@@ -57,6 +58,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         this.isFillBackground = settings.isFillProblemLabels();
 
         this.isUseEditorFont = settings.isUseEditorFont();
+        this.inlayFontSize = settings.getDeltaInlayFontSize();
     }
 
     @Override
@@ -151,7 +153,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             return UIUtil.getFontWithFallback(
                     editor.getColorsScheme().getFont(EditorFontType.PLAIN).getFontName(),
                     Font.PLAIN,
-                    editor.getColorsScheme().getEditorFontSize()
+                    editor.getColorsScheme().getEditorFontSize() - inlayFontSize
             );
         }
         else {
@@ -159,7 +161,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             return UIUtil.getFontWithFallback(
                     toolTipFont.getFontName(),
                     toolTipFont.getStyle(),
-                    editor.getColorsScheme().getEditorFontSize() // to have the labels change when changing font size
+                    editor.getColorsScheme().getEditorFontSize() - inlayFontSize // to have the labels change when changing font size
             );
         }
     }

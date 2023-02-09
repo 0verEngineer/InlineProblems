@@ -81,6 +81,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean roundedCornerBoxes = true;
     private boolean forceProblemsInSameLine = true;
     private boolean useEditorFont = false;
+    private int deltaInlayFontSize = 0;
     private boolean fillProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
     private int enabledListener = Listener.HIGHLIGHT_PROBLEMS_LISTENER;
