@@ -43,7 +43,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isDrawBoxesAroundErrorLabels() == settingsComponent.getDrawBoxesAroundProblemLabels() &&
                 state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
-                state.getDeltaInlayFontSize() == settingsComponent.inlayFontSize() &&
+                state.getInlayFontSizeDelta() == settingsComponent.getInlayFontSizeDelta() &&
                 state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
 
                 state.getErrorTextColor().equals(settingsComponent.getErrorTextColor()) &&
@@ -110,7 +110,7 @@ public class SettingsConfigurable implements Configurable {
         state.setDrawBoxesAroundErrorLabels(settingsComponent.getDrawBoxesAroundProblemLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
-        state.setDeltaInlayFontSize(settingsComponent.inlayFontSize());
+        state.setInlayFontSizeDelta(settingsComponent.getInlayFontSizeDelta());
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
 
         state.setEnabledListener(settingsComponent.getEnabledListener());
