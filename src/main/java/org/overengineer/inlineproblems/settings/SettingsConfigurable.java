@@ -14,7 +14,8 @@ public class SettingsConfigurable implements Configurable {
 
     private final ListenerManager listenerManager = ListenerManager.getInstance();
 
-    SettingsConfigurable() {}
+    SettingsConfigurable() {
+    }
 
     @Override
     @NlsContexts.ConfigurableName
@@ -42,6 +43,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isDrawBoxesAroundErrorLabels() == settingsComponent.getDrawBoxesAroundProblemLabels() &&
                 state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
+                state.getInlayFontSizeDelta() == settingsComponent.getInlayFontSizeDelta() &&
                 state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
 
                 state.getErrorTextColor().equals(settingsComponent.getErrorTextColor()) &&
@@ -108,6 +110,7 @@ public class SettingsConfigurable implements Configurable {
         state.setDrawBoxesAroundErrorLabels(settingsComponent.getDrawBoxesAroundProblemLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
+        state.setInlayFontSizeDelta(settingsComponent.getInlayFontSizeDelta());
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
 
         state.setEnabledListener(settingsComponent.getEnabledListener());

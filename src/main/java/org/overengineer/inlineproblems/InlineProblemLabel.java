@@ -34,6 +34,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Setter
     private boolean isMultiLine;
 
+    private int inlayFontSizeDelta;
     private boolean isUseEditorFont = false;
 
     private static final int WIDTH_OFFSET = 7;
@@ -57,6 +58,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         this.isFillBackground = settings.isFillProblemLabels();
 
         this.isUseEditorFont = settings.isUseEditorFont();
+        this.inlayFontSizeDelta = settings.getInlayFontSizeDelta();
     }
 
     @Override
@@ -86,9 +88,19 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
 
         graphics.setFont(getActiveFont(editor));
 
-        // This offsets are applied here and not in the calc functions itself because we use it to shrink the drawn stuff a little bit
+        // These offsets are applied here and not in the calc functions itself because we use it to shrink the drawn stuff a little bit
         int width = calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET;
         int height = calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET;
+
+        int targetRegionY = targetRegion.y;
+
+        int editorFontSize = editor.getColorsScheme().getEditorFontSize();
+
+        // Apply delta on the boxes
+        if (inlayFontSizeDelta != 0 && editorFontSize > inlayFontSizeDelta) {
+            height = height - inlayFontSizeDelta;
+            targetRegionY +=(int)(inlayFontSizeDelta / 1.5);
+        }
 
         if (isDrawBox) {
             graphics.setColor(backgroundColor);
@@ -96,7 +108,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             if (isRoundedCorners) {
                 graphics.drawRoundRect(
                         targetRegion.x,
-                        targetRegion.y,
+                        targetRegionY,
                         width,
                         height,
                         5,
@@ -106,7 +118,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
                 if (isFillBackground) {
                     graphics.fillRoundRect(
                             targetRegion.x,
-                            targetRegion.y,
+                            targetRegionY,
                             width,
                             height,
                             5,
@@ -117,7 +129,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             else {
             graphics.drawRect(
                     targetRegion.x,
-                    targetRegion.y,
+                    targetRegionY,
                     width,
                     height
             );
@@ -125,7 +137,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
                 if (isFillBackground) {
                     graphics.fillRect(
                             targetRegion.x,
-                            targetRegion.y,
+                            targetRegionY,
                             width,
                             height
                     );
@@ -147,11 +159,18 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     }
 
     private Font getActiveFont(Editor editor) {
+        int appliedDelta = 0;
+        int editorFontSize = editor.getColorsScheme().getEditorFontSize();
+
+        if (editorFontSize > inlayFontSizeDelta) {
+            appliedDelta = inlayFontSizeDelta;
+        }
+
         if (isUseEditorFont) {
             return UIUtil.getFontWithFallback(
                     editor.getColorsScheme().getFont(EditorFontType.PLAIN).getFontName(),
                     Font.PLAIN,
-                    editor.getColorsScheme().getEditorFontSize()
+                    editorFontSize - appliedDelta
             );
         }
         else {
@@ -159,7 +178,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             return UIUtil.getFontWithFallback(
                     toolTipFont.getFontName(),
                     toolTipFont.getStyle(),
-                    editor.getColorsScheme().getEditorFontSize() // to have the labels change when changing font size
+                    editorFontSize - appliedDelta
             );
         }
     }
