@@ -19,6 +19,12 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
 
     <change-notes><![CDATA[
       <ul>
+      <li>0.3.3 Bugfixes & Font delta
+        <ul>
+          <li>- Adds font delta setting</li>
+          <li>- Fix: Settings refresh not working reliably</li>
+        </ul>
+      </li>
       <li>0.3.1
         <ul>
           <li>- Fix: SettingsState serialization issue (error on start)</li>
