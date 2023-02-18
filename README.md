@@ -19,12 +19,11 @@
 
 <h3 align="center">InlineProblems</h3>
 
-  <p align="center">
-    <!-- Plugin description -->
-    Plugin to show problems like errors and warnings inside the text editor (inline) for IDEs based on the IntelliJ Platform, inspired by Error Lens and InlineError
-    <!-- Plugin description end -->
+<!-- Plugin description -->
+Plugin to show problems like errors and warnings inside the text editor (inline) for IDEs based on the IntelliJ Platform, inspired by Error Lens and InlineError
+<!-- Plugin description end -->
 
-    <br />
+  <p align="center">
     <br />
     <a href="https://plugins.jetbrains.com/plugin/20789-inlineproblems">Jetbrains Marketplace</a>
     .
@@ -35,6 +34,7 @@
 
 ![GIF](https://github.com/0verEngineer/InlineProblems/blob/main/resources/gif1.gif?raw=true)
 </div>
+
 
 ---
 <details>
