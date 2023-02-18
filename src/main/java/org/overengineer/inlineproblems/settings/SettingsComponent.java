@@ -12,7 +12,10 @@ import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 
 import javax.swing.*;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
+import java.text.NumberFormat;
+import java.util.Optional;
 
 
 public class SettingsComponent {
@@ -40,6 +43,7 @@ public class SettingsComponent {
     private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox("Draw boxes around problem labels");
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox("Rounded corners");
     private final JBCheckBox useEditorFont = new JBCheckBox("Use editor font instead of tooltip font");
+    private JFormattedTextField inlayFontSizeDeltaText;
     private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
     private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
 
@@ -79,11 +83,19 @@ public class SettingsComponent {
         forceErrorsInSameLine.setSelected(settingsState.isForceProblemsInSameLine());
         drawBoxesAroundProblemLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
         roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
+
         useEditorFont.setSelected(settingsState.isUseEditorFont());
+
+        NumberFormat intFormat = NumberFormat.getIntegerInstance();
+        NumberFormatter numberFormatter = new NumberFormatter(intFormat);
+        numberFormatter.setValueClass(Integer.class); // Optional, ensures we always get a int value
+
+        inlayFontSizeDeltaText = new JFormattedTextField(numberFormatter);
+        inlayFontSizeDeltaText.setText(Integer.toString(settingsState.getInlayFontSizeDelta()));
+
         fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
         problemFilterList.setText(settingsState.getProblemFilterList());
-
-        enabledListener.setSelectedItem(settingsState.getEnabledListener());
+        enabledListener.setSelectedItem(Optional.of(settingsState.getEnabledListener()));
 
         Dimension enabledListenerDimension = enabledListener.getPreferredSize();
         enabledListenerDimension.width += 100;
@@ -99,6 +111,8 @@ public class SettingsComponent {
                 .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
+                .addLabeledComponent(new JBLabel("Inlay size delta"), inlayFontSizeDeltaText)
+                .addTooltip("Used to have smaller font size for the inlays, should be smaller than editor font size")
                 .addLabeledComponent(new JLabel("Problem filter list"), problemFilterList)
                 .addTooltip("Semicolon separated list of problem text beginnings that will not be handled")
                 .addSeparator()
@@ -160,6 +174,20 @@ public class SettingsComponent {
 
     public boolean isUseEditorFont() {
         return useEditorFont.isSelected();
+    }
+
+    public int getInlayFontSizeDelta() {
+        int val = 0;
+        // Convert the String
+        try {
+            val = Integer.parseInt(inlayFontSizeDeltaText.getText());
+        }
+        catch (NumberFormatException ignored) {}
+
+        if (val < 0)
+            val = 0;
+
+        return val;
     }
 
     public void setUseEditorFont(boolean isSelected) {
@@ -298,7 +326,7 @@ public class SettingsComponent {
         return infoLabelBackgroundColor.getSelectedColor();
     }
 
-    public void setInfoLabelBackgroundColor(final  Color color) {
+    public void setInfoLabelBackgroundColor(final Color color) {
         infoLabelBackgroundColor.setSelectedColor(color);
     }
 
