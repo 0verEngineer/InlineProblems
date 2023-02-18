@@ -20,7 +20,10 @@
 <h3 align="center">InlineProblems</h3>
 
   <p align="center">
-    Plugin to show problems inside the text editor for IDEs based on the IntelliJ Platform
+    <!-- Plugin description -->
+    Plugin to show problems like errors and warnings inside the text editor (inline) for IDEs based on the IntelliJ Platform, inspired by Error Lens and InlineError
+    <!-- Plugin description end -->
+
     <br />
     <br />
     <a href="https://plugins.jetbrains.com/plugin/20789-inlineproblems">Jetbrains Marketplace</a>
