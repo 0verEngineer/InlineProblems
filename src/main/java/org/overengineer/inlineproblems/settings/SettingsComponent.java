@@ -111,7 +111,7 @@ public class SettingsComponent {
                 .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
-                .addLabeledComponent(new JBLabel("Inlay Size delta"), inlayFontSizeDeltaText)
+                .addLabeledComponent(new JBLabel("Inlay size delta"), inlayFontSizeDeltaText)
                 .addTooltip("Used to have smaller font size for the inlays, should be smaller than editor font size")
                 .addLabeledComponent(new JLabel("Problem filter list"), problemFilterList)
                 .addTooltip("Semicolon separated list of problem text beginnings that will not be handled")
@@ -183,6 +183,9 @@ public class SettingsComponent {
             val = Integer.parseInt(inlayFontSizeDeltaText.getText());
         }
         catch (NumberFormatException ignored) {}
+
+        if (val < 0)
+            val = 0;
 
         return val;
     }
