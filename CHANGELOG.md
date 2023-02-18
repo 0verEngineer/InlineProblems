@@ -4,7 +4,6 @@
 
 ## [Unreleased]
 
-
 ## [0.3.3] - 2023-02-18
 
 ### Added
@@ -75,8 +74,7 @@
 ### Added
 - Initial release with basic functionality
 
-[Unreleased]: https://github.com/JetBrains/intellij-platform-plugin-template/compare/0.3.3...HEAD
-
+[Unreleased]: https://github.com/OverEngineer/InlineProblems/compare/v0.3.3...HEAD
 [0.3.3]: https://github.com/0verEngineer/InlineProblems/compare/0.3.2...0.3.3
 [0.3.2]: https://github.com/0verEngineer/InlineProblems/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/0verEngineer/InlineProblems/compare/0.2.1...0.3.1
