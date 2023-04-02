@@ -130,14 +130,14 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
         switch (type) {
             case ADD:
-                problemManager.addProblem(problem);
+                problemManager.addProblemSorted(problem);
                 break;
             case REMOVE:
                 problemManager.removeProblem(problem);
                 break;
             case CHANGE:
                 problemManager.removeProblem(problem);
-                problemManager.addProblem(problem);
+                problemManager.addProblemSorted(problem);
                 break;
         }
     }

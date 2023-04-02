@@ -42,6 +42,27 @@ public class ProblemManager implements Disposable {
         }
     }
 
+    /**
+     * To add problems, if there are existing problems in the same line, they will be removed and re-added to ensure the
+     * correct order (ordered by severity)
+     * @param problem problem to add
+     */
+    public void addProblemSorted(InlineProblem problem) {
+        List<InlineProblem> problemsInLine = getProblemsInLine(problem.getLine());
+        problemsInLine.add(problem);
+
+        problemsInLine = problemsInLine.stream()
+                .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
+                .collect(Collectors.toList());
+
+        problemsInLine.forEach(p -> {
+            if (p != problem)
+                removeProblem(p);
+        });
+
+        problemsInLine.forEach(this::addProblem);
+    }
+
     public void addProblem(InlineProblem problem) {
         DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
 
@@ -78,6 +99,12 @@ public class ProblemManager implements Disposable {
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
     }
 
+    public List<InlineProblem> getProblemsInLine(int line) {
+        return activeProblems.stream()
+                .filter(p -> p.getLine() == line)
+                .collect(Collectors.toList());
+    }
+
     private void updateFromNewActiveProblems(List<InlineProblem> problems, List<InlineProblem> activeProblemsSnapShot) {
         final List<InlineProblem> processedProblems = new ArrayList<>();
 
@@ -87,7 +114,7 @@ public class ProblemManager implements Disposable {
 
         problems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
-                .forEach(this::addProblem);
+                .forEach(this::addProblemSorted);
     }
 
     private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
