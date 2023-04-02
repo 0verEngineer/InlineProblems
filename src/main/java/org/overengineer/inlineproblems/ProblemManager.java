@@ -7,7 +7,6 @@ import com.intellij.openapi.project.Project;
 import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
-import org.overengineer.inlineproblems.entities.enums.Listener;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,10 +15,6 @@ import java.util.stream.Collectors;
 public class ProblemManager implements Disposable {
     private final List<InlineProblem> activeProblems = new ArrayList<>();
 
-    /**
-     * Used for listeners that update problems one by one and not from a list of new active problems to have only the
-     * problem with the highest severity shown in the line, i.e. the MarkupModelListener
-     */
     private final Map<Integer, List<InlineProblem>> hiddenProblemsCache = new HashMap<>();
 
     private final InlineDrawer inlineDrawer = new InlineDrawer();
@@ -34,7 +29,7 @@ public class ProblemManager implements Disposable {
 
     public void removeProblem(InlineProblem problem) {
 
-        if (settingsState.isShowOnlyHighestSeverityPerLine() && settingsState.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER) {
+        if (settingsState.isShowOnlyHighestSeverityPerLine()) {
             removeProblemWithHiddenProblemsCacheActive(problem, true);
         }
         else {
@@ -63,10 +58,7 @@ public class ProblemManager implements Disposable {
 
     public void addProblem(InlineProblem problem) {
         if (settingsState.isShowOnlyHighestSeverityPerLine()) {
-            addProblemShowOnlyHighestSeverity(
-                    problem,
-                    settingsState.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER
-            );
+            addProblemShowOnlyHighestSeverity(problem);
         }
         else {
             addProblemSorted(problem);
@@ -152,7 +144,7 @@ public class ProblemManager implements Disposable {
         problemsInLine.forEach(this::addProblemPrivate);
     }
 
-    public void addProblemShowOnlyHighestSeverity(InlineProblem problem, boolean hiddenProblemsCacheActive) {
+    public void addProblemShowOnlyHighestSeverity(InlineProblem problem) {
         List<InlineProblem> problemsInLine = getProblemsInLine(problem.getLine());
 
         if (!problemsInLine.isEmpty()) {
@@ -161,18 +153,14 @@ public class ProblemManager implements Disposable {
                     .get();
 
             if (highestSeverityProblem.getSeverity() > problem.getSeverity()) {
-                if (hiddenProblemsCacheActive) {
-                    // Here no new key (hashcode) is needed because the active problem hasn't changed, so we pass in the same hashcode
-                    addProblemToHiddenProblemsCache(problem, highestSeverityProblem.hashCode());
-                }
+                // Here no new key (hashcode) is needed because the active problem hasn't changed, so we pass in the same hashcode
+                addProblemToHiddenProblemsCache(problem, highestSeverityProblem.hashCode());
 
                 return;
             }
             else {
                 removeProblemPrivate(highestSeverityProblem);
-                if (hiddenProblemsCacheActive) {
-                    addProblemToHiddenProblemsCache(highestSeverityProblem, problem.hashCode());
-                }
+                addProblemToHiddenProblemsCache(highestSeverityProblem, problem.hashCode());
             }
         }
 
@@ -217,14 +205,22 @@ public class ProblemManager implements Disposable {
                 });
     }
 
+    private List<InlineProblem> getActiveProblemsWithHiddenProblemsCache() {
+        List<InlineProblem> activeProblems = new ArrayList<>(this.activeProblems);
+
+        hiddenProblemsCache.forEach((k, v) -> activeProblems.addAll(v));
+
+        return activeProblems;
+    }
+
     public void updateFromNewActiveProblems(List<InlineProblem> problems) {
-        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
+        final List<InlineProblem> activeProblemsSnapShot = getActiveProblemsWithHiddenProblemsCache();
 
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
     }
 
     public void updateFromNewActiveProblemsForProjectAndFile(List<InlineProblem> problems, Project project, String filePath) {
-        final List<InlineProblem> activeProblemsSnapShot = activeProblems.stream()
+        final List<InlineProblem> activeProblemsSnapShot = getActiveProblemsWithHiddenProblemsCache().stream()
                 .filter(p -> p.getProject().equals(project) && p.getFile().equals(filePath))
                 .collect(Collectors.toList());
 
@@ -237,14 +233,14 @@ public class ProblemManager implements Disposable {
                 .collect(Collectors.toList());
     }
 
-    private void updateFromNewActiveProblems(List<InlineProblem> problems, List<InlineProblem> activeProblemsSnapShot) {
+    private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
         final List<InlineProblem> processedProblems = new ArrayList<>();
 
         activeProblemsSnapShot.stream()
-                .filter(p -> !problems.contains(p))
+                .filter(p -> !newProblems.contains(p))
                 .forEach(p -> {processedProblems.add(p); removeProblem(p);});
 
-        problems.stream()
+        newProblems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
                 .forEach(this::addProblem);
     }
