@@ -6,16 +6,25 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
+import org.overengineer.inlineproblems.settings.SettingsState;
+import org.overengineer.inlineproblems.entities.enums.Listener;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
     private final List<InlineProblem> activeProblems = new ArrayList<>();
 
+    /**
+     * Used for listeners that update problems one by one and not from a list of new active problems to have only the
+     * problem with the highest severity shown in the line, i.e. the MarkupModelListener
+     */
+    private final Map<Integer, List<InlineProblem>> hiddenProblemsCache = new HashMap<>();
+
     private final InlineDrawer inlineDrawer = new InlineDrawer();
+
+    private final SettingsState settingsState = SettingsState.getInstance();
 
     private final Logger logger = Logger.getInstance(ProblemManager.class);
 
@@ -24,6 +33,16 @@ public class ProblemManager implements Disposable {
     }
 
     public void removeProblem(InlineProblem problem) {
+
+        if (settingsState.isShowOnlyHighestSeverityPerLine() && settingsState.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER) {
+            removeProblemWithHiddenProblemsCacheActive(problem, true);
+        }
+        else {
+            removeProblemPrivate(problem);
+        }
+    }
+
+    private void removeProblemPrivate(InlineProblem problem) {
         InlineProblem problemToRemove = findActiveProblemByRangeHighlighterHashCode(problem.getRangeHighlighterHashCode());
 
         if (problemToRemove == null) {
@@ -42,6 +61,76 @@ public class ProblemManager implements Disposable {
         }
     }
 
+    public void addProblem(InlineProblem problem) {
+        if (settingsState.isShowOnlyHighestSeverityPerLine()) {
+            addProblemShowOnlyHighestSeverity(
+                    problem,
+                    settingsState.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER
+            );
+        }
+        else {
+            addProblemSorted(problem);
+        }
+    }
+
+    private void addProblemPrivate(InlineProblem problem) {
+        DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
+
+        inlineDrawer.drawProblemLabel(problem, drawDetails);
+        inlineDrawer.drawProblemLineHighlight(problem, drawDetails);
+
+        activeProblems.add(problem);
+    }
+
+    /**
+     * Used to remove problems when the hiddenProblemsCache is active, i.e. from the MarkupModelListener when the user
+     * has the setting "Show only highest severity problem per line" enabled
+     */
+    private void removeProblemWithHiddenProblemsCacheActive(InlineProblem problem, boolean addCachedProblemAfterRemoval) {
+        List<InlineProblem> activeProblems = getProblemsInLine(problem.getLine());
+        if (activeProblems.size() > 1) {
+            logger.warn("Multiple activeProblems found in ProblemManager.removeProblemFromMarkupModelListener");
+        }
+        else if (activeProblems.size() == 0) {
+            logger.warn("No activeProblems found in ProblemManager.removeProblemFromMarkupModelListener");
+        }
+        else {
+            // The key of the map is the hashCode of the problem with the highest severity
+            var activeProblem = activeProblems.get(0);
+
+            if (hiddenProblemsCache.containsKey(activeProblem.hashCode())) {
+                InlineProblem problemToRemoveFromHiddenCache = findProblemByRangeHighlighterHashCodeFromList(
+                        problem.getRangeHighlighterHashCode(),
+                        hiddenProblemsCache.get(activeProblem.hashCode())
+                );
+
+                if (problemToRemoveFromHiddenCache != null) {
+                    logger.info("Problem removal not needed, problem is cached, removing from cache instead " + problem.getText());
+                    hiddenProblemsCache.get(activeProblem.hashCode()).remove(problemToRemoveFromHiddenCache);
+                    return;
+                }
+            }
+
+            removeProblemPrivate(problem);
+
+            if (addCachedProblemAfterRemoval) {
+                var notShownProblems = hiddenProblemsCache.get(activeProblem.hashCode());
+
+                // Adds the first of the cached hidden problems
+                if (notShownProblems != null && notShownProblems.size() > 0) {
+
+                    logger.info("Re-adding problem: " + notShownProblems.get(0).getText());
+                    InlineProblem problemToShow = notShownProblems.get(0);
+                    addProblemPrivate(problemToShow);
+
+                    // Update key (hashcode) of cached problems map
+                    hiddenProblemsCache.remove(activeProblem.hashCode());
+                    hiddenProblemsCache.put(problemToShow.hashCode(), notShownProblems);
+                }
+            }
+        }
+    }
+
     /**
      * To add problems, if there are existing problems in the same line, they will be removed and re-added to ensure the
      * correct order (ordered by severity)
@@ -57,24 +146,64 @@ public class ProblemManager implements Disposable {
 
         problemsInLine.forEach(p -> {
             if (p != problem)
-                removeProblem(p);
+                removeProblemPrivate(p);
         });
 
-        problemsInLine.forEach(this::addProblem);
+        problemsInLine.forEach(this::addProblemPrivate);
     }
 
-    public void addProblem(InlineProblem problem) {
-        DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
+    public void addProblemShowOnlyHighestSeverity(InlineProblem problem, boolean hiddenProblemsCacheActive) {
+        List<InlineProblem> problemsInLine = getProblemsInLine(problem.getLine());
 
-        inlineDrawer.drawProblemLabel(problem, drawDetails);
-        inlineDrawer.drawProblemLineHighlight(problem, drawDetails);
+        if (!problemsInLine.isEmpty()) {
+            InlineProblem highestSeverityProblem = problemsInLine.stream()
+                    .max(Comparator.comparingInt(InlineProblem::getSeverity))
+                    .get();
 
-        activeProblems.add(problem);
+            if (highestSeverityProblem.getSeverity() > problem.getSeverity()) {
+                if (hiddenProblemsCacheActive) {
+                    // Here no new key (hashcode) is needed because the active problem hasn't changed, so we pass in the same hashcode
+                    addProblemToHiddenProblemsCache(problem, highestSeverityProblem.hashCode());
+                }
+
+                return;
+            }
+            else {
+                removeProblemPrivate(highestSeverityProblem);
+                if (hiddenProblemsCacheActive) {
+                    addProblemToHiddenProblemsCache(highestSeverityProblem, problem.hashCode());
+                }
+            }
+        }
+
+        addProblemPrivate(problem);
+    }
+
+    /**
+     * Adds a problem into the not hidden problems cache, also changes the key of the cache map so that the currently
+     * active window's hashcode is always the key
+     */
+    private void addProblemToHiddenProblemsCache(InlineProblem problem, int hashCode) {
+        if (hiddenProblemsCache.containsKey(problem.hashCode())) {
+            List<InlineProblem> problems = hiddenProblemsCache.get(problem.hashCode());
+            problems.add(problem);
+
+            problems = problems.stream()
+                    .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
+                    .collect(Collectors.toList());
+
+            hiddenProblemsCache.remove(problem.hashCode());
+            hiddenProblemsCache.put(hashCode, problems);
+        }
+        else {
+            hiddenProblemsCache.put(hashCode, new ArrayList<>(List.of(problem)));
+        }
     }
 
     public void reset() {
         final List<InlineProblem> activeProblemSnapShot = List.copyOf(activeProblems);
-        activeProblemSnapShot.forEach(this::removeProblem);
+        hiddenProblemsCache.clear();
+        activeProblemSnapShot.forEach(this::removeProblemPrivate);
     }
 
     public void resetForEditor(Editor editor) {
@@ -82,7 +211,10 @@ public class ProblemManager implements Disposable {
 
         activeProblemsSnapShot.stream()
                 .filter(aP -> aP.getTextEditor().getEditor().equals(editor))
-                .forEach(this::removeProblem);
+                .forEach(p -> {
+                    removeProblemPrivate(p);
+                    hiddenProblemsCache.remove(p.hashCode());
+                });
     }
 
     public void updateFromNewActiveProblems(List<InlineProblem> problems) {
@@ -114,11 +246,15 @@ public class ProblemManager implements Disposable {
 
         problems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
-                .forEach(this::addProblemSorted);
+                .forEach(this::addProblem);
     }
 
     private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
-        return activeProblems.stream()
+        return findProblemByRangeHighlighterHashCodeFromList(hashCode, activeProblems);
+    }
+
+    private InlineProblem findProblemByRangeHighlighterHashCodeFromList(int hashCode, List<InlineProblem> list) {
+        return list.stream()
                 .filter(p -> p.getRangeHighlighterHashCode() == hashCode)
                 .findFirst()
                 .orElse(null);
