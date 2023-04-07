@@ -6,9 +6,12 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
+import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -16,6 +19,8 @@ public class ProblemManager implements Disposable {
     private final List<InlineProblem> activeProblems = new ArrayList<>();
 
     private final InlineDrawer inlineDrawer = new InlineDrawer();
+
+    private final SettingsState settingsState = SettingsState.getInstance();
 
     private final Logger logger = Logger.getInstance(ProblemManager.class);
 
@@ -105,14 +110,35 @@ public class ProblemManager implements Disposable {
                 .collect(Collectors.toList());
     }
 
-    private void updateFromNewActiveProblems(List<InlineProblem> problems, List<InlineProblem> activeProblemsSnapShot) {
+    private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
         final List<InlineProblem> processedProblems = new ArrayList<>();
+        List<InlineProblem> usedProblems;
+
+        if (settingsState.isShowOnlyHighestSeverityPerLine()) {
+            Map<Integer, InlineProblem> filteredMap = new HashMap<>();
+
+            for (InlineProblem problem : newProblems) {
+                if (filteredMap.containsKey(problem.getLine())) {
+                    if (filteredMap.get(problem.getLine()).getSeverity() < problem.getSeverity()) {
+                        filteredMap.replace(problem.getLine(), problem);
+                    }
+                }
+                else {
+                    filteredMap.put(problem.getLine(), problem);
+                }
+            }
+
+            usedProblems = new ArrayList<>(filteredMap.values());
+        }
+        else {
+            usedProblems = newProblems;
+        }
 
         activeProblemsSnapShot.stream()
-                .filter(p -> !problems.contains(p))
+                .filter(p -> !usedProblems.contains(p))
                 .forEach(p -> {processedProblems.add(p); removeProblem(p);});
 
-        problems.stream()
+        usedProblems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
                 .forEach(this::addProblemSorted);
     }
