@@ -52,7 +52,7 @@ public class ProblemManager implements Disposable {
      * correct order (ordered by severity)
      * @param problem problem to add
      */
-    public void addProblemSorted(InlineProblem problem) {
+    public void addProblem(InlineProblem problem) {
         List<InlineProblem> problemsInLine = getProblemsInLine(problem.getLine());
         problemsInLine.add(problem);
 
@@ -65,10 +65,12 @@ public class ProblemManager implements Disposable {
                 removeProblem(p);
         });
 
-        problemsInLine.forEach(this::addProblem);
+        /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
+        *  it does not work like expected, that is because there are differences the evaluation and the way it is called */
+        problemsInLine.forEach(this::addProblemPrivate);
     }
 
-    public void addProblem(InlineProblem problem) {
+    private void addProblemPrivate(InlineProblem problem) {
         DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
 
         inlineDrawer.drawProblemLabel(problem, drawDetails);
@@ -110,6 +112,11 @@ public class ProblemManager implements Disposable {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Updates the active problems based on a list of new problems, problems can also be added and removed one by one,
+     * like the MarkupModelProblemListener does, but if the feature "Show only highest severity per line" is enabled,
+     * this function needs to be used.
+     */
     private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
         final List<InlineProblem> processedProblems = new ArrayList<>();
         List<InlineProblem> usedProblems;
@@ -140,7 +147,7 @@ public class ProblemManager implements Disposable {
 
         usedProblems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
-                .forEach(this::addProblemSorted);
+                .forEach(this::addProblem);
     }
 
     private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
