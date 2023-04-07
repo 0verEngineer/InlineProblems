@@ -40,6 +40,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private static final int WIDTH_OFFSET = 7;
     private static final int DRAW_BOX_HEIGHT_OFFSET = -2; // Makes the box lines visible even if line below / above is highlighted
     private static final int DRAW_BOX_WIDTH_OFFSET = -2; // To have space between 2 boxes
+    private static final int DRAW_BOX_PLACEMENT_OFFSET_Y = 1;
     private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_Y = -1;
     private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_X = 3;
 
@@ -92,7 +93,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         int width = calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET;
         int height = calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET;
 
-        int targetRegionY = targetRegion.y;
+        int targetRegionY = targetRegion.y + DRAW_BOX_PLACEMENT_OFFSET_Y;
 
         int editorFontSize = editor.getColorsScheme().getEditorFontSize();
 
