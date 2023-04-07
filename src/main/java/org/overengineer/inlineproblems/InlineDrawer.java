@@ -58,7 +58,8 @@ public class InlineDrawer {
         // We add 50 as offset here because the calculation is somehow not exact
         if (problemWidth + 50 > editorWidth && !settings.isForceProblemsInSameLine())
         {
-            inlineProblemLabel.setMultiLine(true);
+            inlineProblemLabel.setBlockElement(true);
+            problem.setBlockElement(true);
 
             inlayModel.addBlockElement(
                     editor.getDocument().getLineStartOffset(problem.getLine()),
@@ -126,24 +127,28 @@ public class InlineDrawer {
         // We search for all elements because they can move
         int documentLineStartOffset = document.getLineStartOffset(0);
         int documentLineEndOffset = document.getLineEndOffset(document.getLineCount() - 1);
-        editor.getInlayModel()
-                .getBlockElementsInRange(
-                        documentLineStartOffset,
-                        documentLineEndOffset
-                )
-                .stream()
-                .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
-                .forEach(Disposable::dispose);
 
-        editor.getInlayModel()
-                .getAfterLineEndElementsInRange(
-                        documentLineStartOffset,
-                        documentLineEndOffset
-                )
-                .stream()
-                .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
-                .forEach(Disposable::dispose);
+        if (problem.isBlockElement()) {
+            editor.getInlayModel()
+                    .getBlockElementsInRange(
+                            documentLineStartOffset,
+                            documentLineEndOffset
+                    )
+                    .stream()
+                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
+                    .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
+                    .forEach(Disposable::dispose);
+        }
+        else {
+            editor.getInlayModel()
+                    .getAfterLineEndElementsInRange(
+                            documentLineStartOffset,
+                            documentLineEndOffset
+                    )
+                    .stream()
+                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
+                    .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
+                    .forEach(Disposable::dispose);
+        }
     }
 }

@@ -32,7 +32,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private final boolean isFillBackground;
 
     @Setter
-    private boolean isMultiLine;
+    private boolean isBlockElement;
 
     private int inlayFontSizeDelta;
     private boolean isUseEditorFont = false;
@@ -55,7 +55,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         this.isDrawBox = settings.isDrawBoxesAroundErrorLabels();
         this.isRoundedCorners = settings.isRoundedCornerBoxes();
         this.text = problem.getText();
-        this.isMultiLine = false;
+        this.isBlockElement = false;
         this.isFillBackground = settings.isFillProblemLabels();
 
         this.isUseEditorFont = settings.isUseEditorFont();
