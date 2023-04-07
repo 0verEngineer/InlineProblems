@@ -43,6 +43,8 @@ public class SettingsComponent {
     private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox("Draw boxes around problem labels");
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox("Rounded corners");
     private final JBCheckBox useEditorFont = new JBCheckBox("Use editor font instead of tooltip font");
+
+    private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox("Show only the problem with the highest severity per line");
     private JFormattedTextField inlayFontSizeDeltaText;
     private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
     private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
@@ -111,6 +113,7 @@ public class SettingsComponent {
                 .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
+                .addComponent(showOnlyHighestSeverityPerLine, 0)
                 .addLabeledComponent(new JBLabel("Inlay size delta"), inlayFontSizeDeltaText)
                 .addTooltip("Used to have smaller font size for the inlays, should be smaller than editor font size")
                 .addLabeledComponent(new JLabel("Problem filter list"), problemFilterList)
@@ -120,25 +123,25 @@ public class SettingsComponent {
                 .addComponent(showErrors)
                 .addComponent(highlightErrors)
                 .addLabeledComponent(new JLabel("Error text color:"), errorTextColor)
-                .addLabeledComponent(new JLabel("Error label corner color:"), errorLabelBackgroundColor)
+                .addLabeledComponent(new JLabel("Error label border color:"), errorLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Error line highlight color:"), errorHighlightColor)
                 .addSeparator()
                 .addComponent(showWarnings)
                 .addComponent(highlightWarnings)
                 .addLabeledComponent(new JLabel("Warning text color:"), warningTextColor)
-                .addLabeledComponent(new JLabel("Warning label corner color:"), warningLabelBackgroundColor)
+                .addLabeledComponent(new JLabel("Warning label border color:"), warningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Warning line highlight color:"), warningHighlightColor)
                 .addSeparator()
                 .addComponent(showWeakWarnings)
                 .addComponent(highlightWeakWarnings)
                 .addLabeledComponent(new JLabel("Weak warning text color:"), weakWarningTextColor)
-                .addLabeledComponent(new JLabel("Weak warning label corner color:"), weakWarningLabelBackgroundColor)
+                .addLabeledComponent(new JLabel("Weak warning label border color:"), weakWarningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Weak warning line highlight color:"), weakWarningHighlightColor)
                 .addSeparator()
                 .addComponent(showInfos)
                 .addComponent(highlightInfo)
                 .addLabeledComponent(new JLabel("Info text color:"), infoTextColor)
-                .addLabeledComponent(new JLabel("Info label corner color:"), infoLabelBackgroundColor)
+                .addLabeledComponent(new JLabel("Info label border color:"), infoLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Info line highlight color:"), infoHighlightColor)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
@@ -176,6 +179,10 @@ public class SettingsComponent {
         return useEditorFont.isSelected();
     }
 
+    public boolean isShowOnlyHighestSeverityPerLine() {
+        return showOnlyHighestSeverityPerLine.isSelected();
+    }
+
     public int getInlayFontSizeDelta() {
         int val = 0;
         // Convert the String
@@ -192,6 +199,10 @@ public class SettingsComponent {
 
     public void setUseEditorFont(boolean isSelected) {
         useEditorFont.setSelected(isSelected);
+    }
+
+    public void setShowOnlyHighestSeverityPerLine(boolean isSelected) {
+        showOnlyHighestSeverityPerLine.setSelected(isSelected);
     }
 
     public boolean isFillProblemLabels() {

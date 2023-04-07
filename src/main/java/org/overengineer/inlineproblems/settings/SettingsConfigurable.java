@@ -43,6 +43,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isDrawBoxesAroundErrorLabels() == settingsComponent.getDrawBoxesAroundProblemLabels() &&
                 state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
+                state.isShowOnlyHighestSeverityPerLine() == settingsComponent.isShowOnlyHighestSeverityPerLine() &&
                 state.getInlayFontSizeDelta() == settingsComponent.getInlayFontSizeDelta() &&
                 state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
 
@@ -110,6 +111,7 @@ public class SettingsConfigurable implements Configurable {
         state.setDrawBoxesAroundErrorLabels(settingsComponent.getDrawBoxesAroundProblemLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
+        state.setShowOnlyHighestSeverityPerLine(settingsComponent.isShowOnlyHighestSeverityPerLine());
         state.setInlayFontSizeDelta(settingsComponent.getInlayFontSizeDelta());
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
 
@@ -155,6 +157,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setDrawBoxesAroundProblemLabels(state.isDrawBoxesAroundErrorLabels());
         settingsComponent.setRoundedCornerBoxes(state.isRoundedCornerBoxes());
         settingsComponent.setUseEditorFont(state.isUseEditorFont());
+        settingsComponent.setShowOnlyHighestSeverityPerLine(state.isShowOnlyHighestSeverityPerLine());
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
 
         settingsComponent.setEnabledListener(state.getEnabledListener());

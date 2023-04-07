@@ -6,9 +6,12 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
+import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -16,6 +19,8 @@ public class ProblemManager implements Disposable {
     private final List<InlineProblem> activeProblems = new ArrayList<>();
 
     private final InlineDrawer inlineDrawer = new InlineDrawer();
+
+    private final SettingsState settingsState = SettingsState.getInstance();
 
     private final Logger logger = Logger.getInstance(ProblemManager.class);
 
@@ -42,7 +47,30 @@ public class ProblemManager implements Disposable {
         }
     }
 
+    /**
+     * To add problems, if there are existing problems in the same line, they will be removed and re-added to ensure the
+     * correct order (ordered by severity)
+     * @param problem problem to add
+     */
     public void addProblem(InlineProblem problem) {
+        List<InlineProblem> problemsInLine = getProblemsInLine(problem.getLine());
+        problemsInLine.add(problem);
+
+        problemsInLine = problemsInLine.stream()
+                .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
+                .collect(Collectors.toList());
+
+        problemsInLine.forEach(p -> {
+            if (p != problem)
+                removeProblem(p);
+        });
+
+        /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
+        *  it does not work like expected, that is because there are differences the evaluation and the way it is called */
+        problemsInLine.forEach(this::addProblemPrivate);
+    }
+
+    private void addProblemPrivate(InlineProblem problem) {
         DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
 
         inlineDrawer.drawProblemLabel(problem, drawDetails);
@@ -78,14 +106,46 @@ public class ProblemManager implements Disposable {
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
     }
 
-    private void updateFromNewActiveProblems(List<InlineProblem> problems, List<InlineProblem> activeProblemsSnapShot) {
+    public List<InlineProblem> getProblemsInLine(int line) {
+        return activeProblems.stream()
+                .filter(p -> p.getLine() == line)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Updates the active problems based on a list of new problems, problems can also be added and removed one by one,
+     * like the MarkupModelProblemListener does, but if the feature "Show only highest severity per line" is enabled,
+     * this function needs to be used.
+     */
+    private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
         final List<InlineProblem> processedProblems = new ArrayList<>();
+        List<InlineProblem> usedProblems;
+
+        if (settingsState.isShowOnlyHighestSeverityPerLine()) {
+            Map<Integer, InlineProblem> filteredMap = new HashMap<>();
+
+            for (InlineProblem problem : newProblems) {
+                if (filteredMap.containsKey(problem.getLine())) {
+                    if (filteredMap.get(problem.getLine()).getSeverity() < problem.getSeverity()) {
+                        filteredMap.replace(problem.getLine(), problem);
+                    }
+                }
+                else {
+                    filteredMap.put(problem.getLine(), problem);
+                }
+            }
+
+            usedProblems = new ArrayList<>(filteredMap.values());
+        }
+        else {
+            usedProblems = newProblems;
+        }
 
         activeProblemsSnapShot.stream()
-                .filter(p -> !problems.contains(p))
+                .filter(p -> !usedProblems.contains(p))
                 .forEach(p -> {processedProblems.add(p); removeProblem(p);});
 
-        problems.stream()
+        usedProblems.stream()
                 .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
                 .forEach(this::addProblem);
     }

@@ -87,6 +87,8 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private int enabledListener = Listener.HIGHLIGHT_PROBLEMS_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";
 
+    private boolean showOnlyHighestSeverityPerLine = false;
+
     public static SettingsState getInstance() {
         return ApplicationManager.getApplication().getService(SettingsState.class);
     }
