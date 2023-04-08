@@ -46,6 +46,8 @@ public class SettingsConfigurable implements Configurable {
                 state.isShowOnlyHighestSeverityPerLine() == settingsComponent.isShowOnlyHighestSeverityPerLine() &&
                 state.getInlayFontSizeDelta() == settingsComponent.getInlayFontSizeDelta() &&
                 state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
+                state.isBoldProblemLabels() == settingsComponent.isBoldProblemLabels() &&
+                state.isItalicProblemLabels() == settingsComponent.isItalicProblemLabels() &&
 
                 state.getErrorTextColor().equals(settingsComponent.getErrorTextColor()) &&
                 state.getErrorBackgroundColor().equals(settingsComponent.getErrorLabelBackgroundColor()) &&
@@ -114,6 +116,8 @@ public class SettingsConfigurable implements Configurable {
         state.setShowOnlyHighestSeverityPerLine(settingsComponent.isShowOnlyHighestSeverityPerLine());
         state.setInlayFontSizeDelta(settingsComponent.getInlayFontSizeDelta());
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
+        state.setBoldProblemLabels(settingsComponent.isBoldProblemLabels());
+        state.setItalicProblemLabels(settingsComponent.isItalicProblemLabels());
 
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
@@ -159,6 +163,8 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setUseEditorFont(state.isUseEditorFont());
         settingsComponent.setShowOnlyHighestSeverityPerLine(state.isShowOnlyHighestSeverityPerLine());
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
+        settingsComponent.setBoldProblemLabels(state.isBoldProblemLabels());
+        settingsComponent.setItalicProblemLabels(state.isItalicProblemLabels());
 
         settingsComponent.setEnabledListener(state.getEnabledListener());
         settingsComponent.setProblemFilterList(state.getProblemFilterList());

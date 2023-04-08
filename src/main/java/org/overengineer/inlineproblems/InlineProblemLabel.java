@@ -5,17 +5,16 @@ import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
-import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.impl.FontInfo;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.util.ui.UIUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
+import org.overengineer.inlineproblems.utils.FontUtil;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -32,7 +31,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private final boolean isFillBackground;
 
     @Setter
-    private boolean isMultiLine;
+    private boolean isBlockElement;
 
     private int inlayFontSizeDelta;
     private boolean isUseEditorFont = false;
@@ -40,6 +39,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private static final int WIDTH_OFFSET = 7;
     private static final int DRAW_BOX_HEIGHT_OFFSET = -2; // Makes the box lines visible even if line below / above is highlighted
     private static final int DRAW_BOX_WIDTH_OFFSET = -2; // To have space between 2 boxes
+    private static final int DRAW_BOX_PLACEMENT_OFFSET_Y = 1;
     private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_Y = -1;
     private static final int DRAW_STRING_LINE_PLACEMENT_OFFSET_X = 3;
 
@@ -54,7 +54,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         this.isDrawBox = settings.isDrawBoxesAroundErrorLabels();
         this.isRoundedCorners = settings.isRoundedCornerBoxes();
         this.text = problem.getText();
-        this.isMultiLine = false;
+        this.isBlockElement = false;
         this.isFillBackground = settings.isFillProblemLabels();
 
         this.isUseEditorFont = settings.isUseEditorFont();
@@ -72,7 +72,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
                 AntialiasingType.getKeyForCurrentScope(false),
                 UISettings.getEditorFractionalMetricsHint());
 
-        var fontMetrics = FontInfo.getFontMetrics(getActiveFont(editor), context);
+        var fontMetrics = FontInfo.getFontMetrics(FontUtil.getActiveFont(editor), context);
 
         return fontMetrics.stringWidth(text) + WIDTH_OFFSET;
     }
@@ -86,13 +86,11 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     public void paint(@NotNull Inlay inlay, @NotNull Graphics graphics, @NotNull Rectangle targetRegion, @NotNull TextAttributes textAttributes) {
         Editor editor = inlay.getEditor();
 
-        graphics.setFont(getActiveFont(editor));
-
         // These offsets are applied here and not in the calc functions itself because we use it to shrink the drawn stuff a little bit
         int width = calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET;
         int height = calcHeightInPixels(inlay) + DRAW_BOX_HEIGHT_OFFSET;
 
-        int targetRegionY = targetRegion.y;
+        int targetRegionY = targetRegion.y + DRAW_BOX_PLACEMENT_OFFSET_Y;
 
         int editorFontSize = editor.getColorsScheme().getEditorFontSize();
 
@@ -146,6 +144,9 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         }
 
         graphics.setColor(textColor);
+
+        graphics.setFont(FontUtil.getActiveFont(editor));
+
         graphics.drawString(
                 text,
                 targetRegion.x + DRAW_STRING_LINE_PLACEMENT_OFFSET_X,
@@ -156,30 +157,5 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Override
     public @Nullable GutterIconRenderer calcGutterIconRenderer(@NotNull Inlay inlay) {
         return EditorCustomElementRenderer.super.calcGutterIconRenderer(inlay);
-    }
-
-    private Font getActiveFont(Editor editor) {
-        int appliedDelta = 0;
-        int editorFontSize = editor.getColorsScheme().getEditorFontSize();
-
-        if (editorFontSize > inlayFontSizeDelta) {
-            appliedDelta = inlayFontSizeDelta;
-        }
-
-        if (isUseEditorFont) {
-            return UIUtil.getFontWithFallback(
-                    editor.getColorsScheme().getFont(EditorFontType.PLAIN).getFontName(),
-                    Font.PLAIN,
-                    editorFontSize - appliedDelta
-            );
-        }
-        else {
-            Font toolTipFont = UIUtil.getToolTipFont();
-            return UIUtil.getFontWithFallback(
-                    toolTipFont.getFontName(),
-                    toolTipFont.getStyle(),
-                    editorFontSize - appliedDelta
-            );
-        }
     }
 }

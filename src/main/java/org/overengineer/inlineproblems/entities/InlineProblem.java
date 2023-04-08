@@ -12,7 +12,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@EqualsAndHashCode(exclude = {"line", "problemLineHighlighterHashCode", "inlineProblemLabelHashCode"})
+@EqualsAndHashCode(exclude = {"line", "problemLineHighlighterHashCode", "inlineProblemLabelHashCode", "isBlockElement"})
 public class InlineProblem {
 
     // The line the problem first appeared
@@ -26,6 +26,8 @@ public class InlineProblem {
     private final Project project;
 
     private int actualEndOffset;
+
+    private boolean isBlockElement = false;
 
     // Set after drawing the line highlight, used to remove it again
     private int problemLineHighlighterHashCode;

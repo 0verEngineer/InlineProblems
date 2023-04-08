@@ -47,6 +47,8 @@ public class SettingsComponent {
     private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox("Show only the problem with the highest severity per line");
     private JFormattedTextField inlayFontSizeDeltaText;
     private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
+    private final JBCheckBox boldProblemLabels = new JBCheckBox("Bold problem labels");
+    private final JBCheckBox italicProblemLabels = new JBCheckBox("Italic problem labels");
     private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
 
     private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME, DocumentMarkupModelScanner.NAME};
@@ -96,6 +98,9 @@ public class SettingsComponent {
         inlayFontSizeDeltaText.setText(Integer.toString(settingsState.getInlayFontSizeDelta()));
 
         fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
+        boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
+        italicProblemLabels.setSelected(settingsState.isItalicProblemLabels());
+
         problemFilterList.setText(settingsState.getProblemFilterList());
         enabledListener.setSelectedItem(Optional.of(settingsState.getEnabledListener()));
 
@@ -108,6 +113,8 @@ public class SettingsComponent {
                 .addComponent(drawBoxesAroundProblemLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
                 .addComponent(fillProblemLabels, 0)
+                .addComponent(boldProblemLabels, 0)
+                .addComponent(italicProblemLabels, 0)
                 .addSeparator()
                 .addComponent(new JBLabel("General"))
                 .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
@@ -211,6 +218,22 @@ public class SettingsComponent {
 
     public void setFillProblemLabels(boolean isSelected) {
         fillProblemLabels.setSelected(isSelected);
+    }
+
+    public boolean isBoldProblemLabels() {
+        return boldProblemLabels.isSelected();
+    }
+
+    public void setBoldProblemLabels(boolean isSelected) {
+        boldProblemLabels.setSelected(isSelected);
+    }
+
+    public boolean isItalicProblemLabels() {
+        return italicProblemLabels.isSelected();
+    }
+
+    public void setItalicProblemLabels(boolean isSelected) {
+        italicProblemLabels.setSelected(isSelected);
     }
 
     public boolean isShowErrors() {
