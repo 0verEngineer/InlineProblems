@@ -15,6 +15,8 @@ import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.utils.ColorConverter;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -103,6 +105,17 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     @Override
     public void loadState(@NotNull SettingsState state) {
         XmlSerializerUtil.copyBean(state, this);
+
+        migrateState();
+    }
+
+    private void migrateState() {
+        List<String> newFilterListEntries = List.of("Consider unknown contexts non-blocking");
+        for (String entry : newFilterListEntries) {
+            if (!problemFilterList.contains(entry)) {
+                problemFilterList += ";" + entry;
+            }
+        }
     }
 
     //<editor-fold desc="Handwritten Colors getter/setter to compatible with external callers.">
