@@ -32,7 +32,6 @@ public class InlineDrawer {
         );
         String lineText = editor.getDocument().getText(textRange);
 
-
         InlineProblemLabel inlineProblemLabel = new InlineProblemLabel(
                 problem,
                 drawDetails.getTextColor(),

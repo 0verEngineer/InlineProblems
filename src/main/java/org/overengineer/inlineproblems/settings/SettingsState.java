@@ -83,6 +83,8 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean useEditorFont = false;
     private int inlayFontSizeDelta = 0;
     private boolean fillProblemLabels = false;
+    private boolean boldProblemLabels = false;
+    private boolean italicProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
     private int enabledListener = Listener.HIGHLIGHT_PROBLEMS_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";

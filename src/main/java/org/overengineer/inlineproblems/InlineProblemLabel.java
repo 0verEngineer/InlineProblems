@@ -5,17 +5,16 @@ import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
-import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.impl.FontInfo;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.util.ui.UIUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
+import org.overengineer.inlineproblems.utils.FontUtil;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -73,7 +72,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
                 AntialiasingType.getKeyForCurrentScope(false),
                 UISettings.getEditorFractionalMetricsHint());
 
-        var fontMetrics = FontInfo.getFontMetrics(getActiveFont(editor), context);
+        var fontMetrics = FontInfo.getFontMetrics(FontUtil.getActiveFont(editor), context);
 
         return fontMetrics.stringWidth(text) + WIDTH_OFFSET;
     }
@@ -86,8 +85,6 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Override
     public void paint(@NotNull Inlay inlay, @NotNull Graphics graphics, @NotNull Rectangle targetRegion, @NotNull TextAttributes textAttributes) {
         Editor editor = inlay.getEditor();
-
-        graphics.setFont(getActiveFont(editor));
 
         // These offsets are applied here and not in the calc functions itself because we use it to shrink the drawn stuff a little bit
         int width = calcWidthInPixels(inlay) + DRAW_BOX_WIDTH_OFFSET;
@@ -147,6 +144,9 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         }
 
         graphics.setColor(textColor);
+
+        graphics.setFont(FontUtil.getActiveFont(editor));
+
         graphics.drawString(
                 text,
                 targetRegion.x + DRAW_STRING_LINE_PLACEMENT_OFFSET_X,
@@ -157,30 +157,5 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Override
     public @Nullable GutterIconRenderer calcGutterIconRenderer(@NotNull Inlay inlay) {
         return EditorCustomElementRenderer.super.calcGutterIconRenderer(inlay);
-    }
-
-    private Font getActiveFont(Editor editor) {
-        int appliedDelta = 0;
-        int editorFontSize = editor.getColorsScheme().getEditorFontSize();
-
-        if (editorFontSize > inlayFontSizeDelta) {
-            appliedDelta = inlayFontSizeDelta;
-        }
-
-        if (isUseEditorFont) {
-            return UIUtil.getFontWithFallback(
-                    editor.getColorsScheme().getFont(EditorFontType.PLAIN).getFontName(),
-                    Font.PLAIN,
-                    editorFontSize - appliedDelta
-            );
-        }
-        else {
-            Font toolTipFont = UIUtil.getToolTipFont();
-            return UIUtil.getFontWithFallback(
-                    toolTipFont.getFontName(),
-                    toolTipFont.getStyle(),
-                    editorFontSize - appliedDelta
-            );
-        }
     }
 }
