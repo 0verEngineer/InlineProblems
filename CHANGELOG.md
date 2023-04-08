@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-04-08
+
+### Added
+- Problems are now sorted by severity
+- Setting to show only the problem with the highest severity per line
+- Bold and italic font styles for problem labels
+
+### Fixed
+- Problem label boxes were drawn to high and sometimes a line did not disappear because it was drawn in the line above
+- AlreadyDisposedException in HighlightProblemListener
+
 ## [0.3.3] - 2023-02-18
 
 ### Added
@@ -74,8 +85,9 @@
 ### Added
 - Initial release with basic functionality
 
-[Unreleased]: https://github.com/JetBrains/intellij-platform-plugin-template/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/JetBrains/intellij-platform-plugin-template/compare/v0.4.0...HEAD
 
+[0.4.0]: https://github.com/0verEngineer/InlineProblems/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/0verEngineer/InlineProblems/compare/0.3.2...v0.3.3
 [0.3.2]: https://github.com/0verEngineer/InlineProblems/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/0verEngineer/InlineProblems/compare/0.2.1...0.3.1
