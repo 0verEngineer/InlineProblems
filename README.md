@@ -33,6 +33,7 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
   </p>
 
 ![GIF](https://github.com/0verEngineer/InlineProblems/blob/main/resources/gif1.gif?raw=true)
+![GIF](https://github.com/0verEngineer/InlineProblems/blob/main/resources/gif2.gif?raw=true)
 </div>
 
 
@@ -47,7 +48,10 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
 ![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/5.png)
 ![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/6.png)
 ![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/7.png)
-![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/settings.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/8.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/9.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/settings1.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/settings2.png)
 </details>
 
 
