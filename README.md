@@ -95,7 +95,7 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
 - You can download beta versions from the GitHub release page, there are available as pre-releases.
 
 ### Custom Repository
-- Add `https://plugins.jetbrains.com/plugins/dev/20789` as custom plugin repository if you only want this plugin from the `beta` channel
+- Add `https://plugins.jetbrains.com/plugins/beta/20789` as custom plugin repository if you only want this plugin from the `beta` channel
 - Add `https://plugins.jetbrains.com/plugins/beta/list` as custom plugin repository and you get all plugins with builds in the `beta` channel
 
 
