@@ -57,8 +57,7 @@ jobs:
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # todo remove test
         run: |
-          echo $VERSION
-          cat gradle.properties
+          PROPERTIES="$(./gradlew properties --console=plain -q)"
+          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           gh release upload "v$VERSION-beta" ./build/distributions/*
