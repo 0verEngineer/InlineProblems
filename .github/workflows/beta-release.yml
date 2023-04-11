@@ -53,6 +53,8 @@ jobs:
           gh release create v${{ env.betaVersion }} \
             --target "${{ github.head_ref }}" \
             --title "v${{ env.betaVersion }}" \
+            --prerelease \
+            --notes "This is a prerelease of the next version of the plugin. Checkout the pull request from master to release for the changelog."
 
       # Upload artifact as a release asset
       - name: Upload Release Asset
