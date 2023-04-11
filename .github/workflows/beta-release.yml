@@ -25,6 +25,7 @@ jobs:
         run: |
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
+          echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
           sed -i "/pluginVersion = / s/ = .*/ = $VERSION-beta/" gradle.properties
 
       # Setup Java 11 environment for the next steps
@@ -49,15 +50,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create v$VERSION-beta \
+          gh release create v${{ env.betaVersion }} \
             --target "${{ github.head_ref }}" \
-            --title "v$VERSION-beta"
+            --title "v${{ env.betaVersion }}" \
 
       # Upload artifact as a release asset
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PROPERTIES="$(./gradlew properties --console=plain -q)"
-          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-          gh release upload "v$VERSION" ./build/distributions/*
+          gh release upload "v${{ env.betaVersion }}" ./build/distributions/*

@@ -65,6 +65,7 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
     <li>
       <a href="#getting-started">Getting Started</a>
     </li>
+    <li><a href="#beta versions">Beta Versions</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -86,6 +87,16 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
 - Clone the repository and open it with IntelliJ
 
 
+
+<!-- BETA VERSIONS -->
+## Beta Versions
+
+### Download
+- You can download beta versions from the GitHub release page, there are available as pre-releases.
+
+### Custom Repository
+- Add `https://plugins.jetbrains.com/plugins/dev/20789` as custom plugin repository if you only want this plugin from the `beta` channel
+- Add `https://plugins.jetbrains.com/plugins/beta/list` as custom plugin repository and you get all plugins with builds in the `beta` channel
 
 
 <!-- ROADMAP -->
