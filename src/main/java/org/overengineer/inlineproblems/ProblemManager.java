@@ -122,16 +122,19 @@ public class ProblemManager implements Disposable {
         List<InlineProblem> usedProblems;
 
         if (settingsState.isShowOnlyHighestSeverityPerLine()) {
-            Map<Integer, InlineProblem> filteredMap = new HashMap<>();
+
+            Map<String, InlineProblem> filteredMap = new HashMap<>();
 
             for (InlineProblem problem : newProblems) {
-                if (filteredMap.containsKey(problem.getLine())) {
-                    if (filteredMap.get(problem.getLine()).getSeverity() < problem.getSeverity()) {
-                        filteredMap.replace(problem.getLine(), problem);
+                String key = String.valueOf(problem.getTextEditor().hashCode()) + problem.getLine();
+
+                if (filteredMap.containsKey(key)) {
+                    if (filteredMap.get(key).getSeverity() < problem.getSeverity()) {
+                        filteredMap.replace(key, problem);
                     }
                 }
                 else {
-                    filteredMap.put(problem.getLine(), problem);
+                    filteredMap.put(key, problem);
                 }
             }
 
