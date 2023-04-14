@@ -1,0 +1,64 @@
+name: Beta Release
+on:
+  pull_request:
+    branches:
+      - release
+
+jobs:
+  # Prepare and publish the plugin to the Marketplace repository
+  beta-release:
+    name: Publish Plugin Beta
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v3
+        with:
+          # Source branch
+          ref: ${{ github.head_ref }}
+
+      # Manipulate gradle.properties pluginVersion property
+      - name: Patch Gradle Properties
+        shell: bash
+        run: |
+          PROPERTIES="$(./gradlew properties --console=plain -q)"
+          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
+          echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
+          sed -i "/pluginVersion = / s/ = .*/ = $VERSION-beta/" gradle.properties
+
+      # Setup Java 11 environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: 11
+
+      # Publish the plugin to the Marketplace, this should automatically use the 'beta' channel because we changed the
+      #  version in gradle.properties to version-beta and
+      - name: Publish Plugin Beta
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+        run: ./gradlew publishPlugin
+
+      # Create a prerelease in GitHub, we are assuming here that all Merge-Requests
+      - name: Create Prerelease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create v${{ env.betaVersion }} \
+            --target "${{ github.head_ref }}" \
+            --title "v${{ env.betaVersion }}" \
+            --prerelease \
+            --notes "This is a prerelease of the next version of the plugin. Checkout the pull request from master to release for the changelog."
+
+      # Upload artifact as a release asset
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "v${{ env.betaVersion }}" ./build/distributions/*

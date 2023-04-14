@@ -15,6 +15,8 @@ import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.utils.ColorConverter;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -81,10 +83,15 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean roundedCornerBoxes = true;
     private boolean forceProblemsInSameLine = true;
     private boolean useEditorFont = false;
+    private int inlayFontSizeDelta = 0;
     private boolean fillProblemLabels = false;
+    private boolean boldProblemLabels = false;
+    private boolean italicProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
     private int enabledListener = Listener.HIGHLIGHT_PROBLEMS_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";
+
+    private boolean showOnlyHighestSeverityPerLine = false;
 
     public static SettingsState getInstance() {
         return ApplicationManager.getApplication().getService(SettingsState.class);
@@ -98,6 +105,17 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     @Override
     public void loadState(@NotNull SettingsState state) {
         XmlSerializerUtil.copyBean(state, this);
+
+        migrateState();
+    }
+
+    private void migrateState() {
+        List<String> newFilterListEntries = List.of("Consider unknown contexts non-blocking");
+        for (String entry : newFilterListEntries) {
+            if (!problemFilterList.contains(entry)) {
+                problemFilterList += ";" + entry;
+            }
+        }
     }
 
     //<editor-fold desc="Handwritten Colors getter/setter to compatible with external callers.">

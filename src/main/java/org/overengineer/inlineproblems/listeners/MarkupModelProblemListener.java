@@ -12,6 +12,7 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
+import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.ProblemManager;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listener;
@@ -20,6 +21,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 
 public class MarkupModelProblemListener implements MarkupModelListener {
@@ -110,10 +112,32 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         if (!(highlighter.getErrorStripeTooltip() instanceof HighlightInfo))
             return;
 
+        /*
+         * We use manual scanning if this option is enabled because we need all problems in the current textEditor to be
+         * updated.
+         */
+        if (settingsState.isShowOnlyHighestSeverityPerLine() && highlighter.getErrorStripeTooltip() != null) {
+            var highlightInfo = (HighlightInfo) highlighter.getErrorStripeTooltip();
+
+            if (highlightInfo != null &&
+                    highlightInfo.getDescription() != null &&
+                    !Objects.equals(highlightInfo.getDescription(), "")
+            ) {
+                /* If scanForProblemsManuallyInTextEditor is called directly, problems that should be already removed are
+                   still there and will be found and thus not removed as they should */
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor);
+                });
+                return;
+            }
+
+            return;
+        }
+
         InlineProblem problem = constructProblem(
-                editor.getDocument().getLineNumber(highlighter.getStartOffset()),
-                (HighlightInfo) highlighter.getErrorStripeTooltip(),
-                highlighter
+            editor.getDocument().getLineNumber(highlighter.getStartOffset()),
+            (HighlightInfo) highlighter.getErrorStripeTooltip(),
+            highlighter
         );
 
         List<String> problemTextBeginningFilterList = new ArrayList<>(

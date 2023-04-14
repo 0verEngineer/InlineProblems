@@ -10,66 +10,6 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor url="https://github.com/0verEngineer/InlineProblems">0verEngineer</vendor>
 
-    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <description><![CDATA[
-Plugin to show problems like errors and warnings inside the text editor (inline) for IDEs based on the IntelliJ Platform, inspired by Error Lens and InlineError
-]]></description>
-
-    <change-notes><![CDATA[
-      <ul>
-      <li>0.3.1
-        <ul>
-          <li>- Fix: SettingsState serialization issue (error on start)</li>
-          <li>- Fix: Settings always modified</li>
-          <li>- Adding MarkupModelListener for problem collecting</li>
-          <li>- Adding reset & rescan of all problems on settings change</li>
-          <li>- Adding ManualScan per delay of 250ms between finishing of the previous scan and starting a new one for problem collecting</li>
-          <li>- Fix: Invalid problems were shown</li>
-          <li>- Works now in Rider when Unity projects are opened, it will switch to the ManualScan listener automatically when Unity projects are open</li>
-          <li>- Fix: Font width calculation wrong and font size change was not working</li>
-          <li>- Handle xml and html in problem text</li>
-        </ul>
-      </li
-      <li>0.2.1 Bugfixes
-        <ul>
-          <li>- Stop showing empty problems</li>
-          <li>- Fix index out of bounds</li>
-          <li>- Fix versioning</li>
-        </ul>
-      </li>
-      <li>0.2.0
-        <ul>
-          <li>- Fixes label size calculation</li>
-          <li>- Adds option to change between editor and tooltip font</li>
-          <li>- Adds fallback font loading</li>
-          <li>- Fixes spacing between two inlay boxes</li>
-          <li>- Adds option for filled inlay boxes</li>
-        </ul>
-      </li>
-      <li>0.1.2 Bugfixes
-        <ul>
-          <li>- Problem filtering fix</li>
-          <li>- Removal / flicker of problems in dual pane mode fix </li>
-          <li>- Reload after settings change</li>
-        </ul>
-      </li>
-      <li>0.1.1 Bugfixes
-        <ul>
-          <li>- Removal of labels fix</li>
-          <li>- Duplicated problems shown fix</li>
-          <li>- Severity checks fix</li>
-          <li>- Improves default settings</li>
-        </ul>
-      </li>
-      <li>0.1.0 Initial release. Basic functionality.</li>
-      </ul>
-    ]]>
-    </change-notes>
-
-    <idea-version since-build="212.48"/>
-
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>

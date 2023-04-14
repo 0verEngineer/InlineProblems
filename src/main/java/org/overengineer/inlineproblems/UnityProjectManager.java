@@ -90,13 +90,19 @@ public class UnityProjectManager {
     private void handleUnityProjectOpened() {
         enabledListenerBefore = settings.getEnabledListener();
         settings.setEnabledListener(Listener.MANUAL_SCANNING);
-        ListenerManager.getInstance().changeListener();
+
+        ListenerManager listenerManager = ListenerManager.getInstance();
+        listenerManager.resetAndRescan();
+        listenerManager.changeListener();
     }
 
     private void handleNoMoreUnityProjectsOpened() {
         if (settings.getEnabledListener() == Listener.MANUAL_SCANNING) {
             settings.setEnabledListener(enabledListenerBefore);
-            ListenerManager.getInstance().changeListener();
+
+            ListenerManager listenerManager = ListenerManager.getInstance();
+            listenerManager.resetAndRescan();
+            listenerManager.changeListener();
 
             // PersistentStateComponent is somehow not working (Settings change is not persisted)
             ApplicationManager.getApplication().saveSettings();

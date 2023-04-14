@@ -19,9 +19,11 @@
 
 <h3 align="center">InlineProblems</h3>
 
+<!-- Plugin description -->
+Plugin to show problems like errors and warnings inside the text editor (inline) for IDEs based on the IntelliJ Platform, inspired by Error Lens and InlineError
+<!-- Plugin description end -->
+
   <p align="center">
-    Plugin to show problems inside the text editor for IDEs based on the IntelliJ Platform
-    <br />
     <br />
     <a href="https://plugins.jetbrains.com/plugin/20789-inlineproblems">Jetbrains Marketplace</a>
     .
@@ -31,7 +33,9 @@
   </p>
 
 ![GIF](https://github.com/0verEngineer/InlineProblems/blob/main/resources/gif1.gif?raw=true)
+![GIF](https://github.com/0verEngineer/InlineProblems/blob/main/resources/gif2.gif?raw=true)
 </div>
+
 
 ---
 <details>
@@ -44,7 +48,10 @@
 ![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/5.png)
 ![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/6.png)
 ![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/7.png)
-![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/settings.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/8.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/9.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/settings1.png)
+![PNG](https://raw.githubusercontent.com/0verEngineer/InlineProblems/main/resources/screenshots/settings2.png)
 </details>
 
 
@@ -58,6 +65,7 @@
     <li>
       <a href="#getting-started">Getting Started</a>
     </li>
+    <li><a href="#beta versions">Beta Versions</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -79,6 +87,16 @@
 - Clone the repository and open it with IntelliJ
 
 
+
+<!-- BETA VERSIONS -->
+## Beta Versions
+
+### Download
+- You can download beta versions from the GitHub release page, there are available as pre-releases.
+
+### Custom Repository
+- Add `https://plugins.jetbrains.com/plugins/beta/20789` as custom plugin repository if you only want this plugin from the `beta` channel
+- Add `https://plugins.jetbrains.com/plugins/beta/list` as custom plugin repository and you get all plugins with builds in the `beta` channel
 
 
 <!-- ROADMAP -->

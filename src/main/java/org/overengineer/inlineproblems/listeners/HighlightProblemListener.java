@@ -28,7 +28,10 @@ public class HighlightProblemListener implements HighlightInfoFilter {
         if (file == null || !file.isValid())
             return true;
 
-        ApplicationManager.getApplication().invokeLater(() -> handleAccept(file));
+        if (!file.getProject().isDisposed()) {
+            ApplicationManager.getApplication().invokeLater(() -> handleAccept(file));
+        }
+
         return true;
     }
 

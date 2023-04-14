@@ -12,7 +12,10 @@ import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 
 import javax.swing.*;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
+import java.text.NumberFormat;
+import java.util.Optional;
 
 
 public class SettingsComponent {
@@ -40,7 +43,12 @@ public class SettingsComponent {
     private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox("Draw boxes around problem labels");
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox("Rounded corners");
     private final JBCheckBox useEditorFont = new JBCheckBox("Use editor font instead of tooltip font");
+
+    private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox("Show only the problem with the highest severity per line");
+    private JFormattedTextField inlayFontSizeDeltaText;
     private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
+    private final JBCheckBox boldProblemLabels = new JBCheckBox("Bold problem labels");
+    private final JBCheckBox italicProblemLabels = new JBCheckBox("Italic problem labels");
     private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
 
     private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME, DocumentMarkupModelScanner.NAME};
@@ -79,11 +87,22 @@ public class SettingsComponent {
         forceErrorsInSameLine.setSelected(settingsState.isForceProblemsInSameLine());
         drawBoxesAroundProblemLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
         roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
-        useEditorFont.setSelected(settingsState.isUseEditorFont());
-        fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
-        problemFilterList.setText(settingsState.getProblemFilterList());
 
-        enabledListener.setSelectedItem(settingsState.getEnabledListener());
+        useEditorFont.setSelected(settingsState.isUseEditorFont());
+
+        NumberFormat intFormat = NumberFormat.getIntegerInstance();
+        NumberFormatter numberFormatter = new NumberFormatter(intFormat);
+        numberFormatter.setValueClass(Integer.class); // Optional, ensures we always get a int value
+
+        inlayFontSizeDeltaText = new JFormattedTextField(numberFormatter);
+        inlayFontSizeDeltaText.setText(Integer.toString(settingsState.getInlayFontSizeDelta()));
+
+        fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
+        boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
+        italicProblemLabels.setSelected(settingsState.isItalicProblemLabels());
+
+        problemFilterList.setText(settingsState.getProblemFilterList());
+        enabledListener.setSelectedItem(Optional.of(settingsState.getEnabledListener()));
 
         Dimension enabledListenerDimension = enabledListener.getPreferredSize();
         enabledListenerDimension.width += 100;
@@ -94,11 +113,16 @@ public class SettingsComponent {
                 .addComponent(drawBoxesAroundProblemLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
                 .addComponent(fillProblemLabels, 0)
+                .addComponent(boldProblemLabels, 0)
+                .addComponent(italicProblemLabels, 0)
                 .addSeparator()
                 .addComponent(new JBLabel("General"))
                 .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
+                .addComponent(showOnlyHighestSeverityPerLine, 0)
+                .addLabeledComponent(new JBLabel("Inlay size delta"), inlayFontSizeDeltaText)
+                .addTooltip("Used to have smaller font size for the inlays, should be smaller than editor font size")
                 .addLabeledComponent(new JLabel("Problem filter list"), problemFilterList)
                 .addTooltip("Semicolon separated list of problem text beginnings that will not be handled")
                 .addSeparator()
@@ -106,25 +130,25 @@ public class SettingsComponent {
                 .addComponent(showErrors)
                 .addComponent(highlightErrors)
                 .addLabeledComponent(new JLabel("Error text color:"), errorTextColor)
-                .addLabeledComponent(new JLabel("Error label corner color:"), errorLabelBackgroundColor)
+                .addLabeledComponent(new JLabel("Error label border color:"), errorLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Error line highlight color:"), errorHighlightColor)
                 .addSeparator()
                 .addComponent(showWarnings)
                 .addComponent(highlightWarnings)
                 .addLabeledComponent(new JLabel("Warning text color:"), warningTextColor)
-                .addLabeledComponent(new JLabel("Warning label corner color:"), warningLabelBackgroundColor)
+                .addLabeledComponent(new JLabel("Warning label border color:"), warningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Warning line highlight color:"), warningHighlightColor)
                 .addSeparator()
                 .addComponent(showWeakWarnings)
                 .addComponent(highlightWeakWarnings)
                 .addLabeledComponent(new JLabel("Weak warning text color:"), weakWarningTextColor)
-                .addLabeledComponent(new JLabel("Weak warning label corner color:"), weakWarningLabelBackgroundColor)
+                .addLabeledComponent(new JLabel("Weak warning label border color:"), weakWarningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Weak warning line highlight color:"), weakWarningHighlightColor)
                 .addSeparator()
                 .addComponent(showInfos)
                 .addComponent(highlightInfo)
                 .addLabeledComponent(new JLabel("Info text color:"), infoTextColor)
-                .addLabeledComponent(new JLabel("Info label corner color:"), infoLabelBackgroundColor)
+                .addLabeledComponent(new JLabel("Info label border color:"), infoLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Info line highlight color:"), infoHighlightColor)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
@@ -162,8 +186,30 @@ public class SettingsComponent {
         return useEditorFont.isSelected();
     }
 
+    public boolean isShowOnlyHighestSeverityPerLine() {
+        return showOnlyHighestSeverityPerLine.isSelected();
+    }
+
+    public int getInlayFontSizeDelta() {
+        int val = 0;
+        // Convert the String
+        try {
+            val = Integer.parseInt(inlayFontSizeDeltaText.getText());
+        }
+        catch (NumberFormatException ignored) {}
+
+        if (val < 0)
+            val = 0;
+
+        return val;
+    }
+
     public void setUseEditorFont(boolean isSelected) {
         useEditorFont.setSelected(isSelected);
+    }
+
+    public void setShowOnlyHighestSeverityPerLine(boolean isSelected) {
+        showOnlyHighestSeverityPerLine.setSelected(isSelected);
     }
 
     public boolean isFillProblemLabels() {
@@ -172,6 +218,22 @@ public class SettingsComponent {
 
     public void setFillProblemLabels(boolean isSelected) {
         fillProblemLabels.setSelected(isSelected);
+    }
+
+    public boolean isBoldProblemLabels() {
+        return boldProblemLabels.isSelected();
+    }
+
+    public void setBoldProblemLabels(boolean isSelected) {
+        boldProblemLabels.setSelected(isSelected);
+    }
+
+    public boolean isItalicProblemLabels() {
+        return italicProblemLabels.isSelected();
+    }
+
+    public void setItalicProblemLabels(boolean isSelected) {
+        italicProblemLabels.setSelected(isSelected);
     }
 
     public boolean isShowErrors() {
@@ -298,7 +360,7 @@ public class SettingsComponent {
         return infoLabelBackgroundColor.getSelectedColor();
     }
 
-    public void setInfoLabelBackgroundColor(final  Color color) {
+    public void setInfoLabelBackgroundColor(final Color color) {
         infoLabelBackgroundColor.setSelectedColor(color);
     }
 
