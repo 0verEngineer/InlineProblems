@@ -8,10 +8,7 @@ import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -53,7 +50,7 @@ public class ProblemManager implements Disposable {
      * @param problem problem to add
      */
     public void addProblem(InlineProblem problem) {
-        List<InlineProblem> problemsInLine = getProblemsInLine(problem.getLine());
+        List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
         problemsInLine.add(problem);
 
         problemsInLine = problemsInLine.stream()
@@ -106,9 +103,9 @@ public class ProblemManager implements Disposable {
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
     }
 
-    public List<InlineProblem> getProblemsInLine(int line) {
+    private List<InlineProblem> getProblemsInLineForProblem(InlineProblem problem) {
         return activeProblems.stream()
-                .filter(p -> p.getLine() == line)
+                .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
                 .collect(Collectors.toList());
     }
 
