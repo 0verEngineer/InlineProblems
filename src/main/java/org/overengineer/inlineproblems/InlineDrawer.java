@@ -125,7 +125,9 @@ public class InlineDrawer {
         // Here is not checked if single or multi line, both are disposed because we do not have the info here
         // We search for all elements because they can move
         int documentLineStartOffset = document.getLineStartOffset(0);
-        int documentLineEndOffset = document.getLineEndOffset(document.getLineCount() - 1);
+        int endLine = document.getLineCount() - 1;
+        if (endLine < 0) endLine = 0;
+        int documentLineEndOffset = document.getLineEndOffset(endLine);
 
         if (problem.isBlockElement()) {
             editor.getInlayModel()

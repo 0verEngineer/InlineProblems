@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+- Possible index out of bounds exception
+- Flicker issued with the new only show highest severity per line feature
+
 ## [0.4.0] - 2023-04-08
 
 ### Added
