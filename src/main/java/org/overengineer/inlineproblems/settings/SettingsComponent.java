@@ -15,7 +15,10 @@ import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.List;
 
 
 public class SettingsComponent {
@@ -45,7 +48,7 @@ public class SettingsComponent {
     private final JBCheckBox useEditorFont = new JBCheckBox("Use editor font instead of tooltip font");
 
     private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox("Show only the problem with the highest severity per line");
-    private JFormattedTextField inlayFontSizeDeltaText;
+    private final JFormattedTextField inlayFontSizeDeltaText;
     private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
     private final JBCheckBox boldProblemLabels = new JBCheckBox("Bold problem labels");
     private final JBCheckBox italicProblemLabels = new JBCheckBox("Italic problem labels");
@@ -53,6 +56,11 @@ public class SettingsComponent {
 
     private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME, DocumentMarkupModelScanner.NAME};
     private final JComboBox<String> enabledListener = new ComboBox<>(availableListeners);
+
+    private final JBTextField additionalInfoSeverities = new JBTextField();
+    private final JBTextField additionalWarningSeverities = new JBTextField();
+    private final JBTextField additionalWeakWarningSeverities = new JBTextField();
+    private  final JBTextField additionalErrorSeverities = new JBTextField();
 
     @Getter
     private final JPanel settingsPanel;
@@ -101,6 +109,11 @@ public class SettingsComponent {
         boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
         italicProblemLabels.setSelected(settingsState.isItalicProblemLabels());
 
+        additionalInfoSeverities.setText(settingsState.getAdditionalInfoSeveritiesAsString());
+        additionalWeakWarningSeverities.setText(settingsState.getAdditionalWeakWarningSeveritiesAsString());
+        additionalWarningSeverities.setText(settingsState.getAdditionalWarningSeveritiesAsString());
+        additionalErrorSeverities.setText(settingsState.getAdditionalErrorSeveritiesAsString());
+
         problemFilterList.setText(settingsState.getProblemFilterList());
         enabledListener.setSelectedItem(Optional.of(settingsState.getEnabledListener()));
 
@@ -132,24 +145,32 @@ public class SettingsComponent {
                 .addLabeledComponent(new JLabel("Error text color:"), errorTextColor)
                 .addLabeledComponent(new JLabel("Error label border color:"), errorLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Error line highlight color:"), errorHighlightColor)
+                .addLabeledComponent(new JLabel("Additional severities:"), additionalErrorSeverities)
+                .addTooltip("Semicolon separated list of additional error severities e.g. '10, 100'")
                 .addSeparator()
                 .addComponent(showWarnings)
                 .addComponent(highlightWarnings)
                 .addLabeledComponent(new JLabel("Warning text color:"), warningTextColor)
                 .addLabeledComponent(new JLabel("Warning label border color:"), warningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Warning line highlight color:"), warningHighlightColor)
+                .addLabeledComponent(new JLabel("Additional severities:"), additionalWarningSeverities)
+                .addTooltip("Semicolon separated list of additional warning severities e.g. '10, 100'")
                 .addSeparator()
                 .addComponent(showWeakWarnings)
                 .addComponent(highlightWeakWarnings)
                 .addLabeledComponent(new JLabel("Weak warning text color:"), weakWarningTextColor)
                 .addLabeledComponent(new JLabel("Weak warning label border color:"), weakWarningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Weak warning line highlight color:"), weakWarningHighlightColor)
+                .addLabeledComponent(new JLabel("Additional severities:"), additionalWeakWarningSeverities)
+                .addTooltip("Semicolon separated list of additional weak-warning severities e.g. '10, 100'")
                 .addSeparator()
                 .addComponent(showInfos)
                 .addComponent(highlightInfo)
                 .addLabeledComponent(new JLabel("Info text color:"), infoTextColor)
                 .addLabeledComponent(new JLabel("Info label border color:"), infoLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Info line highlight color:"), infoHighlightColor)
+                .addLabeledComponent(new JLabel("Additional severities:"), additionalInfoSeverities)
+                .addTooltip("Semicolon separated list of additional info severities e.g. '10, 100'")
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
@@ -404,11 +425,75 @@ public class SettingsComponent {
         problemFilterList.setText(newText);
     }
 
+    public String getAdditionalInfoSeverities() {
+        return additionalInfoSeverities.getText();
+    }
+
+    public List<Integer> getAdditionalInfoSeveritiesList() {
+        return getSeverityIntegerList(additionalInfoSeverities.getText());
+    }
+
+    public void setAdditionalInfoSeverities(final String newText) {
+        additionalInfoSeverities.setText(newText);
+    }
+
+    public String getAdditionalWarningSeverities() {
+        return additionalWarningSeverities.getText();
+    }
+
+    public List<Integer> getAdditionalWarningSeveritiesList() {
+        return getSeverityIntegerList(additionalWarningSeverities.getText());
+    }
+
+    public void setAdditionalWarningSeverities(final String newText) {
+        additionalWarningSeverities.setText(newText);
+    }
+
+    public String getAdditionalErrorSeverities() {
+        return additionalErrorSeverities.getText();
+    }
+
+    public List<Integer> getAdditionalErrorSeveritiesList() {
+        return getSeverityIntegerList(additionalErrorSeverities.getText());
+    }
+
+    public void setAdditionalErrorSeverities(final String newText) {
+        additionalErrorSeverities.setText(newText);
+    }
+
+    public String getAdditionalWeakWarningSeverities() {
+        return additionalWeakWarningSeverities.getText();
+    }
+
+    public List<Integer> getAdditionalWeakWarningSeveritiesList() {
+        return getSeverityIntegerList(additionalWeakWarningSeverities.getText());
+    }
+
+    public void setAdditionalWeakWarningSeverities(final String newText) {
+        additionalWeakWarningSeverities.setText(newText);
+    }
+
     public int getEnabledListener() {
         return enabledListener.getSelectedIndex();
     }
 
     public void setEnabledListener(int index) {
         enabledListener.setSelectedIndex(index);
+    }
+
+    private List<Integer> getSeverityIntegerList(String text) {
+        return Arrays.stream(text.split(";"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .filter(s -> {
+                    try {
+                        Integer.parseInt(s);
+                        return true;
+                    } catch (NumberFormatException e) {
+                        return false;
+                    }
+                })
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
     }
 }

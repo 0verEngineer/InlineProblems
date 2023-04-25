@@ -17,7 +17,7 @@ public class InlineProblem {
 
     // The line the problem first appeared
     private final int line;
-    private final int severity;
+    private int severity;
 
     // If two problems with the same text occur in the same line only one will be shown
     private final String text;
@@ -67,6 +67,10 @@ public class InlineProblem {
             this.actualEndOffset = highlightInfo.getActualEndOffset();
         else
             this.actualEndOffset = highlightInfo.getActualEndOffset() -1;
+    }
+
+    public void setSeverity(int severity) {
+        this.severity = severity;
     }
 
     private String getTextWithoutHtmlOrXml(String text) {
