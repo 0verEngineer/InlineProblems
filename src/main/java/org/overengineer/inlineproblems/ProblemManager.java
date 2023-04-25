@@ -126,7 +126,7 @@ public class ProblemManager implements Disposable {
             Map<String, InlineProblem> filteredMap = new HashMap<>();
 
             for (InlineProblem problem : newProblems) {
-                String key = String.valueOf(problem.getTextEditor().hashCode()) + problem.getLine();
+                String key = problem.getTextEditor().getFile().getPath() + problem.getLine();
 
                 if (filteredMap.containsKey(key)) {
                     if (filteredMap.get(key).getSeverity() < problem.getSeverity()) {
