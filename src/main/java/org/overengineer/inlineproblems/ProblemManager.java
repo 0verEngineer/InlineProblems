@@ -1,5 +1,6 @@
 package org.overengineer.inlineproblems;
 
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -68,12 +69,39 @@ public class ProblemManager implements Disposable {
     }
 
     private void addProblemPrivate(InlineProblem problem) {
+        applyCustomSeverity(problem);
+
         DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
 
         inlineDrawer.drawProblemLabel(problem, drawDetails);
         inlineDrawer.drawProblemLineHighlight(problem, drawDetails);
 
         activeProblems.add(problem);
+    }
+
+    private void applyCustomSeverity(InlineProblem problem) {
+        int severity = problem.getSeverity();
+
+        if (severity >= HighlightSeverity.ERROR.myVal ||
+                settingsState.getAdditionalErrorSeverities().stream().anyMatch(s -> s == severity)
+        ) {
+            problem.setSeverity(HighlightSeverity.ERROR.myVal);
+        }
+        else if (severity >= HighlightSeverity.WARNING.myVal ||
+                settingsState.getAdditionalWarningSeverities().stream().anyMatch(s -> s == severity)
+        ) {
+            problem.setSeverity(HighlightSeverity.WARNING.myVal);
+        }
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal ||
+                settingsState.getAdditionalWeakWarningSeverities().stream().anyMatch(s -> s == severity)
+        ) {
+            problem.setSeverity(HighlightSeverity.WEAK_WARNING.myVal);
+        }
+        else if (severity >= HighlightSeverity.INFORMATION.myVal ||
+                settingsState.getAdditionalInfoSeverities().stream().anyMatch(s -> s == severity)
+        ) {
+            problem.setSeverity(HighlightSeverity.INFORMATION.myVal);
+        }
     }
 
     public void reset() {

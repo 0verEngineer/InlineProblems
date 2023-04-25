@@ -74,7 +74,13 @@ public class SettingsConfigurable implements Configurable {
                 state.isHighlightInfos() == settingsComponent.isHighlightInfo() &&
                 state.getEnabledListener() == settingsComponent.getEnabledListener() &&
 
-                state.getProblemFilterList().equals(settingsComponent.getProblemFilterList());
+                state.getProblemFilterList().equals(settingsComponent.getProblemFilterList()) &&
+
+                state.getAdditionalInfoSeveritiesAsString().equals(settingsComponent.getAdditionalInfoSeverities()) &&
+                state.getAdditionalWarningSeveritiesAsString().equals(settingsComponent.getAdditionalWarningSeverities()) &&
+                state.getAdditionalWeakWarningSeveritiesAsString().equals(settingsComponent.getAdditionalWeakWarningSeverities()) &&
+                state.getAdditionalErrorSeveritiesAsString().equals(settingsComponent.getAdditionalErrorSeverities()
+                );
 
         return !oldStateEqualsNewState;
     }
@@ -122,6 +128,11 @@ public class SettingsConfigurable implements Configurable {
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
+        state.setAdditionalInfoSeverities(settingsComponent.getAdditionalInfoSeveritiesList());
+        state.setAdditionalWarningSeverities(settingsComponent.getAdditionalWarningSeveritiesList());
+        state.setAdditionalWeakWarningSeverities(settingsComponent.getAdditionalWeakWarningSeveritiesList());
+        state.setAdditionalErrorSeverities(settingsComponent.getAdditionalErrorSeveritiesList());
+
         listenerManager.resetAndRescan();
 
         if (listenerChanged) {
@@ -168,6 +179,11 @@ public class SettingsConfigurable implements Configurable {
 
         settingsComponent.setEnabledListener(state.getEnabledListener());
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
+
+        settingsComponent.setAdditionalInfoSeverities(state.getAdditionalInfoSeveritiesAsString());
+        settingsComponent.setAdditionalWarningSeverities(state.getAdditionalWarningSeveritiesAsString());
+        settingsComponent.setAdditionalWeakWarningSeverities(state.getAdditionalWeakWarningSeveritiesAsString());
+        settingsComponent.setAdditionalErrorSeverities(state.getAdditionalErrorSeveritiesAsString());
     }
 
     @Override

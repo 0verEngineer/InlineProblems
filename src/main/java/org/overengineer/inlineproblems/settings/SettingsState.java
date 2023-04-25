@@ -17,6 +17,7 @@ import org.overengineer.inlineproblems.utils.ColorConverter;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Getter
@@ -91,6 +92,11 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private int enabledListener = Listener.HIGHLIGHT_PROBLEMS_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";
 
+    private List<Integer> additionalErrorSeverities = new ArrayList<>();
+    private List<Integer> additionalWarningSeverities = new ArrayList<>();
+    private List<Integer> additionalWeakWarningSeverities = new ArrayList<>();
+    private List<Integer> additionalInfoSeverities = new ArrayList<>();
+
     private boolean showOnlyHighestSeverityPerLine = false;
 
     public static SettingsState getInstance() {
@@ -116,6 +122,26 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
                 problemFilterList += ";" + entry;
             }
         }
+    }
+
+    public String getAdditionalInfoSeveritiesAsString() {
+        return getSeverityListAsString(additionalInfoSeverities);
+    }
+
+    public String getAdditionalErrorSeveritiesAsString() {
+        return getSeverityListAsString(additionalErrorSeverities);
+    }
+
+    public String getAdditionalWarningSeveritiesAsString() {
+        return getSeverityListAsString(additionalWarningSeverities);
+    }
+
+    public String getAdditionalWeakWarningSeveritiesAsString() {
+        return getSeverityListAsString(additionalWeakWarningSeverities);
+    }
+
+    private String getSeverityListAsString(List<Integer> severityList) {
+        return severityList.stream().map(String::valueOf).collect(Collectors.joining("; "));
     }
 
     //<editor-fold desc="Handwritten Colors getter/setter to compatible with external callers.">

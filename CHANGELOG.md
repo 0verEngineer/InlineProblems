@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### Added
+- Custom severity values (comma separated list) for the different severity levels
+
 ### Fixed
 - Possible index out of bounds exception
 - Flicker issued with the new only show highest severity per line feature
