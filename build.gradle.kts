@@ -124,6 +124,7 @@ tasks {
         else { // No beta
             usedChannels = listOf("default", "beta")
         }
+        project.logger.warn("Publishing to channels: $usedChannels")
         channels.set(usedChannels)
     }
 
