@@ -117,7 +117,14 @@ tasks {
 
         // If no '-' is found in the pluginVersion the plugin gets published in the default and the beta channel, so users
         //  that have the beta channel active will also see the stable release
-        channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default,beta" }.split(',').first()))
+        var usedChannels = listOf<String>()
+        if (properties("pluginVersion").contains("beta")) {
+            usedChannels + "beta"
+        }
+        else { // No beta
+            usedChannels = listOf("default", "beta")
+        }
+        channels.set(usedChannels)
     }
 
     runIde {

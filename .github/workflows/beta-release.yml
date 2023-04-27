@@ -23,12 +23,12 @@ jobs:
       - name: Patch Gradle Properties
         shell: bash
         run: |
-          BUILDNUMBER="${{ github.run_number }}.${{ github.run_attempt }}"
+          BUILDNUMBER="RC${{ github.run_number }}.${{ github.run_attempt }}"
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-          echo "betaVersionWithBuildNumber=$VERSION_$BUILDNUMBER-beta" >> $GITHUB_ENV
+          echo "betaVersionWithBuildNumber=$VERSION-beta+$BUILDNUMBER" >> $GITHUB_ENV
           echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
-          sed -i "/pluginVersion = / s/ = .*/ = $VERSION-$BUILDNUMBER-beta/" gradle.properties
+          sed -i "/pluginVersion = / s/ = .*/ = $VERSION-beta+$BUILDNUMBER/" gradle.properties
 
       # Setup Java 11 environment for the next steps
       - name: Setup Java
