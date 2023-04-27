@@ -28,6 +28,7 @@ jobs:
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
           sed -i "/pluginVersion = / s/ = .*/ = $VERSION-beta+$BUILDNUMBER/" gradle.properties
+          cat gradle.properties
 
       # Setup Java 11 environment for the next steps
       - name: Setup Java
