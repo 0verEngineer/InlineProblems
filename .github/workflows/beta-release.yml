@@ -26,7 +26,6 @@ jobs:
           BUILDNUMBER="RC${{ github.run_number }}.${{ github.run_attempt }}"
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-          echo "betaVersionWithBuildNumber=$VERSION-beta+$BUILDNUMBER" >> $GITHUB_ENV
           echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
           sed -i "/pluginVersion = / s/ = .*/ = $VERSION-beta+$BUILDNUMBER/" gradle.properties
 
@@ -52,8 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
-        run: |
-          gh release delete v${{ env.betaVersion }} -y --cleanup-tag
+        run: gh release delete v${{ env.betaVersion }} -y --cleanup-tag
 
       # Create a prerelease in GitHub
       - name: Create Prerelease
@@ -70,5 +68,4 @@ jobs:
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "v${{ env.betaVersion }}" ./build/distributions/*
+        run: gh release upload "v${{ env.betaVersion }}" ./build/distributions/*
