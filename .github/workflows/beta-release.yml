@@ -26,7 +26,7 @@ jobs:
           BUILDNUMBER="${{ github.run_number }}.${{ github.run_attempt }}"
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-          echo "betaVersionWithBuildNumber=$VERSION-$BUILDNUMBER-beta" >> $GITHUB_ENV
+          echo "betaVersionWithBuildNumber=$VERSION_$BUILDNUMBER-beta" >> $GITHUB_ENV
           echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
           sed -i "/pluginVersion = / s/ = .*/ = $VERSION-$BUILDNUMBER-beta/" gradle.properties
 
