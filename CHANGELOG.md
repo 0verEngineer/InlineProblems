@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.4.2]
+
 ### Added
 - Custom severity values (comma separated list) for the different severity levels
 
