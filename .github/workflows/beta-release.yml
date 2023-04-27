@@ -27,7 +27,7 @@ jobs:
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           echo "betaVersionWithBuildNumber=$VERSION-${{ github.run_attempt }}-beta" >> $GITHUB_ENV
           echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
-          sed -i "/pluginVersion = / s/ = .*/ = ${{ env.betaVersionWithBuildNumber }}/" gradle.properties
+          sed -i "/pluginVersion = / s/ = .*/ = $VERSION-${{ github.run_attempt }}-beta/" gradle.properties
 
       # Setup Java 11 environment for the next steps
       - name: Setup Java
