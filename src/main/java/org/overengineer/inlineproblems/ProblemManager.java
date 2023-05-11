@@ -1,5 +1,6 @@
 package org.overengineer.inlineproblems;
 
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -8,10 +9,7 @@ import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -53,7 +51,7 @@ public class ProblemManager implements Disposable {
      * @param problem problem to add
      */
     public void addProblem(InlineProblem problem) {
-        List<InlineProblem> problemsInLine = getProblemsInLine(problem.getLine());
+        List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
         problemsInLine.add(problem);
 
         problemsInLine = problemsInLine.stream()
@@ -71,12 +69,39 @@ public class ProblemManager implements Disposable {
     }
 
     private void addProblemPrivate(InlineProblem problem) {
+        applyCustomSeverity(problem);
+
         DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
 
         inlineDrawer.drawProblemLabel(problem, drawDetails);
         inlineDrawer.drawProblemLineHighlight(problem, drawDetails);
 
         activeProblems.add(problem);
+    }
+
+    private void applyCustomSeverity(InlineProblem problem) {
+        int severity = problem.getSeverity();
+
+        if (severity >= HighlightSeverity.ERROR.myVal ||
+                settingsState.getAdditionalErrorSeverities().stream().anyMatch(s -> s == severity)
+        ) {
+            problem.setSeverity(HighlightSeverity.ERROR.myVal);
+        }
+        else if (severity >= HighlightSeverity.WARNING.myVal ||
+                settingsState.getAdditionalWarningSeverities().stream().anyMatch(s -> s == severity)
+        ) {
+            problem.setSeverity(HighlightSeverity.WARNING.myVal);
+        }
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal ||
+                settingsState.getAdditionalWeakWarningSeverities().stream().anyMatch(s -> s == severity)
+        ) {
+            problem.setSeverity(HighlightSeverity.WEAK_WARNING.myVal);
+        }
+        else if (severity >= HighlightSeverity.INFORMATION.myVal ||
+                settingsState.getAdditionalInfoSeverities().stream().anyMatch(s -> s == severity)
+        ) {
+            problem.setSeverity(HighlightSeverity.INFORMATION.myVal);
+        }
     }
 
     public void reset() {
@@ -106,9 +131,9 @@ public class ProblemManager implements Disposable {
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
     }
 
-    public List<InlineProblem> getProblemsInLine(int line) {
+    private List<InlineProblem> getProblemsInLineForProblem(InlineProblem problem) {
         return activeProblems.stream()
-                .filter(p -> p.getLine() == line)
+                .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
                 .collect(Collectors.toList());
     }
 
@@ -126,7 +151,7 @@ public class ProblemManager implements Disposable {
             Map<String, InlineProblem> filteredMap = new HashMap<>();
 
             for (InlineProblem problem : newProblems) {
-                String key = String.valueOf(problem.getTextEditor().hashCode()) + problem.getLine();
+                String key = problem.getTextEditor().getFile().getPath() + problem.getLine();
 
                 if (filteredMap.containsKey(key)) {
                     if (filteredMap.get(key).getSeverity() < problem.getSeverity()) {

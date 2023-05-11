@@ -19,14 +19,17 @@ jobs:
           # Source branch
           ref: ${{ github.head_ref }}
 
-      # Manipulate gradle.properties pluginVersion property
+      # Manipulate gradle.properties pluginVersion property, appends '-buildNumber-beta'
       - name: Patch Gradle Properties
         shell: bash
         run: |
+          BUILDNUMBER="RC${{ github.run_number }}.${{ github.run_attempt }}"
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
+          VERSION_WITH_BUILDNUMBER="$VERSION-beta+$BUILDNUMBER"
           echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
-          sed -i "/pluginVersion = / s/ = .*/ = $VERSION-beta/" gradle.properties
+          sed -i "/pluginVersion = / s/ = .*/ = $VERSION_WITH_BUILDNUMBER/" gradle.properties
+          echo "Version: $VERSION_WITH_BUILDNUMBER"
 
       # Setup Java 11 environment for the next steps
       - name: Setup Java
@@ -36,7 +39,7 @@ jobs:
           java-version: 11
 
       # Publish the plugin to the Marketplace, this should automatically use the 'beta' channel because we changed the
-      #  version in gradle.properties to version-beta and
+      #  version in gradle.properties to version-beta
       - name: Publish Plugin Beta
         env:
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
@@ -45,7 +48,14 @@ jobs:
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
         run: ./gradlew publishPlugin
 
-      # Create a prerelease in GitHub, we are assuming here that all Merge-Requests
+      # Delete prerelease in GitHub to create it again below
+      - name: Delete existing Prerelease
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        run: gh release delete v${{ env.betaVersion }} -y --cleanup-tag
+
+      # Create a prerelease in GitHub
       - name: Create Prerelease
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,5 +70,4 @@ jobs:
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "v${{ env.betaVersion }}" ./build/distributions/*
+        run: gh release upload "v${{ env.betaVersion }}" ./build/distributions/*
