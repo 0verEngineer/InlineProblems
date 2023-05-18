@@ -12,7 +12,7 @@
 - Configurable delay for the manual scan listener
 
 ### Fixed
-- Some possible null pointer exeptions
+- Some possible null pointer exceptions
 
 ## [0.4.2]
 
