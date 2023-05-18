@@ -80,6 +80,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     @OptionTag(converter = ColorConverter.class)
     private Color infoHighlightCol = infoBackgroundCol;
 
+    private int manualScannerDelay = 250;
     private boolean drawBoxesAroundErrorLabels = true;
     private boolean roundedCornerBoxes = true;
     private boolean forceProblemsInSameLine = true;

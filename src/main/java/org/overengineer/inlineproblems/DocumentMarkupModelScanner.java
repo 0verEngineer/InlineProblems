@@ -39,8 +39,6 @@ public class DocumentMarkupModelScanner {
 
     public static final String NAME = "ManualScanner";
 
-    public static final int MANUAL_SCAN_DELAY_MILLIS = 250;
-
     public static DocumentMarkupModelScanner getInstance() {
         if (instance == null)
             instance = new DocumentMarkupModelScanner();
@@ -50,7 +48,7 @@ public class DocumentMarkupModelScanner {
 
     private DocumentMarkupModelScanner() {
         if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
-            delayMilliseconds = MANUAL_SCAN_DELAY_MILLIS;
+            delayMilliseconds = settingsState.getManualScannerDelay();
         }
 
         createAndStartScheduledFuture();

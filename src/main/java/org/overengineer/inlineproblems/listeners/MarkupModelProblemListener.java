@@ -142,7 +142,6 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             );
         }
         else {
-            // todo test in Rider with Unity
             problem = findActiveProblemByRangeHighlighterHashCode(highlighter.hashCode());
 
             if (problem == null) {
