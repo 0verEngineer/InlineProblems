@@ -4,6 +4,16 @@
 
 ## [Unreleased]
 
+## [0.4.3]
+
+### Added
+- Some performance improvements
+- Description for the listeners in the settings
+- Configurable delay for the manual scan listener
+
+### Fixed
+- Some possible null pointer exeptions
+
 ## [0.4.2]
 
 ### Added
@@ -95,6 +105,8 @@
 - Initial release with basic functionality
 
 [Unreleased]: https://github.com/OverEngineer/InlineProblems/compare/v0.4.0...HEAD
+[0.4.3]: https://github.com/0verEngineer/InlineProblems/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/0verEngineer/InlineProblems/compare/v0.4.0...v0.4.2
 [0.4.0]: https://github.com/0verEngineer/InlineProblems/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/0verEngineer/InlineProblems/compare/0.3.2...v0.3.3
 [0.3.2]: https://github.com/0verEngineer/InlineProblems/compare/0.3.1...0.3.2
