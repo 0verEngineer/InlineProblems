@@ -33,9 +33,6 @@ public class DocumentMarkupModelScanner {
 
     private int delayMilliseconds = HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS;
 
-    // Used to bypass the listener setting
-    private boolean isManualScanEnabled = true;
-
     private static DocumentMarkupModelScanner instance;
 
     private ScheduledFuture<?> scheduledFuture;
@@ -108,52 +105,43 @@ public class DocumentMarkupModelScanner {
         );
 
         Arrays.stream(highlighters)
-                .filter(RangeMarker::isValid)
                 .filter(h -> {
-                    if (h.getErrorStripeTooltip() instanceof HighlightInfo) {
+                    if (h.isValid() && h.getErrorStripeTooltip() instanceof HighlightInfo) {
                         HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
                         return highlightInfo.getDescription() != null &&
                                 !highlightInfo.getDescription().isEmpty() &&
                                 problemTextBeginningFilterList.stream()
-                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase()));
+                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase())) &&
+                                fileEndOffset >= highlightInfo.getStartOffset()
+                        ;
                     }
 
                     return false;
                 })
                 .forEach(h -> {
                     HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
-                    if (fileEndOffset >= highlightInfo.getStartOffset()) {
-                        int line = document.getLineNumber(highlightInfo.getStartOffset());
 
-                        InlineProblem newProblem = new InlineProblem(
-                                line,
-                                highlightInfo,
-                                textEditor,
-                                h
-                                );
+                    InlineProblem newProblem = new InlineProblem(
+                            document.getLineNumber(highlightInfo.getStartOffset()),
+                            highlightInfo,
+                            textEditor,
+                            h
+                    );
 
-                        problems.add(newProblem);
-                    }
+                    problems.add(newProblem);
                 });
 
         return problems;
     }
 
-    public void setIsManualScanEnabled(boolean isEnabled) {
-        isManualScanEnabled = isEnabled;
-
-        if (isEnabled && scheduledFuture.isCancelled()) {
-            createAndStartScheduledFuture();
-        }
-        else if (!isEnabled && !scheduledFuture.isCancelled()) {
-            cancelScheduledFuture();
-        }
+    public void restartManualScan() {
+        cancelScheduledFuture();
+        createAndStartScheduledFuture();
     }
 
     public void setDelayMilliseconds(int newDelayMilliseconds) {
         delayMilliseconds = newDelayMilliseconds;
-        cancelScheduledFuture();
-        createAndStartScheduledFuture();
+        restartManualScan();
     }
 
     private void cancelScheduledFuture() {
@@ -167,7 +155,7 @@ public class DocumentMarkupModelScanner {
     private void createAndStartScheduledFuture() {
         scheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(
                 () -> ApplicationManager.getApplication().invokeLater(this::scanForProblemsManually),
-                0,
+                2000,
                 delayMilliseconds,
                 TimeUnit.MILLISECONDS
         );

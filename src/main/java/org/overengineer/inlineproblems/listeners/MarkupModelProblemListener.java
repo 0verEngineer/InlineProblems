@@ -27,7 +27,6 @@ import java.util.Objects;
 public class MarkupModelProblemListener implements MarkupModelListener {
     private final SettingsState settingsState;
     private final ProblemManager problemManager;
-    private final String filePath;
     private final TextEditor textEditor;
 
     private static final List<Disposable> disposables = new ArrayList<>();
@@ -42,7 +41,6 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             final TextEditor textEditor
     ) {
         this.textEditor = textEditor;
-        this.filePath = textEditor.getFile().getPath();
 
         problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
         settingsState = SettingsState.getInstance();
@@ -134,11 +132,23 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             return;
         }
 
-        InlineProblem problem = constructProblem(
-            editor.getDocument().getLineNumber(highlighter.getStartOffset()),
-            (HighlightInfo) highlighter.getErrorStripeTooltip(),
-            highlighter
-        );
+        InlineProblem problem;
+
+        if (type == EventType.ADD) {
+            problem = constructProblem(
+                    editor.getDocument().getLineNumber(highlighter.getStartOffset()),
+                    (HighlightInfo) highlighter.getErrorStripeTooltip(),
+                    highlighter
+            );
+        }
+        else {
+            // todo test in Rider with Unity
+            problem = findActiveProblemByRangeHighlighterHashCode(highlighter.hashCode());
+
+            if (problem == null) {
+                return;
+            }
+        }
 
         List<String> problemTextBeginningFilterList = new ArrayList<>(
                 Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
@@ -173,5 +183,12 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                 textEditor,
                 highlighter
         );
+    }
+
+    private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
+        return problemManager.getActiveProblems().stream()
+                .filter(p -> p.getRangeHighlighterHashCode() == hashCode)
+                .findFirst()
+                .orElse(null);
     }
 }

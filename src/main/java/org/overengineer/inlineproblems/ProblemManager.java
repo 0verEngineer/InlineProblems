@@ -5,6 +5,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import lombok.Getter;
 import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
+    @Getter
     private final List<InlineProblem> activeProblems = new ArrayList<>();
 
     private final InlineDrawer inlineDrawer = new InlineDrawer();
@@ -27,20 +29,13 @@ public class ProblemManager implements Disposable {
     }
 
     public void removeProblem(InlineProblem problem) {
-        InlineProblem problemToRemove = findActiveProblemByRangeHighlighterHashCode(problem.getRangeHighlighterHashCode());
 
-        if (problemToRemove == null) {
-            logger.warn("Removal of problem failed, not found by RangeHighlighterHashCode");
-            resetForEditor(problem.getTextEditor().getEditor());
-            return;
-        }
+        inlineDrawer.undrawErrorLineHighlight(problem);
+        inlineDrawer.undrawInlineProblemLabel(problem);
 
-        inlineDrawer.undrawErrorLineHighlight(problemToRemove);
-        inlineDrawer.undrawInlineProblemLabel(problemToRemove);
-
-        if (!activeProblems.remove(problemToRemove)) {
+        if (!activeProblems.remove(problem)) {
             logger.warn("Removal of problem failed, resetting");
-            resetForEditor(problemToRemove.getTextEditor().getEditor());
+            resetForEditor(problem.getTextEditor().getEditor());
             return;
         }
     }
@@ -118,9 +113,7 @@ public class ProblemManager implements Disposable {
     }
 
     public void updateFromNewActiveProblems(List<InlineProblem> problems) {
-        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
-
-        updateFromNewActiveProblems(problems, activeProblemsSnapShot);
+        updateFromNewActiveProblems(problems, List.copyOf(activeProblems));
     }
 
     public void updateFromNewActiveProblemsForProjectAndFile(List<InlineProblem> problems, Project project, String filePath) {
@@ -143,7 +136,7 @@ public class ProblemManager implements Disposable {
      * this function needs to be used.
      */
     private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
-        final List<InlineProblem> processedProblems = new ArrayList<>();
+        final List<Integer> processedProblemHashCodes = new ArrayList<>();
         List<InlineProblem> usedProblems;
 
         if (settingsState.isShowOnlyHighestSeverityPerLine()) {
@@ -171,17 +164,13 @@ public class ProblemManager implements Disposable {
 
         activeProblemsSnapShot.stream()
                 .filter(p -> !usedProblems.contains(p))
-                .forEach(p -> {processedProblems.add(p); removeProblem(p);});
+                .forEach(p -> {
+                    processedProblemHashCodes.add(p.hashCode());
+                    removeProblem(p);
+                });
 
         usedProblems.stream()
-                .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
+                .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblemHashCodes.contains(p.hashCode()))
                 .forEach(this::addProblem);
-    }
-
-    private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
-        return activeProblems.stream()
-                .filter(p -> p.getRangeHighlighterHashCode() == hashCode)
-                .findFirst()
-                .orElse(null);
     }
 }
