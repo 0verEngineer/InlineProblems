@@ -5,7 +5,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -27,8 +26,6 @@ import java.util.concurrent.TimeUnit;
 public class DocumentMarkupModelScanner {
     private final ProblemManager problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
 
-    private final SettingsState settingsState = SettingsState.getInstance();
-
     private final Logger logger = Logger.getInstance(DocumentMarkupModelScanner.class);
 
     private int delayMilliseconds = HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS;
@@ -47,6 +44,7 @@ public class DocumentMarkupModelScanner {
     }
 
     private DocumentMarkupModelScanner() {
+        SettingsState settingsState = SettingsState.getInstance();
         if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
             delayMilliseconds = settingsState.getManualScannerDelay();
         }
@@ -64,7 +62,11 @@ public class DocumentMarkupModelScanner {
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                 for (var editor : fileEditorManager.getAllEditors()) {
                     if (editor instanceof TextEditor) {
-                        problems.addAll(getProblemsInEditor((TextEditor) editor));
+                        var textEditor = (TextEditor) editor;
+                        if (textEditor.getFile() == null) {
+                            continue;
+                        }
+                        problems.addAll(getProblemsInEditor(textEditor));
                     }
                 }
             }
@@ -74,7 +76,12 @@ public class DocumentMarkupModelScanner {
     }
 
     public void scanForProblemsManuallyInTextEditor(TextEditor textEditor) {
+        if (textEditor.getFile() == null) {
+            return;
+        }
+
         List<InlineProblem> problems = getProblemsInEditor(textEditor);
+
         problemManager.updateFromNewActiveProblemsForProjectAndFile(
                 problems,
                 textEditor.getEditor().getProject(),
@@ -121,6 +128,7 @@ public class DocumentMarkupModelScanner {
 
                     InlineProblem newProblem = new InlineProblem(
                             document.getLineNumber(highlightInfo.getStartOffset()),
+                            textEditor.getFile().getPath(),
                             highlightInfo,
                             textEditor,
                             h

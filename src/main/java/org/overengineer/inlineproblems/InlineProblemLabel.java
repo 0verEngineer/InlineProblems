@@ -33,8 +33,8 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Setter
     private boolean isBlockElement;
 
-    private int inlayFontSizeDelta;
-    private boolean isUseEditorFont = false;
+    private final int inlayFontSizeDelta;
+    private final boolean isUseEditorFont;
 
     private static final int WIDTH_OFFSET = 7;
     private static final int DRAW_BOX_HEIGHT_OFFSET = -2; // Makes the box lines visible even if line below / above is highlighted
@@ -75,11 +75,6 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         var fontMetrics = FontInfo.getFontMetrics(FontUtil.getActiveFont(editor), context);
 
         return fontMetrics.stringWidth(text) + WIDTH_OFFSET;
-    }
-
-    @Override
-    public int calcHeightInPixels(@NotNull Inlay inlay) {
-        return inlay.getEditor().getLineHeight();
     }
 
     @Override

@@ -8,7 +8,6 @@ import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.impl.event.MarkupModelListener;
-import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +93,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
         Editor editor = textEditor.getEditor();
 
-        if (editor.isDisposed())
+        if (editor.isDisposed() || textEditor.getFile() == null)
             return;
 
         int lineCount = editor.getDocument().getLineCount();
@@ -123,9 +122,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             ) {
                 /* If scanForProblemsManuallyInTextEditor is called directly, problems that should be already removed are
                    still there and will be found and thus not removed as they should */
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor);
-                });
+                ApplicationManager.getApplication().invokeLater(() -> DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor));
                 return;
             }
 
@@ -135,9 +132,15 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         InlineProblem problem;
 
         if (type == EventType.ADD) {
-            problem = constructProblem(
+            var highlightInfo = (HighlightInfo) highlighter.getErrorStripeTooltip();
+            if (highlightInfo == null)
+                return;
+
+            problem = new InlineProblem(
                     editor.getDocument().getLineNumber(highlighter.getStartOffset()),
-                    (HighlightInfo) highlighter.getErrorStripeTooltip(),
+                    textEditor.getFile().getPath(),
+                    highlightInfo,
+                    textEditor,
                     highlighter
             );
         }
@@ -173,15 +176,6 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                 problemManager.addProblem(problem);
                 break;
         }
-    }
-
-    private InlineProblem constructProblem(int line, HighlightInfo info, RangeHighlighter highlighter) {
-        return new InlineProblem(
-                line,
-                info,
-                textEditor,
-                highlighter
-        );
     }
 
     private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
