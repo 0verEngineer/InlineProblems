@@ -91,7 +91,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
 
         // Apply delta on the boxes
         if (inlayFontSizeDelta != 0 && editorFontSize > inlayFontSizeDelta) {
-            height = height - inlayFontSizeDelta;
+            height -= inlayFontSizeDelta;
             targetRegionY += (int)(inlayFontSizeDelta / 1.5);
         }
 

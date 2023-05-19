@@ -157,7 +157,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         );
 
         if (
-                problem.getText().equals("") ||
+                problem.getText().isEmpty() ||
                         problemTextBeginningFilterList.stream()
                                 .anyMatch(f -> problem.getText().toLowerCase().startsWith(f.toLowerCase()))
         ) {
