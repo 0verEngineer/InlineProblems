@@ -11,8 +11,13 @@
 - Description for the listeners in the settings
 - Configurable delay for the manual scan listener
 
+### Changed
+- HighlightProblemListener is now deprecated
+- MarkupModelListener is now the default listener
+
 ### Fixed
 - Some possible null pointer exceptions
+- invokeLater queuing issue of MarkupModelListener if used with the only one problem per line feature
 
 ## [0.4.2]
 
