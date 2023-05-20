@@ -122,7 +122,9 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             ) {
                 /* If scanForProblemsManuallyInTextEditor is called directly, problems that should be already removed are
                    still there and will be found and thus not removed as they should */
-                ApplicationManager.getApplication().invokeLater(() -> DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor));
+                ApplicationManager.getApplication().invokeAndWait(
+                        () -> DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor)
+                );
                 return;
             }
 

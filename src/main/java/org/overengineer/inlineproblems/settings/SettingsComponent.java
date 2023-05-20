@@ -136,9 +136,10 @@ public class SettingsComponent {
                 .addSeparator()
                 .addComponent(new JBLabel("General"))
                 .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
-                .addTooltip("HighlightProblemListener: Faster on small to medium sized files, slower on large ones (uses more cpu power than MarkupModelListener)")
-                .addTooltip("MarkupModelListener: Faster on large files, slower on small ones")
-                .addTooltip("ManualScanner: Same as the HighlightProblemListener but called at a fixed delay")
+                .addTooltip("- MarkupModelListener: Called after addition of a RangeHighlighter to a file. Faster on large files, slower on small ones")
+                .addTooltip("- ManualScanner: Scans the DocumentMarkupModel for all highlighters at a fixed delay")
+                .addTooltip("- HighlightProblemListener (DEPRECATED): Faster on small to medium sized files, slower on large ones.")
+                .addTooltip("   Called way to often and can cause freezes. If you want similar performance use the ManualScanner instead")
                 .addLabeledComponent(new JBLabel("ManualScanner delay in milliseconds"), manualScannerDelay)
                 .addTooltip("Delay between manual scans, only used when ManualScanner is enabled")
                 .addComponent(forceErrorsInSameLine, 0)
@@ -513,14 +514,14 @@ public class SettingsComponent {
 
     public int getManualScannerDelay() {
         try {
-            return Math.max(Integer.parseInt(manualScannerDelay.getText()), 0);
+            return Math.max(Integer.parseInt(manualScannerDelay.getText()), 10);
         }
         catch (NumberFormatException e) {
-            return 0;
+            return 100;
         }
     }
 
     public void setManualScannerDelay(int delay) {
-        manualScannerDelay.setText(Integer.toString(Math.max(0, delay)));
+        manualScannerDelay.setText(Integer.toString(Math.max(10, delay)));
     }
 }

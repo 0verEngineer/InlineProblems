@@ -59,6 +59,9 @@ public class DocumentMarkupModelScanner {
             List<InlineProblem> problems = new ArrayList<>();
 
             for (var project : projectManager.getOpenProjects()) {
+                if (!project.isInitialized())
+                    continue;
+
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                 for (var editor : fileEditorManager.getAllEditors()) {
                     if (editor instanceof TextEditor) {
@@ -160,7 +163,7 @@ public class DocumentMarkupModelScanner {
 
     private void createAndStartScheduledFuture() {
         scheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(
-                () -> ApplicationManager.getApplication().invokeLater(this::scanForProblemsManually),
+                () -> ApplicationManager.getApplication().invokeAndWait(this::scanForProblemsManually),
                 2000,
                 delayMilliseconds,
                 TimeUnit.MILLISECONDS
