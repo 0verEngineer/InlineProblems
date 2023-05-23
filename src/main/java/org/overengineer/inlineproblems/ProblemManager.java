@@ -59,7 +59,7 @@ public class ProblemManager implements Disposable {
         });
 
         /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
-        *  it does not work like expected, that is because there are differences the evaluation and the way it is called */
+        *  it does not work like expected, that is because there are differences in the evaluation and the way it is called */
         problemsInLine.forEach(this::addProblemPrivate);
     }
 
@@ -67,6 +67,11 @@ public class ProblemManager implements Disposable {
         applyCustomSeverity(problem);
 
         DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
+
+        if (problem.getTextEditor().getEditor().getDocument().getLineCount() <= problem.getLine()) {
+            logger.warn("Line count is less or equal than problem line, problem not added");
+            return;
+        }
 
         inlineDrawer.drawProblemLabel(problem, drawDetails);
         inlineDrawer.drawProblemLineHighlight(problem, drawDetails);

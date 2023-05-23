@@ -131,25 +131,25 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             return;
         }
 
-        InlineProblem problem;
+        InlineProblem newProblem;
+        InlineProblem problemToRemove = null;
 
-        if (type == EventType.ADD) {
-            var highlightInfo = (HighlightInfo) highlighter.getErrorStripeTooltip();
-            if (highlightInfo == null)
-                return;
+        var highlightInfo = (HighlightInfo) highlighter.getErrorStripeTooltip();
+        if (highlightInfo == null)
+            return;
 
-            problem = new InlineProblem(
-                    editor.getDocument().getLineNumber(highlighter.getStartOffset()),
-                    textEditor.getFile().getPath(),
-                    highlightInfo,
-                    textEditor,
-                    highlighter
-            );
-        }
-        else {
-            problem = findActiveProblemByRangeHighlighterHashCode(highlighter.hashCode());
+        newProblem = new InlineProblem(
+                editor.getDocument().getLineNumber(highlighter.getStartOffset()),
+                textEditor.getFile().getPath(),
+                highlightInfo,
+                textEditor,
+                highlighter
+        );
 
-            if (problem == null) {
+        if (type == EventType.CHANGE || type == EventType.REMOVE) {
+            problemToRemove = findActiveProblemByRangeHighlighterHashCode(highlighter.hashCode());
+
+            if (problemToRemove == null) {
                 return;
             }
         }
@@ -159,23 +159,23 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         );
 
         if (
-                problem.getText().isEmpty() ||
+                newProblem.getText().isEmpty() ||
                         problemTextBeginningFilterList.stream()
-                                .anyMatch(f -> problem.getText().toLowerCase().startsWith(f.toLowerCase()))
+                                .anyMatch(f -> newProblem.getText().toLowerCase().startsWith(f.toLowerCase()))
         ) {
             return;
         }
 
         switch (type) {
             case ADD:
-                problemManager.addProblem(problem);
+                problemManager.addProblem(newProblem);
                 break;
             case REMOVE:
-                problemManager.removeProblem(problem);
+                problemManager.removeProblem(problemToRemove);
                 break;
             case CHANGE:
-                problemManager.removeProblem(problem);
-                problemManager.addProblem(problem);
+                problemManager.removeProblem(problemToRemove);
+                problemManager.addProblem(newProblem);
                 break;
         }
     }
