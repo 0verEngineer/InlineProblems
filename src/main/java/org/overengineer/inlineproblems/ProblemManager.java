@@ -64,8 +64,6 @@ public class ProblemManager implements Disposable {
     }
 
     private void addProblemPrivate(InlineProblem problem) {
-        applyCustomSeverity(problem);
-
         DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
 
         if (problem.getTextEditor().getEditor().getDocument().getLineCount() <= problem.getLine()) {
@@ -79,25 +77,25 @@ public class ProblemManager implements Disposable {
         activeProblems.add(problem);
     }
 
-    private void applyCustomSeverity(InlineProblem problem) {
+    public void applyCustomSeverity(InlineProblem problem) {
         int severity = problem.getSeverity();
 
-        if (severity >= HighlightSeverity.ERROR.myVal ||
+        if (severity >= HighlightSeverity.ERROR.myVal &&
                 settingsState.getAdditionalErrorSeverities().stream().anyMatch(s -> s == severity)
         ) {
             problem.setSeverity(HighlightSeverity.ERROR.myVal);
         }
-        else if (severity >= HighlightSeverity.WARNING.myVal ||
+        else if (severity >= HighlightSeverity.WARNING.myVal &&
                 settingsState.getAdditionalWarningSeverities().stream().anyMatch(s -> s == severity)
         ) {
             problem.setSeverity(HighlightSeverity.WARNING.myVal);
         }
-        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal ||
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal &&
                 settingsState.getAdditionalWeakWarningSeverities().stream().anyMatch(s -> s == severity)
         ) {
             problem.setSeverity(HighlightSeverity.WEAK_WARNING.myVal);
         }
-        else if (severity >= HighlightSeverity.INFORMATION.myVal ||
+        else if (severity >= HighlightSeverity.INFORMATION.myVal &&
                 settingsState.getAdditionalInfoSeverities().stream().anyMatch(s -> s == severity)
         ) {
             problem.setSeverity(HighlightSeverity.INFORMATION.myVal);

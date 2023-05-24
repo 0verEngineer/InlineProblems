@@ -137,6 +137,8 @@ public class DocumentMarkupModelScanner {
                             h
                     );
 
+                    problemManager.applyCustomSeverity(newProblem);
+
                     problems.add(newProblem);
                 });
 

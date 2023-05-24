@@ -166,6 +166,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             return;
         }
 
+        problemManager.applyCustomSeverity(newProblem);
         switch (type) {
             case ADD:
                 problemManager.addProblem(newProblem);
