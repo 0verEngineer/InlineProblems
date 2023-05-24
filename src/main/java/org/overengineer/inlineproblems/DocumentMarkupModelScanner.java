@@ -138,6 +138,9 @@ public class DocumentMarkupModelScanner {
                     );
 
                     problemManager.applyCustomSeverity(newProblem);
+                    if (problemManager.shouldProblemBeIgnored(newProblem.getSeverity())) {
+                        return;
+                    }
 
                     problems.add(newProblem);
                 });

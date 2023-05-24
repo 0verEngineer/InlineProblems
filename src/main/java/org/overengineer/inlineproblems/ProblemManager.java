@@ -76,28 +76,52 @@ public class ProblemManager implements Disposable {
         activeProblems.add(problem);
     }
 
+    public boolean shouldProblemBeIgnored(int severity) {
+        if (severity >= HighlightSeverity.ERROR.myVal) {
+            return !settingsState.isHighlightErrors() && !settingsState.isShowErrors();
+        }
+        else if (severity >= HighlightSeverity.WARNING.myVal) {
+            return !settingsState.isHighlightWarnings() && !settingsState.isShowWarnings();
+        }
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal) {
+            return !settingsState.isHighlightWeakWarnings() && !settingsState.isShowWeakWarnings();
+        }
+        else if (severity >= HighlightSeverity.INFORMATION.myVal) {
+            return !settingsState.isHighlightInfos() && !settingsState.isShowInfos();
+        }
+
+        return true;
+    }
+
     public void applyCustomSeverity(InlineProblem problem) {
         int severity = problem.getSeverity();
 
-        if (severity >= HighlightSeverity.ERROR.myVal &&
-                settingsState.getAdditionalErrorSeverities().stream().anyMatch(s -> s == severity)
-        ) {
-            problem.setSeverity(HighlightSeverity.ERROR.myVal);
+        for (int additionalSeverity : settingsState.getAdditionalErrorSeverities()) {
+            if (additionalSeverity == severity) {
+                problem.setSeverity(HighlightSeverity.ERROR.myVal);
+                return;
+            }
         }
-        else if (severity >= HighlightSeverity.WARNING.myVal &&
-                settingsState.getAdditionalWarningSeverities().stream().anyMatch(s -> s == severity)
-        ) {
-            problem.setSeverity(HighlightSeverity.WARNING.myVal);
+
+        for (int additionalSeverity : settingsState.getAdditionalWarningSeverities()) {
+            if (additionalSeverity == severity) {
+                problem.setSeverity(HighlightSeverity.WARNING.myVal);
+                return;
+            }
         }
-        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal &&
-                settingsState.getAdditionalWeakWarningSeverities().stream().anyMatch(s -> s == severity)
-        ) {
-            problem.setSeverity(HighlightSeverity.WEAK_WARNING.myVal);
+
+        for (int additionalSeverity : settingsState.getAdditionalWeakWarningSeverities()) {
+            if (additionalSeverity == severity) {
+                problem.setSeverity(HighlightSeverity.WEAK_WARNING.myVal);
+                return;
+            }
         }
-        else if (severity >= HighlightSeverity.INFORMATION.myVal &&
-                settingsState.getAdditionalInfoSeverities().stream().anyMatch(s -> s == severity)
-        ) {
-            problem.setSeverity(HighlightSeverity.INFORMATION.myVal);
+
+        for (int additionalSeverity : settingsState.getAdditionalInfoSeverities()) {
+            if (additionalSeverity == severity) {
+                problem.setSeverity(HighlightSeverity.INFO.myVal);
+                return;
+            }
         }
     }
 
