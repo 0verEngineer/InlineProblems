@@ -17,7 +17,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 public class HighlightProblemListener implements HighlightInfoFilter {
     private final DocumentMarkupModelScanner markupModelScanner = DocumentMarkupModelScanner.getInstance();
     private final SettingsState settingsState = SettingsState.getInstance();
-    public static final String NAME = "HighlightProblemListener (Deprecated)";
+    public static final String NAME = "HighlightProblemListener";
     public static final int ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS = 2000;
 
     @Override
@@ -28,9 +28,6 @@ public class HighlightProblemListener implements HighlightInfoFilter {
         if (file == null || !file.isValid())
             return true;
 
-        // The HighlightProblemListener is deprecated because the accept function is called a lot of times per second
-        // and the invokeLater queues the invocations, so this is often called before handleAccept is finished.
-        // invokeAndWait also doesn't work because it can cause a deadlock.
         if (!file.getProject().isDisposed()) {
             ApplicationManager.getApplication().invokeLater(() -> handleAccept(file));
         }

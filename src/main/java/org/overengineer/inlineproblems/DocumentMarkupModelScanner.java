@@ -1,6 +1,7 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -10,7 +11,10 @@ import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
@@ -23,7 +27,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 
-public class DocumentMarkupModelScanner {
+public class DocumentMarkupModelScanner implements Disposable {
     private final ProblemManager problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
 
     private final Logger logger = Logger.getInstance(DocumentMarkupModelScanner.class);
@@ -32,9 +36,32 @@ public class DocumentMarkupModelScanner {
 
     private static DocumentMarkupModelScanner instance;
 
+    private final MergingUpdateQueue mergingUpdateQueue;
+
     private ScheduledFuture<?> scheduledFuture;
 
     public static final String NAME = "ManualScanner";
+
+    private DocumentMarkupModelScanner() {
+        Disposer.register(problemManager, this);
+
+        mergingUpdateQueue = new MergingUpdateQueue(
+                "DocumentMarkupModelScannerQueue",
+                10,
+                true,
+                null,
+                this,
+                null,
+                true
+        );
+
+        SettingsState settingsState = SettingsState.getInstance();
+        if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
+            delayMilliseconds = settingsState.getManualScannerDelay();
+        }
+
+        createAndStartScheduledFuture();
+    }
 
     public static DocumentMarkupModelScanner getInstance() {
         if (instance == null)
@@ -43,13 +70,9 @@ public class DocumentMarkupModelScanner {
         return instance;
     }
 
-    private DocumentMarkupModelScanner() {
-        SettingsState settingsState = SettingsState.getInstance();
-        if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
-            delayMilliseconds = settingsState.getManualScannerDelay();
-        }
-
-        createAndStartScheduledFuture();
+    @Override
+    public void dispose() {
+        mergingUpdateQueue.cancelAllUpdates();
     }
 
     public void scanForProblemsManually() {
@@ -78,18 +101,27 @@ public class DocumentMarkupModelScanner {
         }
     }
 
+    /**
+     * This function is queued in the mergingUpdateQueue because it is called frequently, this can be multiple times per
+     * millisecond if the HighlightProblemListener is used.
+     */
     public void scanForProblemsManuallyInTextEditor(TextEditor textEditor) {
         if (textEditor.getFile() == null) {
             return;
         }
 
-        List<InlineProblem> problems = getProblemsInEditor(textEditor);
+        mergingUpdateQueue.queue(new Update("scan") {
+            @Override
+            public void run() {
+                List<InlineProblem> problems = getProblemsInEditor(textEditor);
 
-        problemManager.updateFromNewActiveProblemsForProjectAndFile(
-                problems,
-                textEditor.getEditor().getProject(),
-                textEditor.getFile().getPath()
-        );
+                problemManager.updateFromNewActiveProblemsForProjectAndFile(
+                        problems,
+                        textEditor.getEditor().getProject(),
+                        textEditor.getFile().getPath()
+                );
+            }
+        });
     }
 
     private List<InlineProblem> getProblemsInEditor(TextEditor textEditor) {

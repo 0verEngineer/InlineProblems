@@ -30,7 +30,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
     private static final List<Disposable> disposables = new ArrayList<>();
 
-    public static final String NAME = "MarkupModelListener";
+    public static final String NAME = "MarkupModelListener (default)";
 
     private enum EventType {
         ADD, REMOVE, CHANGE

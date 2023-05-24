@@ -13,7 +13,6 @@
 - Support for new EAP versions
 
 ### Changed
-- HighlightProblemListener is now deprecated
 - MarkupModelListener is now the default listener
 
 ### Fixed
