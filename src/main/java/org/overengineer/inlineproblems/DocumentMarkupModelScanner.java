@@ -59,7 +59,7 @@ public class DocumentMarkupModelScanner {
             List<InlineProblem> problems = new ArrayList<>();
 
             for (var project : projectManager.getOpenProjects()) {
-                if (!project.isInitialized())
+                if (!project.isInitialized() || project.isDisposed())
                     continue;
 
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);

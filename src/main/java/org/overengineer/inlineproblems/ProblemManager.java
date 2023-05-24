@@ -29,7 +29,6 @@ public class ProblemManager implements Disposable {
     }
 
     public void removeProblem(InlineProblem problem) {
-
         inlineDrawer.undrawErrorLineHighlight(problem);
         inlineDrawer.undrawInlineProblemLabel(problem);
 

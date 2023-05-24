@@ -47,17 +47,17 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
     @Override
     public void afterAdded(@NotNull RangeHighlighterEx highlighter) {
-        handleEvent(EventType.ADD, highlighter);
+        ApplicationManager.getApplication().invokeLater(() -> handleEvent(EventType.ADD, highlighter));
     }
 
     @Override
     public void beforeRemoved(@NotNull RangeHighlighterEx highlighter) {
-        handleEvent(EventType.REMOVE, highlighter);
+        ApplicationManager.getApplication().invokeLater(() -> handleEvent(EventType.REMOVE, highlighter));
     }
 
     @Override
     public void attributesChanged(@NotNull RangeHighlighterEx highlighter, boolean renderersChanged, boolean fontStyleOrColorChanged) {
-        handleEvent(EventType.CHANGE, highlighter);
+        ApplicationManager.getApplication().invokeLater(() -> handleEvent(EventType.CHANGE, highlighter));
     }
 
     public static void setup(TextEditor textEditor) {
@@ -88,12 +88,13 @@ public class MarkupModelProblemListener implements MarkupModelListener {
     }
 
     private void handleEvent(EventType type, @NotNull RangeHighlighterEx highlighter) {
+
         if (settingsState.getEnabledListener() != Listener.MARKUP_MODEL_LISTENER)
             return;
 
         Editor editor = textEditor.getEditor();
 
-        if (editor.isDisposed() || textEditor.getFile() == null)
+        if (editor.isDisposed() || editor.getProject().isDisposed() || !editor.getProject().isInitialized() || textEditor.getFile() == null)
             return;
 
         int lineCount = editor.getDocument().getLineCount();
@@ -120,11 +121,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                     highlightInfo.getDescription() != null &&
                     !Objects.equals(highlightInfo.getDescription(), "")
             ) {
-                /* If scanForProblemsManuallyInTextEditor is called directly, problems that should be already removed are
-                   still there and will be found and thus not removed as they should */
-                ApplicationManager.getApplication().invokeAndWait(
-                        () -> DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor)
-                );
+                DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor);
                 return;
             }
 
@@ -138,8 +135,12 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         if (highlightInfo == null)
             return;
 
+        int startOffset = highlighter.getStartOffset();
+        if (startOffset < 0)
+            return;
+
         newProblem = new InlineProblem(
-                editor.getDocument().getLineNumber(highlighter.getStartOffset()),
+                editor.getDocument().getLineNumber(startOffset),
                 textEditor.getFile().getPath(),
                 highlightInfo,
                 textEditor,
@@ -167,6 +168,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         }
 
         problemManager.applyCustomSeverity(newProblem);
+
         switch (type) {
             case ADD:
                 problemManager.addProblem(newProblem);
