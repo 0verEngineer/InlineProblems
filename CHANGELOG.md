@@ -10,6 +10,7 @@
 - Some performance improvements
 - Description for the listeners in the settings
 - Configurable delay for the manual scan listener
+- Support for new EAP versions
 
 ### Changed
 - HighlightProblemListener is now deprecated
@@ -18,6 +19,8 @@
 ### Fixed
 - Some possible null pointer exceptions
 - invokeLater queuing issue of MarkupModelListener if used with the only one problem per line feature
+- Cache of activeProblems is now thread safe
+- CustomSeverity bugs that leads to useless problem updates
 
 ## [0.4.2]
 

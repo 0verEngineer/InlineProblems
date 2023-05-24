@@ -32,7 +32,7 @@ public class ProblemManager implements Disposable {
         inlineDrawer.undrawErrorLineHighlight(problem);
         inlineDrawer.undrawInlineProblemLabel(problem);
 
-        if (!activeProblems.remove(problem)) {
+        if (!Collections.synchronizedList(activeProblems).remove(problem)) {
             logger.warn("Removal of problem failed, resetting");
             resetForEditor(problem.getTextEditor().getEditor());
             return;
@@ -73,7 +73,7 @@ public class ProblemManager implements Disposable {
         inlineDrawer.drawProblemLabel(problem, drawDetails);
         inlineDrawer.drawProblemLineHighlight(problem, drawDetails);
 
-        activeProblems.add(problem);
+        Collections.synchronizedList(activeProblems).add(problem);
     }
 
     public boolean shouldProblemBeIgnored(int severity) {
