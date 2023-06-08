@@ -1,17 +1,20 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
@@ -24,25 +27,41 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 
-public class DocumentMarkupModelScanner {
+public class DocumentMarkupModelScanner implements Disposable {
     private final ProblemManager problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
-
-    private final SettingsState settingsState = SettingsState.getInstance();
 
     private final Logger logger = Logger.getInstance(DocumentMarkupModelScanner.class);
 
     private int delayMilliseconds = HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS;
 
-    // Used to bypass the listener setting
-    private boolean isManualScanEnabled = true;
-
     private static DocumentMarkupModelScanner instance;
+
+    private final MergingUpdateQueue mergingUpdateQueue;
 
     private ScheduledFuture<?> scheduledFuture;
 
     public static final String NAME = "ManualScanner";
 
-    public static final int MANUAL_SCAN_DELAY_MILLIS = 250;
+    private DocumentMarkupModelScanner() {
+        Disposer.register(problemManager, this);
+
+        mergingUpdateQueue = new MergingUpdateQueue(
+                "DocumentMarkupModelScannerQueue",
+                10,
+                true,
+                null,
+                this,
+                null,
+                true
+        );
+
+        SettingsState settingsState = SettingsState.getInstance();
+        if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
+            delayMilliseconds = settingsState.getManualScannerDelay();
+        }
+
+        createAndStartScheduledFuture();
+    }
 
     public static DocumentMarkupModelScanner getInstance() {
         if (instance == null)
@@ -51,12 +70,9 @@ public class DocumentMarkupModelScanner {
         return instance;
     }
 
-    private DocumentMarkupModelScanner() {
-        if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
-            delayMilliseconds = MANUAL_SCAN_DELAY_MILLIS;
-        }
-
-        createAndStartScheduledFuture();
+    @Override
+    public void dispose() {
+        mergingUpdateQueue.cancelAllUpdates();
     }
 
     public void scanForProblemsManually() {
@@ -66,10 +82,17 @@ public class DocumentMarkupModelScanner {
             List<InlineProblem> problems = new ArrayList<>();
 
             for (var project : projectManager.getOpenProjects()) {
+                if (!project.isInitialized() || project.isDisposed())
+                    continue;
+
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                 for (var editor : fileEditorManager.getAllEditors()) {
                     if (editor instanceof TextEditor) {
-                        problems.addAll(getProblemsInEditor((TextEditor) editor));
+                        var textEditor = (TextEditor) editor;
+                        if (textEditor.getFile() == null) {
+                            continue;
+                        }
+                        problems.addAll(getProblemsInEditor(textEditor));
                     }
                 }
             }
@@ -78,13 +101,27 @@ public class DocumentMarkupModelScanner {
         }
     }
 
+    /**
+     * This function is queued in the mergingUpdateQueue because it is called frequently, this can be multiple times per
+     * millisecond if the HighlightProblemListener is used.
+     */
     public void scanForProblemsManuallyInTextEditor(TextEditor textEditor) {
-        List<InlineProblem> problems = getProblemsInEditor(textEditor);
-        problemManager.updateFromNewActiveProblemsForProjectAndFile(
-                problems,
-                textEditor.getEditor().getProject(),
-                textEditor.getFile().getPath()
-        );
+        if (textEditor.getFile() == null) {
+            return;
+        }
+
+        mergingUpdateQueue.queue(new Update("scan") {
+            @Override
+            public void run() {
+                List<InlineProblem> problems = getProblemsInEditor(textEditor);
+
+                problemManager.updateFromNewActiveProblemsForProjectAndFile(
+                        problems,
+                        textEditor.getEditor().getProject(),
+                        textEditor.getFile().getPath()
+                );
+            }
+        });
     }
 
     private List<InlineProblem> getProblemsInEditor(TextEditor textEditor) {
@@ -108,52 +145,49 @@ public class DocumentMarkupModelScanner {
         );
 
         Arrays.stream(highlighters)
-                .filter(RangeMarker::isValid)
                 .filter(h -> {
-                    if (h.getErrorStripeTooltip() instanceof HighlightInfo) {
+                    if (h.isValid() && h.getErrorStripeTooltip() instanceof HighlightInfo) {
                         HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
                         return highlightInfo.getDescription() != null &&
                                 !highlightInfo.getDescription().isEmpty() &&
                                 problemTextBeginningFilterList.stream()
-                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase()));
+                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase())) &&
+                                fileEndOffset >= highlightInfo.getStartOffset()
+                        ;
                     }
 
                     return false;
                 })
                 .forEach(h -> {
                     HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
-                    if (fileEndOffset >= highlightInfo.getStartOffset()) {
-                        int line = document.getLineNumber(highlightInfo.getStartOffset());
 
-                        InlineProblem newProblem = new InlineProblem(
-                                line,
-                                highlightInfo,
-                                textEditor,
-                                h
-                                );
+                    InlineProblem newProblem = new InlineProblem(
+                            document.getLineNumber(highlightInfo.getStartOffset()),
+                            textEditor.getFile().getPath(),
+                            highlightInfo,
+                            textEditor,
+                            h
+                    );
 
-                        problems.add(newProblem);
+                    problemManager.applyCustomSeverity(newProblem);
+                    if (problemManager.shouldProblemBeIgnored(newProblem.getSeverity())) {
+                        return;
                     }
+
+                    problems.add(newProblem);
                 });
 
         return problems;
     }
 
-    public void setIsManualScanEnabled(boolean isEnabled) {
-        isManualScanEnabled = isEnabled;
-
-        if (isEnabled && scheduledFuture.isCancelled()) {
-            createAndStartScheduledFuture();
-        }
-        else if (!isEnabled && !scheduledFuture.isCancelled()) {
-            cancelScheduledFuture();
-        }
+    public void restartManualScan() {
+        cancelScheduledFuture();
+        createAndStartScheduledFuture();
     }
 
     public void setDelayMilliseconds(int newDelayMilliseconds) {
         delayMilliseconds = newDelayMilliseconds;
-        cancelScheduledFuture();
-        createAndStartScheduledFuture();
+        restartManualScan();
     }
 
     private void cancelScheduledFuture() {
@@ -166,8 +200,8 @@ public class DocumentMarkupModelScanner {
 
     private void createAndStartScheduledFuture() {
         scheduledFuture = AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(
-                () -> ApplicationManager.getApplication().invokeLater(this::scanForProblemsManually),
-                0,
+                () -> ApplicationManager.getApplication().invokeAndWait(this::scanForProblemsManually),
+                2000,
                 delayMilliseconds,
                 TimeUnit.MILLISECONDS
         );

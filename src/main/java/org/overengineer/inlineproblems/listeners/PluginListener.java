@@ -12,7 +12,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 
 
 public class PluginListener implements DynamicPluginListener {
-    private SettingsState settingsState = SettingsState.getInstance();
+    private final SettingsState settingsState = SettingsState.getInstance();
 
     private final ListenerManager listenerManager = ListenerManager.getInstance();
 

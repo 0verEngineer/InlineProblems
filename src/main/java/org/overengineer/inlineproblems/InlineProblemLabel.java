@@ -33,8 +33,8 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     @Setter
     private boolean isBlockElement;
 
-    private int inlayFontSizeDelta;
-    private boolean isUseEditorFont = false;
+    private final int inlayFontSizeDelta;
+    private final boolean isUseEditorFont;
 
     private static final int WIDTH_OFFSET = 7;
     private static final int DRAW_BOX_HEIGHT_OFFSET = -2; // Makes the box lines visible even if line below / above is highlighted
@@ -78,11 +78,6 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     }
 
     @Override
-    public int calcHeightInPixels(@NotNull Inlay inlay) {
-        return inlay.getEditor().getLineHeight();
-    }
-
-    @Override
     public void paint(@NotNull Inlay inlay, @NotNull Graphics graphics, @NotNull Rectangle targetRegion, @NotNull TextAttributes textAttributes) {
         Editor editor = inlay.getEditor();
 
@@ -96,7 +91,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
 
         // Apply delta on the boxes
         if (inlayFontSizeDelta != 0 && editorFontSize > inlayFontSizeDelta) {
-            height = height - inlayFontSizeDelta;
+            height -= inlayFontSizeDelta;
             targetRegionY += (int)(inlayFontSizeDelta / 1.5);
         }
 

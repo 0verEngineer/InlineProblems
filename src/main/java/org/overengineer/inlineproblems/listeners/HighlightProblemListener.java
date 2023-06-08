@@ -36,6 +36,9 @@ public class HighlightProblemListener implements HighlightInfoFilter {
     }
 
     public void handleAccept(PsiFile file) {
+        if (settingsState.getEnabledListener() != Listener.HIGHLIGHT_PROBLEMS_LISTENER)
+            return;
+
         if (file.getVirtualFile() == null)
             return;
 
