@@ -39,7 +39,7 @@ public class HighlightProblemListener implements HighlightInfoFilter {
         if (settingsState.getEnabledListener() != Listener.HIGHLIGHT_PROBLEMS_LISTENER)
             return;
 
-        if (file.getVirtualFile() == null)
+        if (file.getProject().isDisposed() || file.getVirtualFile() == null)
             return;
 
         FileEditor editor = FileEditorManager.getInstance(file.getProject()).getSelectedEditor(file.getVirtualFile());

@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- AlreadyDisposedException in HighlightProblemListener
+
 ## [0.4.3]
 
 ### Added
