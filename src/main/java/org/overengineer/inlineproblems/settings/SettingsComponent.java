@@ -24,24 +24,36 @@ import java.util.List;
 public class SettingsComponent {
     private final JBCheckBox showErrors = new JBCheckBox("Show errors");
     private final JBCheckBox highlightErrors = new JBCheckBox("Highlight errors");
+    private final JBCheckBox showErrorsInGutter = new JBCheckBox("Show error icons in gutter");
+
     private final JBCheckBox showWarnings = new JBCheckBox("Show warnings");
     private final JBCheckBox highlightWarnings = new JBCheckBox("Highlight warnings");
+    private final JBCheckBox showWarningsInGutter = new JBCheckBox("Show warning icons in gutter");
+
     private final JBCheckBox showWeakWarnings = new JBCheckBox("Show weak warnings");
     private final JBCheckBox highlightWeakWarnings = new JBCheckBox("Highlight weak warnings");
+    private final JBCheckBox showWeakWarningsInGutter = new JBCheckBox("Show weak warning icons in gutter");
+
     private final JBCheckBox showInfos = new JBCheckBox("Show infos");
     private final JBCheckBox highlightInfo = new JBCheckBox("Highlight infos");
+    private final JBCheckBox showInfosInGutter = new JBCheckBox("Show info icons in gutter");
+
     private final ColorPanel errorTextColor = new ColorPanel();
     private final ColorPanel errorLabelBackgroundColor = new ColorPanel();
     private final ColorPanel errorHighlightColor = new ColorPanel();
+
     private final ColorPanel warningTextColor = new ColorPanel();
     private final ColorPanel warningLabelBackgroundColor = new ColorPanel();
     private final ColorPanel warningHighlightColor = new ColorPanel();
+
     private final ColorPanel weakWarningTextColor = new ColorPanel();
     private final ColorPanel weakWarningLabelBackgroundColor = new ColorPanel();
     private final ColorPanel weakWarningHighlightColor = new ColorPanel();
+
     private final ColorPanel infoTextColor = new ColorPanel();
     private final ColorPanel infoLabelBackgroundColor = new ColorPanel();
     private final ColorPanel infoHighlightColor = new ColorPanel();
+
     private final JBCheckBox forceErrorsInSameLine = new JBCheckBox("Force problems in the same line even if they are to long to fit");
     private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox("Draw boxes around problem labels");
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox("Rounded corners");
@@ -70,24 +82,28 @@ public class SettingsComponent {
 
         showErrors.setSelected(settingsState.isShowErrors());
         highlightErrors.setSelected(settingsState.isHighlightErrors());
+        showErrorsInGutter.setSelected(settingsState.isShowErrorsInGutter());
         errorTextColor.setSelectedColor(settingsState.getErrorTextColor());
         errorLabelBackgroundColor.setSelectedColor(settingsState.getErrorBackgroundColor());
         errorHighlightColor.setSelectedColor(settingsState.getErrorHighlightColor());
 
         showWarnings.setSelected(settingsState.isShowWarnings());
         highlightWarnings.setSelected(settingsState.isHighlightWarnings());
+        showWarningsInGutter.setSelected(settingsState.isShowWarningsInGutter());
         warningTextColor.setSelectedColor(settingsState.getWarningTextColor());
         warningLabelBackgroundColor.setSelectedColor(settingsState.getWarningBackgroundColor());
         warningHighlightColor.setSelectedColor(settingsState.getWarningHighlightColor());
 
         showWeakWarnings.setSelected(settingsState.isShowWeakWarnings());
         highlightWeakWarnings.setSelected(settingsState.isHighlightWeakWarnings());
+        showWeakWarningsInGutter.setSelected(settingsState.isShowWeakWarningsInGutter());
         weakWarningTextColor.setSelectedColor(settingsState.getWeakWarningTextColor());
         weakWarningLabelBackgroundColor.setSelectedColor(settingsState.getWeakWarningBackgroundColor());
         weakWarningHighlightColor.setSelectedColor(settingsState.getWeakWarningHighlightColor());
 
         showInfos.setSelected(settingsState.isShowInfos());
         highlightInfo.setSelected(settingsState.isHighlightInfos());
+        showInfosInGutter.setSelected(settingsState.isShowInfosInGutter());
         infoTextColor.setSelectedColor(settingsState.getInfoTextColor());
         infoLabelBackgroundColor.setSelectedColor(settingsState.getInfoBackgroundColor());
         infoHighlightColor.setSelectedColor(settingsState.getInfoHighlightColor());
@@ -142,6 +158,7 @@ public class SettingsComponent {
                 .addComponent(new JBLabel("Colors"))
                 .addComponent(showErrors)
                 .addComponent(highlightErrors)
+                .addComponent(showErrorsInGutter)
                 .addLabeledComponent(new JLabel("Error text color:"), errorTextColor)
                 .addLabeledComponent(new JLabel("Error label border color:"), errorLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Error line highlight color:"), errorHighlightColor)
@@ -150,6 +167,7 @@ public class SettingsComponent {
                 .addSeparator()
                 .addComponent(showWarnings)
                 .addComponent(highlightWarnings)
+                .addComponent(showWarningsInGutter)
                 .addLabeledComponent(new JLabel("Warning text color:"), warningTextColor)
                 .addLabeledComponent(new JLabel("Warning label border color:"), warningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Warning line highlight color:"), warningHighlightColor)
@@ -158,6 +176,7 @@ public class SettingsComponent {
                 .addSeparator()
                 .addComponent(showWeakWarnings)
                 .addComponent(highlightWeakWarnings)
+                .addComponent(showWeakWarningsInGutter)
                 .addLabeledComponent(new JLabel("Weak warning text color:"), weakWarningTextColor)
                 .addLabeledComponent(new JLabel("Weak warning label border color:"), weakWarningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Weak warning line highlight color:"), weakWarningHighlightColor)
@@ -166,6 +185,7 @@ public class SettingsComponent {
                 .addSeparator()
                 .addComponent(showInfos)
                 .addComponent(highlightInfo)
+                .addComponent(showInfosInGutter)
                 .addLabeledComponent(new JLabel("Info text color:"), infoTextColor)
                 .addLabeledComponent(new JLabel("Info label border color:"), infoLabelBackgroundColor)
                 .addLabeledComponent(new JLabel("Info line highlight color:"), infoHighlightColor)
@@ -273,6 +293,14 @@ public class SettingsComponent {
         highlightErrors.setSelected(isSelected);
     }
 
+    public boolean isShowErrorsInGutter() {
+        return showErrorsInGutter.isSelected();
+    }
+
+    public void setShowErrorsInGutter(boolean isSelected) {
+        showErrorsInGutter.setSelected(isSelected);
+    }
+
     public boolean isShowWarnings() {
         return showWarnings.isSelected();
     }
@@ -287,6 +315,14 @@ public class SettingsComponent {
 
     public void setHighlightWarnings(final boolean isSelected) {
         highlightWarnings.setSelected(isSelected);
+    }
+
+    public boolean isShowWarningsInGutter() {
+        return showWarningsInGutter.isSelected();
+    }
+
+    public void setShowWarningsInGutter(final boolean isSelected) {
+        showWarningsInGutter.setSelected(isSelected);
     }
 
     public boolean isShowWeakWarnings() {
@@ -305,6 +341,14 @@ public class SettingsComponent {
         highlightWeakWarnings.setSelected(isSelected);
     }
 
+    public boolean isShowWeakWarningsInGutter() {
+        return showWeakWarningsInGutter.isSelected();
+    }
+
+    public void setShowWeakWarningsInGutter(boolean isSelected) {
+        showWeakWarningsInGutter.setSelected(isSelected);
+    }
+
     public boolean isShowInfos() {
         return showInfos.isSelected();
     }
@@ -319,6 +363,14 @@ public class SettingsComponent {
 
     public void setHighlightInfo(final boolean isSelected) {
         highlightInfo.setSelected(isSelected);
+    }
+
+    public boolean isShowInfosInGutter() {
+        return showInfosInGutter.isSelected();
+    }
+
+    public void setShowInfosInGutter(boolean isSelected) {
+        showInfosInGutter.setSelected(isSelected);
     }
 
     public Color getErrorTextColor() {

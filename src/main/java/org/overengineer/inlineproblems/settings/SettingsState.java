@@ -30,12 +30,16 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
 
     private boolean showErrors = true;
     private boolean highlightErrors = false;
+    private boolean showErrorsInGutter = false;
     private boolean showWarnings = true;
     private boolean highlightWarnings = false;
+    private boolean showWarningsInGutter = false;
     private boolean showWeakWarnings = false;
     private boolean highlightWeakWarnings = false;
+    private boolean showWeakWarningsInGutter = false;
     private boolean showInfos = false;
     private boolean highlightInfos = false;
+    private boolean showInfosInGutter = false;
 
     /**
      * Colors renamed from '<NAME>Color' to '<NAME>Col' to solve
@@ -265,4 +269,9 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
         this.infoHighlightCol = color;
     }
     //</editor-fold>
+
+    @Transient
+    public boolean isShowAnyGutterIcons() {
+        return showErrorsInGutter || showWarningsInGutter || showWeakWarningsInGutter || showInfosInGutter;
+    }
 }

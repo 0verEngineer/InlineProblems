@@ -14,8 +14,7 @@ public class SettingsConfigurable implements Configurable {
 
     private final ListenerManager listenerManager = ListenerManager.getInstance();
 
-    SettingsConfigurable() {
-    }
+    SettingsConfigurable() {}
 
     @Override
     @NlsContexts.ConfigurableName
@@ -54,24 +53,29 @@ public class SettingsConfigurable implements Configurable {
                 state.getErrorHighlightColor().equals(settingsComponent.getErrorHighlightColor()) &&
                 state.isShowErrors() == settingsComponent.isShowErrors() &&
                 state.isHighlightErrors() == settingsComponent.isHighlightErrors() &&
+                state.isShowErrorsInGutter() == settingsComponent.isShowErrorsInGutter() &&
 
                 state.getWarningTextColor().equals(settingsComponent.getWarningTextColor()) &&
                 state.getWarningBackgroundColor().equals(settingsComponent.getWarningLabelBackgroundColor()) &&
                 state.getWarningHighlightColor().equals(settingsComponent.getWarningHighlightColor()) &&
                 state.isShowWarnings() == settingsComponent.isShowWarnings() &&
                 state.isHighlightWarnings() == settingsComponent.isHighlightWarnings() &&
+                state.isShowWarningsInGutter() == settingsComponent.isShowWarningsInGutter() &&
 
                 state.getWeakWarningTextColor().equals(settingsComponent.getWeakWarningTextColor()) &&
                 state.getWeakWarningBackgroundColor().equals(settingsComponent.getWeakWarningLabelBackgroundColor()) &&
                 state.getWeakWarningHighlightColor().equals(settingsComponent.getWeakWarningHighlightColor()) &&
                 state.isShowWeakWarnings() == settingsComponent.isShowWeakWarnings() &&
                 state.isHighlightWeakWarnings() == settingsComponent.isHighlightWeakWarnings() &&
+                state.isShowWeakWarningsInGutter() == settingsComponent.isShowWeakWarningsInGutter() &&
 
                 state.getInfoTextColor().equals(settingsComponent.getInfoTextColor()) &&
                 state.getInfoBackgroundColor().equals(settingsComponent.getInfoLabelBackgroundColor()) &&
                 state.getInfoHighlightColor().equals(settingsComponent.getInfoHighlightColor()) &&
                 state.isShowInfos() == settingsComponent.isShowInfos() &&
                 state.isHighlightInfos() == settingsComponent.isHighlightInfo() &&
+                state.isShowInfosInGutter() == settingsComponent.isShowInfosInGutter() &&
+
                 state.getEnabledListener() == settingsComponent.getEnabledListener() &&
 
                 state.getProblemFilterList().equals(settingsComponent.getProblemFilterList()) &&
@@ -93,24 +97,28 @@ public class SettingsConfigurable implements Configurable {
 
         state.setShowErrors(settingsComponent.isShowErrors());
         state.setHighlightErrors(settingsComponent.isHighlightErrors());
+        state.setShowErrorsInGutter(settingsComponent.isShowErrorsInGutter());
         state.setErrorTextColor(settingsComponent.getErrorTextColor());
         state.setErrorBackgroundColor(settingsComponent.getErrorLabelBackgroundColor());
         state.setErrorHighlightColor(settingsComponent.getErrorHighlightColor());
 
         state.setShowWarnings(settingsComponent.isShowWarnings());
         state.setHighlightWarnings(settingsComponent.isHighlightWarnings());
+        state.setShowWarningsInGutter(settingsComponent.isShowWarningsInGutter());
         state.setWarningTextColor(settingsComponent.getWarningTextColor());
         state.setWarningBackgroundColor(settingsComponent.getWarningLabelBackgroundColor());
         state.setWarningHighlightColor(settingsComponent.getWarningHighlightColor());
 
         state.setShowWeakWarnings(settingsComponent.isShowWeakWarnings());
         state.setHighlightWeakWarnings(settingsComponent.isHighlightWeakWarnings());
+        state.setShowWeakWarningsInGutter(settingsComponent.isShowWeakWarningsInGutter());
         state.setWeakWarningTextColor(settingsComponent.getWeakWarningTextColor());
         state.setWeakWarningBackgroundColor(settingsComponent.getWeakWarningLabelBackgroundColor());
         state.setWeakWarningHighlightColor(settingsComponent.getWeakWarningHighlightColor());
 
         state.setShowInfos(settingsComponent.isShowInfos());
         state.setHighlightInfos(settingsComponent.isHighlightInfo());
+        state.setShowInfosInGutter(settingsComponent.isShowInfosInGutter());
         state.setInfoTextColor(settingsComponent.getInfoTextColor());
         state.setInfoBackgroundColor(settingsComponent.getInfoLabelBackgroundColor());
         state.setInfoHighlightColor(settingsComponent.getInfoHighlightColor());
@@ -146,24 +154,28 @@ public class SettingsConfigurable implements Configurable {
 
         settingsComponent.setShowErrors(state.isShowErrors());
         settingsComponent.setHighlightErrors(state.isHighlightErrors());
+        settingsComponent.setShowErrorsInGutter(state.isShowErrorsInGutter());
         settingsComponent.setErrorTextColor(state.getErrorTextColor());
         settingsComponent.setErrorLabelBackgroundColor(state.getErrorBackgroundColor());
         settingsComponent.setErrorHighlightColor(state.getErrorHighlightColor());
 
         settingsComponent.setShowWarnings(state.isShowWarnings());
         settingsComponent.setHighlightWarnings(state.isHighlightWarnings());
+        settingsComponent.setShowWarningsInGutter(state.isShowWarningsInGutter());
         settingsComponent.setWarningTextColor(state.getWarningTextColor());
         settingsComponent.setWarningLabelBackgroundColor(state.getWarningBackgroundColor());
         settingsComponent.setWarningHighlightColor(state.getWarningHighlightColor());
 
         settingsComponent.setShowWeakWarnings(state.isShowWeakWarnings());
         settingsComponent.setHighlightWeakWarnings(state.isHighlightWeakWarnings());
+        settingsComponent.setShowWeakWarningsInGutter(state.isShowWeakWarningsInGutter());
         settingsComponent.setWeakWarningTextColor(state.getWeakWarningTextColor());
         settingsComponent.setWeakWarningLabelBackgroundColor(state.getWeakWarningBackgroundColor());
         settingsComponent.setWeakWarningHighlightColor(state.getWeakWarningHighlightColor());
 
         settingsComponent.setShowInfos(state.isShowInfos());
         settingsComponent.setHighlightInfo(state.isHighlightInfos());
+        settingsComponent.setShowInfosInGutter(state.isShowInfosInGutter());
         settingsComponent.setInfoTextColor(state.getInfoTextColor());
         settingsComponent.setInfoLabelBackgroundColor(state.getInfoBackgroundColor());
         settingsComponent.setInfoHighlightColor(state.getInfoHighlightColor());

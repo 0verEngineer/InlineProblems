@@ -1,10 +1,12 @@
 package org.overengineer.inlineproblems.entities;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Editor;
 import lombok.Getter;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
+import javax.swing.*;
 import java.awt.*;
 
 
@@ -13,6 +15,8 @@ public class DrawDetails {
     private Color textColor;
     private Color backgroundColor;
     private Color highlightColor;
+
+    private Icon icon = null;
     
     private boolean isDrawProblem = false;
     private boolean isDrawHighlighter = false;
@@ -31,6 +35,8 @@ public class DrawDetails {
             highlightColor = settings.getErrorHighlightColor();
             isDrawHighlighter = settings.isHighlightErrors();
             isDrawProblem = settings.isShowErrors();
+            if (settings.isShowErrorsInGutter())
+                icon = AllIcons.General.Error;
         }
         else if (severity >= HighlightSeverity.WARNING.myVal) {
             textColor = settings.getWarningTextColor();
@@ -38,6 +44,8 @@ public class DrawDetails {
             highlightColor = settings.getWarningHighlightColor();
             isDrawHighlighter = settings.isHighlightWarnings();
             isDrawProblem = settings.isShowWarnings();
+            if (settings.isShowWarningsInGutter())
+                icon = AllIcons.General.Warning;
         }
         else if (severity >= HighlightSeverity.WEAK_WARNING.myVal) {
             textColor = settings.getWeakWarningTextColor();
@@ -45,6 +53,8 @@ public class DrawDetails {
             highlightColor = settings.getWeakWarningHighlightColor();
             isDrawHighlighter = settings.isHighlightWeakWarnings();
             isDrawProblem = settings.isShowWeakWarnings();
+            if (settings.isShowWeakWarningsInGutter())
+                icon = AllIcons.General.Warning;
         }
         else if (severity >= HighlightSeverity.INFORMATION.myVal) {
             textColor = settings.getInfoTextColor();
@@ -52,6 +62,8 @@ public class DrawDetails {
             highlightColor = settings.getInfoHighlightColor();
             isDrawHighlighter = settings.isHighlightInfos();
             isDrawProblem = settings.isShowInfos();
+            if (settings.isShowInfosInGutter())
+                icon = AllIcons.General.Information;
         }
     }
 }

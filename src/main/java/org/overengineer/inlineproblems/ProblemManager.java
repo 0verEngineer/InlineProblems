@@ -28,15 +28,19 @@ public class ProblemManager implements Disposable {
 
     public void removeProblem(InlineProblem problem) {
         InlineProblem problemToRemove = findActiveProblemByRangeHighlighterHashCode(problem.getRangeHighlighterHashCode());
-
         if (problemToRemove == null) {
             logger.warn("Removal of problem failed, not found by RangeHighlighterHashCode");
             resetForEditor(problem.getTextEditor().getEditor());
             return;
         }
 
-        inlineDrawer.undrawErrorLineHighlight(problemToRemove);
-        inlineDrawer.undrawInlineProblemLabel(problemToRemove);
+        List<InlineProblem> problemsInLine = null;
+        if (settingsState.isShowAnyGutterIcons()) {
+            problemsInLine = getProblemsInLineForProblemSorted(problem);
+        }
+
+        inlineDrawer.undrawErrorLineHighlight(problem, problemsInLine);
+        inlineDrawer.undrawInlineProblemLabel(problem);
 
         if (!activeProblems.remove(problemToRemove)) {
             logger.warn("Removal of problem failed, resetting");
@@ -51,6 +55,8 @@ public class ProblemManager implements Disposable {
      * @param problem problem to add
      */
     public void addProblem(InlineProblem problem) {
+        problem.setDrawDetails(new DrawDetails(problem, problem.getTextEditor().getEditor()));
+
         List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
         problemsInLine.add(problem);
 
@@ -63,6 +69,8 @@ public class ProblemManager implements Disposable {
                 removeProblem(p);
         });
 
+        inlineDrawer.drawLineHighlighterAndGutterIcon(problemsInLine);
+
         /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
         *  it does not work like expected, that is because there are differences the evaluation and the way it is called */
         problemsInLine.forEach(this::addProblemPrivate);
@@ -71,12 +79,13 @@ public class ProblemManager implements Disposable {
     private void addProblemPrivate(InlineProblem problem) {
         applyCustomSeverity(problem);
 
-        DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
+        if (problem.getTextEditor().getEditor().getDocument().getLineCount() <= problem.getLine()) {
+            logger.warn("Line count is less or equal than problem line, problem not added");
+            return;
+        }
 
-        inlineDrawer.drawProblemLabel(problem, drawDetails);
-        inlineDrawer.drawProblemLineHighlight(problem, drawDetails);
-
-        activeProblems.add(problem);
+        inlineDrawer.drawProblemLabel(problem);
+        Collections.synchronizedList(activeProblems).add(problem);
     }
 
     private void applyCustomSeverity(InlineProblem problem) {
@@ -134,6 +143,13 @@ public class ProblemManager implements Disposable {
     private List<InlineProblem> getProblemsInLineForProblem(InlineProblem problem) {
         return activeProblems.stream()
                 .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
+                .collect(Collectors.toList());
+    }
+
+    private List<InlineProblem> getProblemsInLineForProblemSorted(InlineProblem problem) {
+        return activeProblems.stream()
+                .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
+                .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
                 .collect(Collectors.toList());
     }
 
