@@ -84,6 +84,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     @OptionTag(converter = ColorConverter.class)
     private Color infoHighlightCol = infoBackgroundCol;
 
+    private int manualScannerDelay = 200;
     private boolean drawBoxesAroundErrorLabels = true;
     private boolean roundedCornerBoxes = true;
     private boolean forceProblemsInSameLine = true;
@@ -93,7 +94,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean boldProblemLabels = false;
     private boolean italicProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
-    private int enabledListener = Listener.HIGHLIGHT_PROBLEMS_LISTENER;
+    private int enabledListener = Listener.MARKUP_MODEL_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";
 
     private List<Integer> additionalErrorSeverities = new ArrayList<>();
@@ -102,6 +103,10 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private List<Integer> additionalInfoSeverities = new ArrayList<>();
 
     private boolean showOnlyHighestSeverityPerLine = false;
+
+    // migration booleans
+    private boolean highlightProblemListenerDeprecateMigrationDone = false;
+    private boolean filterListMigrationDone01 = false;
 
     public static SettingsState getInstance() {
         return ApplicationManager.getApplication().getService(SettingsState.class);
@@ -119,12 +124,31 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
         migrateState();
     }
 
+    @Override
+    public void noStateLoaded() {
+        migrateState();
+    }
+
     private void migrateState() {
-        List<String> newFilterListEntries = List.of("Consider unknown contexts non-blocking");
-        for (String entry : newFilterListEntries) {
-            if (!problemFilterList.contains(entry)) {
-                problemFilterList += ";" + entry;
+        // filter list
+        if (!filterListMigrationDone01) {
+            List<String> newFilterListEntries = List.of("Consider unknown contexts non-blocking");
+            for (String entry : newFilterListEntries) {
+                if (!problemFilterList.contains(entry)) {
+                    problemFilterList += ";" + entry;
+                }
             }
+
+            filterListMigrationDone01 = true;
+        }
+
+        // listener
+        if (!highlightProblemListenerDeprecateMigrationDone) {
+            if (enabledListener == Listener.HIGHLIGHT_PROBLEMS_LISTENER) {
+                enabledListener = Listener.MARKUP_MODEL_LISTENER;
+            }
+
+            highlightProblemListenerDeprecateMigrationDone = true;
         }
     }
 

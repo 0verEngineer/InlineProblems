@@ -46,6 +46,7 @@ public class InlineProblem {
 
     public InlineProblem(
             int line,
+            String filePath,
             HighlightInfo highlightInfo,
             TextEditor textEditor,
             RangeHighlighter rangeHighlighter
@@ -60,7 +61,7 @@ public class InlineProblem {
         this.text = usedText;
         this.severity = highlightInfo.getSeverity().myVal;
         this.textEditor = textEditor;
-        this.file = textEditor.getFile().getPath();
+        this.file = filePath;
         this.project = textEditor.getEditor().getProject();
         this.highlightInfoStartOffset = highlightInfo.hashCode();
         this.rangeHighlighterHashCode = rangeHighlighter.hashCode();

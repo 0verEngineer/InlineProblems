@@ -8,7 +8,6 @@ import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.impl.event.MarkupModelListener;
-import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -27,12 +26,11 @@ import java.util.Objects;
 public class MarkupModelProblemListener implements MarkupModelListener {
     private final SettingsState settingsState;
     private final ProblemManager problemManager;
-    private final String filePath;
     private final TextEditor textEditor;
 
     private static final List<Disposable> disposables = new ArrayList<>();
 
-    public static final String NAME = "MarkupModelListener";
+    public static final String NAME = "MarkupModelListener (default)";
 
     private enum EventType {
         ADD, REMOVE, CHANGE
@@ -42,7 +40,6 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             final TextEditor textEditor
     ) {
         this.textEditor = textEditor;
-        this.filePath = textEditor.getFile().getPath();
 
         problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
         settingsState = SettingsState.getInstance();
@@ -50,17 +47,17 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
     @Override
     public void afterAdded(@NotNull RangeHighlighterEx highlighter) {
-        handleEvent(EventType.ADD, highlighter);
+        ApplicationManager.getApplication().invokeLater(() -> handleEvent(EventType.ADD, highlighter));
     }
 
     @Override
     public void beforeRemoved(@NotNull RangeHighlighterEx highlighter) {
-        handleEvent(EventType.REMOVE, highlighter);
+        ApplicationManager.getApplication().invokeLater(() -> handleEvent(EventType.REMOVE, highlighter));
     }
 
     @Override
     public void attributesChanged(@NotNull RangeHighlighterEx highlighter, boolean renderersChanged, boolean fontStyleOrColorChanged) {
-        handleEvent(EventType.CHANGE, highlighter);
+        ApplicationManager.getApplication().invokeLater(() -> handleEvent(EventType.CHANGE, highlighter));
     }
 
     public static void setup(TextEditor textEditor) {
@@ -91,12 +88,13 @@ public class MarkupModelProblemListener implements MarkupModelListener {
     }
 
     private void handleEvent(EventType type, @NotNull RangeHighlighterEx highlighter) {
+
         if (settingsState.getEnabledListener() != Listener.MARKUP_MODEL_LISTENER)
             return;
 
         Editor editor = textEditor.getEditor();
 
-        if (editor.isDisposed())
+        if (editor.isDisposed() || editor.getProject().isDisposed() || !editor.getProject().isInitialized() || textEditor.getFile() == null)
             return;
 
         int lineCount = editor.getDocument().getLineCount();
@@ -123,55 +121,75 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                     highlightInfo.getDescription() != null &&
                     !Objects.equals(highlightInfo.getDescription(), "")
             ) {
-                /* If scanForProblemsManuallyInTextEditor is called directly, problems that should be already removed are
-                   still there and will be found and thus not removed as they should */
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor);
-                });
+                DocumentMarkupModelScanner.getInstance().scanForProblemsManuallyInTextEditor(textEditor);
                 return;
             }
 
             return;
         }
 
-        InlineProblem problem = constructProblem(
-            editor.getDocument().getLineNumber(highlighter.getStartOffset()),
-            (HighlightInfo) highlighter.getErrorStripeTooltip(),
-            highlighter
+        InlineProblem newProblem;
+        InlineProblem problemToRemove = null;
+
+        var highlightInfo = (HighlightInfo) highlighter.getErrorStripeTooltip();
+        if (highlightInfo == null)
+            return;
+
+        int startOffset = highlighter.getStartOffset();
+        if (startOffset < 0)
+            return;
+
+        newProblem = new InlineProblem(
+                editor.getDocument().getLineNumber(startOffset),
+                textEditor.getFile().getPath(),
+                highlightInfo,
+                textEditor,
+                highlighter
         );
+
+        if (type == EventType.CHANGE || type == EventType.REMOVE) {
+            problemToRemove = findActiveProblemByRangeHighlighterHashCode(highlighter.hashCode());
+
+            if (problemToRemove == null) {
+                return;
+            }
+        }
 
         List<String> problemTextBeginningFilterList = new ArrayList<>(
                 Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
         );
 
         if (
-                problem.getText().equals("") ||
+                newProblem.getText().isEmpty() ||
                         problemTextBeginningFilterList.stream()
-                                .anyMatch(f -> problem.getText().toLowerCase().startsWith(f.toLowerCase()))
+                                .anyMatch(f -> newProblem.getText().toLowerCase().startsWith(f.toLowerCase()))
         ) {
+            return;
+        }
+
+        problemManager.applyCustomSeverity(newProblem);
+        if (problemManager.shouldProblemBeIgnored(newProblem.getSeverity())) {
             return;
         }
 
         switch (type) {
             case ADD:
-                problemManager.addProblem(problem);
+                problemManager.addProblem(newProblem);
                 break;
             case REMOVE:
-                problemManager.removeProblem(problem);
+                problemManager.removeProblem(problemToRemove);
                 break;
             case CHANGE:
-                problemManager.removeProblem(problem);
-                problemManager.addProblem(problem);
+                problemManager.removeProblem(problemToRemove);
+                problemManager.addProblem(newProblem);
                 break;
         }
     }
 
-    private InlineProblem constructProblem(int line, HighlightInfo info, RangeHighlighter highlighter) {
-        return new InlineProblem(
-                line,
-                info,
-                textEditor,
-                highlighter
-        );
+    private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
+        return problemManager.getActiveProblems().stream()
+                .filter(p -> p.getRangeHighlighterHashCode() == hashCode)
+                .findFirst()
+                .orElse(null);
     }
 }

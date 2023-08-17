@@ -5,6 +5,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import lombok.Getter;
 import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
+    @Getter
     private final List<InlineProblem> activeProblems = new ArrayList<>();
 
     private final InlineDrawer inlineDrawer = new InlineDrawer();
@@ -27,13 +29,6 @@ public class ProblemManager implements Disposable {
     }
 
     public void removeProblem(InlineProblem problem) {
-        InlineProblem problemToRemove = findActiveProblemByRangeHighlighterHashCode(problem.getRangeHighlighterHashCode());
-        if (problemToRemove == null) {
-            logger.warn("Removal of problem failed, not found by RangeHighlighterHashCode");
-            resetForEditor(problem.getTextEditor().getEditor());
-            return;
-        }
-
         List<InlineProblem> problemsInLine = null;
         if (settingsState.isShowAnyGutterIcons()) {
             problemsInLine = getProblemsInLineForProblemSorted(problem);
@@ -42,9 +37,9 @@ public class ProblemManager implements Disposable {
         inlineDrawer.undrawErrorLineHighlight(problem, problemsInLine);
         inlineDrawer.undrawInlineProblemLabel(problem);
 
-        if (!activeProblems.remove(problemToRemove)) {
+        if (!Collections.synchronizedList(activeProblems).remove(problem)) {
             logger.warn("Removal of problem failed, resetting");
-            resetForEditor(problemToRemove.getTextEditor().getEditor());
+            resetForEditor(problem.getTextEditor().getEditor());
             return;
         }
     }
@@ -72,12 +67,12 @@ public class ProblemManager implements Disposable {
         inlineDrawer.drawLineHighlighterAndGutterIcon(problemsInLine);
 
         /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
-        *  it does not work like expected, that is because there are differences the evaluation and the way it is called */
+        *  it does not work like expected, that is because there are differences in the evaluation and the way it is called */
         problemsInLine.forEach(this::addProblemPrivate);
     }
 
     private void addProblemPrivate(InlineProblem problem) {
-        applyCustomSeverity(problem);
+        DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
 
         if (problem.getTextEditor().getEditor().getDocument().getLineCount() <= problem.getLine()) {
             logger.warn("Line count is less or equal than problem line, problem not added");
@@ -88,28 +83,52 @@ public class ProblemManager implements Disposable {
         Collections.synchronizedList(activeProblems).add(problem);
     }
 
-    private void applyCustomSeverity(InlineProblem problem) {
+    public boolean shouldProblemBeIgnored(int severity) {
+        if (severity >= HighlightSeverity.ERROR.myVal) {
+            return !settingsState.isHighlightErrors() && !settingsState.isShowErrors();
+        }
+        else if (severity >= HighlightSeverity.WARNING.myVal) {
+            return !settingsState.isHighlightWarnings() && !settingsState.isShowWarnings();
+        }
+        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal) {
+            return !settingsState.isHighlightWeakWarnings() && !settingsState.isShowWeakWarnings();
+        }
+        else if (severity >= HighlightSeverity.INFORMATION.myVal) {
+            return !settingsState.isHighlightInfos() && !settingsState.isShowInfos();
+        }
+
+        return true;
+    }
+
+    public void applyCustomSeverity(InlineProblem problem) {
         int severity = problem.getSeverity();
 
-        if (severity >= HighlightSeverity.ERROR.myVal ||
-                settingsState.getAdditionalErrorSeverities().stream().anyMatch(s -> s == severity)
-        ) {
-            problem.setSeverity(HighlightSeverity.ERROR.myVal);
+        for (int additionalSeverity : settingsState.getAdditionalErrorSeverities()) {
+            if (additionalSeverity == severity) {
+                problem.setSeverity(HighlightSeverity.ERROR.myVal);
+                return;
+            }
         }
-        else if (severity >= HighlightSeverity.WARNING.myVal ||
-                settingsState.getAdditionalWarningSeverities().stream().anyMatch(s -> s == severity)
-        ) {
-            problem.setSeverity(HighlightSeverity.WARNING.myVal);
+
+        for (int additionalSeverity : settingsState.getAdditionalWarningSeverities()) {
+            if (additionalSeverity == severity) {
+                problem.setSeverity(HighlightSeverity.WARNING.myVal);
+                return;
+            }
         }
-        else if (severity >= HighlightSeverity.WEAK_WARNING.myVal ||
-                settingsState.getAdditionalWeakWarningSeverities().stream().anyMatch(s -> s == severity)
-        ) {
-            problem.setSeverity(HighlightSeverity.WEAK_WARNING.myVal);
+
+        for (int additionalSeverity : settingsState.getAdditionalWeakWarningSeverities()) {
+            if (additionalSeverity == severity) {
+                problem.setSeverity(HighlightSeverity.WEAK_WARNING.myVal);
+                return;
+            }
         }
-        else if (severity >= HighlightSeverity.INFORMATION.myVal ||
-                settingsState.getAdditionalInfoSeverities().stream().anyMatch(s -> s == severity)
-        ) {
-            problem.setSeverity(HighlightSeverity.INFORMATION.myVal);
+
+        for (int additionalSeverity : settingsState.getAdditionalInfoSeverities()) {
+            if (additionalSeverity == severity) {
+                problem.setSeverity(HighlightSeverity.INFO.myVal);
+                return;
+            }
         }
     }
 
@@ -127,9 +146,7 @@ public class ProblemManager implements Disposable {
     }
 
     public void updateFromNewActiveProblems(List<InlineProblem> problems) {
-        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
-
-        updateFromNewActiveProblems(problems, activeProblemsSnapShot);
+        updateFromNewActiveProblems(problems, List.copyOf(activeProblems));
     }
 
     public void updateFromNewActiveProblemsForProjectAndFile(List<InlineProblem> problems, Project project, String filePath) {
@@ -159,7 +176,7 @@ public class ProblemManager implements Disposable {
      * this function needs to be used.
      */
     private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
-        final List<InlineProblem> processedProblems = new ArrayList<>();
+        final List<Integer> processedProblemHashCodes = new ArrayList<>();
         List<InlineProblem> usedProblems;
 
         if (settingsState.isShowOnlyHighestSeverityPerLine()) {
@@ -187,17 +204,13 @@ public class ProblemManager implements Disposable {
 
         activeProblemsSnapShot.stream()
                 .filter(p -> !usedProblems.contains(p))
-                .forEach(p -> {processedProblems.add(p); removeProblem(p);});
+                .forEach(p -> {
+                    processedProblemHashCodes.add(p.hashCode());
+                    removeProblem(p);
+                });
 
         usedProblems.stream()
-                .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblems.contains(p))
+                .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblemHashCodes.contains(p.hashCode()))
                 .forEach(this::addProblem);
-    }
-
-    private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
-        return activeProblems.stream()
-                .filter(p -> p.getRangeHighlighterHashCode() == hashCode)
-                .findFirst()
-                .orElse(null);
     }
 }

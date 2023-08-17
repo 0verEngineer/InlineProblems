@@ -3,7 +3,9 @@ package org.overengineer.inlineproblems.settings;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.util.NlsContexts;
 import org.jetbrains.annotations.Nullable;
+import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.ListenerManager;
+import org.overengineer.inlineproblems.entities.enums.Listener;
 
 import javax.swing.*;
 
@@ -77,6 +79,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isShowInfosInGutter() == settingsComponent.isShowInfosInGutter() &&
 
                 state.getEnabledListener() == settingsComponent.getEnabledListener() &&
+                state.getManualScannerDelay() == settingsComponent.getManualScannerDelay() &&
 
                 state.getProblemFilterList().equals(settingsComponent.getProblemFilterList()) &&
 
@@ -94,6 +97,7 @@ public class SettingsConfigurable implements Configurable {
         SettingsState state = SettingsState.getInstance();
 
         boolean listenerChanged = state.getEnabledListener() != settingsComponent.getEnabledListener();
+        boolean manualScannerDelayChanged = state.getManualScannerDelay() != settingsComponent.getManualScannerDelay();
 
         state.setShowErrors(settingsComponent.isShowErrors());
         state.setHighlightErrors(settingsComponent.isHighlightErrors());
@@ -134,12 +138,17 @@ public class SettingsConfigurable implements Configurable {
         state.setItalicProblemLabels(settingsComponent.isItalicProblemLabels());
 
         state.setEnabledListener(settingsComponent.getEnabledListener());
+        state.setManualScannerDelay(settingsComponent.getManualScannerDelay());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
 
         state.setAdditionalInfoSeverities(settingsComponent.getAdditionalInfoSeveritiesList());
         state.setAdditionalWarningSeverities(settingsComponent.getAdditionalWarningSeveritiesList());
         state.setAdditionalWeakWarningSeverities(settingsComponent.getAdditionalWeakWarningSeveritiesList());
         state.setAdditionalErrorSeverities(settingsComponent.getAdditionalErrorSeveritiesList());
+
+        if (manualScannerDelayChanged && state.getEnabledListener() == Listener.MANUAL_SCANNING) {
+            DocumentMarkupModelScanner.getInstance().setDelayMilliseconds(state.getManualScannerDelay());
+        }
 
         listenerManager.resetAndRescan();
 
@@ -185,11 +194,13 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setRoundedCornerBoxes(state.isRoundedCornerBoxes());
         settingsComponent.setUseEditorFont(state.isUseEditorFont());
         settingsComponent.setShowOnlyHighestSeverityPerLine(state.isShowOnlyHighestSeverityPerLine());
+        settingsComponent.setInlayFontSizeDelta(state.getInlayFontSizeDelta());
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
         settingsComponent.setBoldProblemLabels(state.isBoldProblemLabels());
         settingsComponent.setItalicProblemLabels(state.isItalicProblemLabels());
 
         settingsComponent.setEnabledListener(state.getEnabledListener());
+        settingsComponent.setManualScannerDelay(state.getManualScannerDelay());
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
 
         settingsComponent.setAdditionalInfoSeverities(state.getAdditionalInfoSeveritiesAsString());

@@ -61,6 +61,7 @@ public class SettingsComponent {
 
     private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox("Show only the problem with the highest severity per line");
     private final JFormattedTextField inlayFontSizeDeltaText;
+    private final JFormattedTextField manualScannerDelay;
     private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
     private final JBCheckBox boldProblemLabels = new JBCheckBox("Bold problem labels");
     private final JBCheckBox italicProblemLabels = new JBCheckBox("Italic problem labels");
@@ -115,11 +116,15 @@ public class SettingsComponent {
         useEditorFont.setSelected(settingsState.isUseEditorFont());
 
         NumberFormat intFormat = NumberFormat.getIntegerInstance();
+        intFormat.setGroupingUsed(false);
         NumberFormatter numberFormatter = new NumberFormatter(intFormat);
         numberFormatter.setValueClass(Integer.class); // Optional, ensures we always get a int value
 
         inlayFontSizeDeltaText = new JFormattedTextField(numberFormatter);
         inlayFontSizeDeltaText.setText(Integer.toString(settingsState.getInlayFontSizeDelta()));
+
+        manualScannerDelay = new JFormattedTextField(numberFormatter);
+        manualScannerDelay.setText(Integer.toString(settingsState.getManualScannerDelay()));
 
         fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
         boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
@@ -147,6 +152,12 @@ public class SettingsComponent {
                 .addSeparator()
                 .addComponent(new JBLabel("General"))
                 .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
+                .addTooltip("- MarkupModelListener (default): Called after addition of a RangeHighlighter to a file. Faster on large files, slower on small ones")
+                .addTooltip("- HighlightProblemListener: Faster on small to medium sized files, slower on large ones. Called very often and can cause slowdowns.")
+                .addTooltip("- ManualScanner: Scans the DocumentMarkupModel for all highlighters at a fixed delay, uses the same logic ")
+                .addTooltip("   as HighlightProblemListener but can help with slowdowns on big files.")
+                .addLabeledComponent(new JBLabel("ManualScanner delay in milliseconds"), manualScannerDelay)
+                .addTooltip("Delay between manual scans, only used when ManualScanner is enabled")
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
                 .addComponent(showOnlyHighestSeverityPerLine, 0)
@@ -243,6 +254,10 @@ public class SettingsComponent {
             val = 0;
 
         return val;
+    }
+
+    public void setInlayFontSizeDelta(int val) {
+        inlayFontSizeDeltaText.setText(String.valueOf(Math.max(0, val)));
     }
 
     public void setUseEditorFont(boolean isSelected) {
@@ -547,5 +562,18 @@ public class SettingsComponent {
                 })
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
+    }
+
+    public int getManualScannerDelay() {
+        try {
+            return Math.max(Integer.parseInt(manualScannerDelay.getText()), 10);
+        }
+        catch (NumberFormatException e) {
+            return 100;
+        }
+    }
+
+    public void setManualScannerDelay(int delay) {
+        manualScannerDelay.setText(Integer.toString(Math.max(10, delay)));
     }
 }
