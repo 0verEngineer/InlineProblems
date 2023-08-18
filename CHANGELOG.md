@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+- Gutter icon support (disabled by default)
+- Notification when a Unity project is opened in Rider, and it switches to the ManualScan listener
+
 ### Fixed
 - AlreadyDisposedException in HighlightProblemListener
 
