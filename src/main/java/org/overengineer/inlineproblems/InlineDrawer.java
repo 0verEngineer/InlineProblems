@@ -1,12 +1,9 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.colors.EditorFontType;
-import com.intellij.openapi.editor.markup.HighlighterTargetArea;
-import com.intellij.openapi.editor.markup.MarkupModel;
-import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.util.TextRange;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
@@ -125,11 +122,13 @@ public class InlineDrawer {
                 HighlighterTargetArea.EXACT_RANGE
         );
 
-        if (drawDetails.getIcon() != null)
+        if (drawDetails.getIcon() != null) {
+            removeGutterIconsForLine(editor, problem.getLine());
             highlighter.setGutterIconRenderer(new GutterRenderer(getGutterText(problemsInLine), drawDetails.getIcon()));
+        }
 
         problem.setProblemLineHighlighterHashCode(highlighter.hashCode());
-}
+    }
 
     /**
      * @param problem the problem
@@ -209,5 +208,21 @@ public class InlineDrawer {
         }
 
         return text.toString();
+    }
+
+    private void removeGutterIconsForLine(Editor editor, int line) {
+        Document document = editor.getDocument();
+        int lineStartOffset = document.getLineStartOffset(line);
+        int lineEndOffset = document.getLineEndOffset(line);
+
+        MarkupModel markupModel = editor.getMarkupModel();
+        for (RangeHighlighter highlighter : markupModel.getAllHighlighters()) {
+            if (highlighter.getStartOffset() <= lineEndOffset && highlighter.getEndOffset() >= lineStartOffset) {
+                GutterIconRenderer gutterIconRenderer = highlighter.getGutterIconRenderer();
+                if (gutterIconRenderer instanceof GutterRenderer) {
+                    highlighter.setGutterIconRenderer(null);
+                }
+            }
+        }
     }
 }

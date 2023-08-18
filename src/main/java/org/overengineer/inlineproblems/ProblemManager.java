@@ -64,16 +64,14 @@ public class ProblemManager implements Disposable {
                 removeProblem(p);
         });
 
-        inlineDrawer.drawLineHighlighterAndGutterIcon(problemsInLine);
-
         /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
         *  it does not work like expected, that is because there are differences in the evaluation and the way it is called */
         problemsInLine.forEach(this::addProblemPrivate);
+
+        inlineDrawer.drawLineHighlighterAndGutterIcon(problemsInLine);
     }
 
     private void addProblemPrivate(InlineProblem problem) {
-        DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
-
         if (problem.getTextEditor().getEditor().getDocument().getLineCount() <= problem.getLine()) {
             logger.warn("Line count is less or equal than problem line, problem not added");
             return;
