@@ -1,5 +1,6 @@
 package org.overengineer.inlineproblems;
 
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -49,7 +50,7 @@ public class UnityProjectManager {
         projects.add(project);
 
         if (!isUnityProjectOpenedBefore && isAUnityProjectOpened()) {
-            handleUnityProjectOpened();
+            handleUnityProjectOpened(project.getProject());
         }
     }
 
@@ -66,7 +67,7 @@ public class UnityProjectManager {
         projectsToRemove.forEach(projects::remove);
 
         if (isUnityProjectOpenedBefore && !isAUnityProjectOpened()) {
-            handleNoMoreUnityProjectsOpened();
+            handleNoMoreUnityProjectsOpened(project);
         }
     }
 
@@ -87,22 +88,30 @@ public class UnityProjectManager {
                 .anyMatch(p -> p.getType().equals(ProjectType.UNITY_GAME_ENGINE));
     }
 
-    private void handleUnityProjectOpened() {
+    private void handleUnityProjectOpened(Project project) {
         enabledListenerBefore = settings.getEnabledListener();
+        if (enabledListenerBefore == Listener.MANUAL_SCANNING)
+            return;
+
         settings.setEnabledListener(Listener.MANUAL_SCANNING);
 
         ListenerManager listenerManager = ListenerManager.getInstance();
         listenerManager.resetAndRescan();
         listenerManager.changeListener();
+        Notifier.notify("Unity project opened. Listener changed to Manual Scanning.", NotificationType.INFORMATION, project);
     }
 
-    private void handleNoMoreUnityProjectsOpened() {
+    private void handleNoMoreUnityProjectsOpened(Project project) {
+        if (enabledListenerBefore == Listener.MANUAL_SCANNING)
+            return;
+
         if (settings.getEnabledListener() == Listener.MANUAL_SCANNING) {
             settings.setEnabledListener(enabledListenerBefore);
 
             ListenerManager listenerManager = ListenerManager.getInstance();
             listenerManager.resetAndRescan();
             listenerManager.changeListener();
+            Notifier.notify("No more Unity projects opened. Listener changed back to the previous one", NotificationType.INFORMATION, project);
 
             // PersistentStateComponent is somehow not working (Settings change is not persisted)
             ApplicationManager.getApplication().saveSettings();

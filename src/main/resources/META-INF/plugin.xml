@@ -25,6 +25,7 @@
         <daemon.highlightInfoFilter implementation="org.overengineer.inlineproblems.listeners.HighlightProblemListener" id="org.overengineer.inlineproblems.listeners.HighlightProblemListener" />
 
         <postStartupActivity implementation="org.overengineer.inlineproblems.ProjectStartupActivity" />
+        <notificationGroup id="InlineProblems" displayType="BALLOON"/>
     </extensions>
 
     <projectListeners>
