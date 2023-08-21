@@ -9,10 +9,10 @@ import org.jetbrains.annotations.PropertyKey;
 import java.util.function.Supplier;
 
 /**
- * The SettingsBundle class is a dynamic bundle for managing internationalized messages for the AiCodeBot project.
+ * The SettingsBundle class is a dynamic bundle for managing internationalized messages.
  * It extends the DynamicBundle class.
  *
- * @author zhengwei
+ * @author kuwei
  */
 public final class SettingsBundle extends DynamicBundle {
     @NonNls
