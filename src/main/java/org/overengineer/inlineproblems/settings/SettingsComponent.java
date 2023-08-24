@@ -55,7 +55,7 @@ public class SettingsComponent {
     private final ColorPanel infoLabelBackgroundColor = new ColorPanel();
     private final ColorPanel infoHighlightColor = new ColorPanel();
 
-    private final JBCheckBox forceErrorsInSameLine = new JBCheckBox(SettingsBundle.message("settings.forceProblemsIn"));
+    private final JBCheckBox forceErrorsInSameLine = new JBCheckBox(SettingsBundle.message("settings.forceProblemsInOneLine"));
     private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox(SettingsBundle.message("settings.drawBoxesAroundProblemLabels"));
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox(SettingsBundle.message("settings.roundedCornerBoxes"));
     private final JBCheckBox useEditorFont = new JBCheckBox(SettingsBundle.message("settings.useEditorFont"));
@@ -144,30 +144,30 @@ public class SettingsComponent {
         enabledListener.setPreferredSize(enabledListenerDimension);
 
         settingsPanel = FormBuilder.createFormBuilder()
-                .addComponent(new JBLabel(SettingsBundle.message("settings.boxOrLabel")))
+                .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.label")))
                 .addComponent(drawBoxesAroundProblemLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
                 .addComponent(fillProblemLabels, 0)
                 .addComponent(boldProblemLabels, 0)
                 .addComponent(italicProblemLabels, 0)
                 .addSeparator()
-                .addComponent(new JBLabel(SettingsBundle.message("settings.general")))
-                .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.enabledProblemListener")), enabledListener)
+                .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.general")))
+                .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.activeProblemListener")), enabledListener)
                 .addTooltip(SettingsBundle.message("settings.markupModelListenerDescription"))
                 .addTooltip(SettingsBundle.message("settings.highlightProblemListenerDescription"))
                 .addTooltip(SettingsBundle.message("settings.manualScannerDescription"))
                 .addTooltip(SettingsBundle.message("settings.manualScannerDescriptionSupplement"))
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.manualScannerDelayLabel")), manualScannerDelay)
-                .addTooltip(SettingsBundle.message("settings.delayBetweenToolTip"))
+                .addTooltip(SettingsBundle.message("settings.manualScannerDelayTooltip"))
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
                 .addComponent(showOnlyHighestSeverityPerLine, 0)
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.inlaySizeDelta")), inlayFontSizeDeltaText)
-                .addTooltip(SettingsBundle.message("settings.usedToHaveToolTip"))
+                .addTooltip(SettingsBundle.message("settings.inlaySizeDeltaTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
-                .addTooltip(SettingsBundle.message("settings.semicolonSeparatedToolTip"))
+                .addTooltip(SettingsBundle.message("settings.problemFilterListTooltip"))
                 .addSeparator()
-                .addComponent(new JBLabel(SettingsBundle.message("settings.colors")))
+                .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.colors")))
                 .addComponent(showErrors)
                 .addComponent(highlightErrors)
                 .addComponent(showErrorsInGutter)
@@ -175,7 +175,7 @@ public class SettingsComponent {
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.errorLabelBorderColor")), errorLabelBackgroundColor)
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.errorLineHighlightColor")), errorHighlightColor)
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.additionalSeverities")), additionalErrorSeverities)
-                .addTooltip(SettingsBundle.message("settings.semicolonError"))
+                .addTooltip(SettingsBundle.message("settings.additionalSeveritiesErrorDesc"))
                 .addSeparator()
                 .addComponent(showWarnings)
                 .addComponent(highlightWarnings)
@@ -184,7 +184,7 @@ public class SettingsComponent {
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.warningLabelBorderColor")), warningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.warningLineHighlightColor")), warningHighlightColor)
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.additionalSeverities")), additionalWarningSeverities)
-                .addTooltip(SettingsBundle.message("settings.semicolonWarning"))
+                .addTooltip(SettingsBundle.message("settings.additionalSeveritiesWarningDesc"))
                 .addSeparator()
                 .addComponent(showWeakWarnings)
                 .addComponent(highlightWeakWarnings)
@@ -193,7 +193,7 @@ public class SettingsComponent {
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.weakWarningLabelBorderColor")), weakWarningLabelBackgroundColor)
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.weakWarningLineHighlightColor")), weakWarningHighlightColor)
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.additionalSeverities")), additionalWeakWarningSeverities)
-                .addTooltip(SettingsBundle.message("settings.semicolonWeakWarning"))
+                .addTooltip(SettingsBundle.message("settings.additionalSeveritiesWeakWarningDesc"))
                 .addSeparator()
                 .addComponent(showInfos)
                 .addComponent(highlightInfo)
@@ -202,7 +202,7 @@ public class SettingsComponent {
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.infoLabelBorderColor")), infoLabelBackgroundColor)
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.infoLineHighlightColor")), infoHighlightColor)
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.additionalSeverities")), additionalInfoSeverities)
-                .addTooltip(SettingsBundle.message("settings.semicolon"))
+                .addTooltip(SettingsBundle.message("settings.additionalSeveritiesInfoDesc"))
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
