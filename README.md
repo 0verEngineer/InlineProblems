@@ -7,6 +7,9 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![GPLv3 License][license-shield]][license-url]
+[![Version][plugin-version-shield]][plugin-url]
+[![Downloads][plugin-downloads-shield]][plugin-url]
+[![Rating][plugin-rating-shield]][plugin-url]
 
 
 
@@ -136,3 +139,7 @@ Project Link: [https://github.com/0verEngineer/InlineProblems](https://github.co
 [issues-url]: https://github.com/0verEngineer/InlineProblems/issues
 [license-shield]: https://img.shields.io/github/license/0verEngineer/InlineProblems.svg?style=for-the-badge
 [license-url]: https://github.com/0verEngineer/InlineProblems/blob/master/LICENSE.txt
+[plugin-url]: https://plugins.jetbrains.com/plugin/20789-inlineproblems
+[plugin-version-shield]: https://img.shields.io/jetbrains/plugin/v/20789-inlineproblems.svg?style=for-the-badge
+[plugin-downloads-shield]: https://img.shields.io/jetbrains/plugin/d/20789-inlineproblems.svg?style=for-the-badge
+[plugin-rating-shield]: https://img.shields.io/jetbrains/plugin/r/rating/20789-inlineproblems?style=for-the-badge

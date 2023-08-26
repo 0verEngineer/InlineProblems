@@ -13,6 +13,7 @@ public class ProjectStartupActivity implements StartupActivity {
 
     @Override
     public void runActivity(@NotNull Project project) {
+        // Rider specific handling for Unity projects
         if (ApplicationInfo.getInstance().getFullApplicationName().startsWith(IDE.RIDER)) {
             UnityProjectManager projectManager = UnityProjectManager.getInstance();
 
