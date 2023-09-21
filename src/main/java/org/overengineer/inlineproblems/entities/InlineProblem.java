@@ -12,7 +12,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@EqualsAndHashCode(exclude = {"line", "problemLineHighlighterHashCode", "inlineProblemLabelHashCode", "isBlockElement"})
+@EqualsAndHashCode(exclude = {"line", "problemLineHighlighterHashCode", "inlineProblemLabelHashCode", "isBlockElement", "drawDetails"})
 public class InlineProblem {
 
     // The line the problem first appeared
@@ -24,6 +24,8 @@ public class InlineProblem {
     private final String file;
     private final TextEditor textEditor;
     private final Project project;
+
+    private DrawDetails drawDetails;
 
     private int actualEndOffset;
 

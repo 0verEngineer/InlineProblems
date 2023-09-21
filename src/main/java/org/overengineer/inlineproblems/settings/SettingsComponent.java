@@ -8,6 +8,7 @@ import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import lombok.Getter;
 import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
+import org.overengineer.inlineproblems.bundles.SettingsBundle;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 
@@ -22,38 +23,50 @@ import java.util.List;
 
 
 public class SettingsComponent {
-    private final JBCheckBox showErrors = new JBCheckBox("Show errors");
-    private final JBCheckBox highlightErrors = new JBCheckBox("Highlight errors");
-    private final JBCheckBox showWarnings = new JBCheckBox("Show warnings");
-    private final JBCheckBox highlightWarnings = new JBCheckBox("Highlight warnings");
-    private final JBCheckBox showWeakWarnings = new JBCheckBox("Show weak warnings");
-    private final JBCheckBox highlightWeakWarnings = new JBCheckBox("Highlight weak warnings");
-    private final JBCheckBox showInfos = new JBCheckBox("Show infos");
-    private final JBCheckBox highlightInfo = new JBCheckBox("Highlight infos");
+    private final JBCheckBox showErrors = new JBCheckBox(SettingsBundle.message("settings.showErrors"));
+    private final JBCheckBox highlightErrors = new JBCheckBox(SettingsBundle.message("settings.highlightErrors"));
+    private final JBCheckBox showErrorsInGutter = new JBCheckBox(SettingsBundle.message("settings.showErrorsInGutter"));
+
+    private final JBCheckBox showWarnings = new JBCheckBox(SettingsBundle.message("settings.showWarnings"));
+    private final JBCheckBox highlightWarnings = new JBCheckBox(SettingsBundle.message("settings.highlightWarnings"));
+    private final JBCheckBox showWarningsInGutter = new JBCheckBox(SettingsBundle.message("settings.showWarningsInGutter"));
+
+    private final JBCheckBox showWeakWarnings = new JBCheckBox(SettingsBundle.message("settings.showWeakWarnings"));
+    private final JBCheckBox highlightWeakWarnings = new JBCheckBox(SettingsBundle.message("settings.highlightWeakWarnings"));
+    private final JBCheckBox showWeakWarningsInGutter = new JBCheckBox(SettingsBundle.message("settings.showWeakWarningsInGutter"));
+
+    private final JBCheckBox showInfos = new JBCheckBox(SettingsBundle.message("settings.showInfos"));
+    private final JBCheckBox highlightInfo = new JBCheckBox(SettingsBundle.message("settings.highlightInfos"));
+    private final JBCheckBox showInfosInGutter = new JBCheckBox(SettingsBundle.message("settings.showInfosInGutter"));
+
     private final ColorPanel errorTextColor = new ColorPanel();
     private final ColorPanel errorLabelBackgroundColor = new ColorPanel();
     private final ColorPanel errorHighlightColor = new ColorPanel();
+
     private final ColorPanel warningTextColor = new ColorPanel();
     private final ColorPanel warningLabelBackgroundColor = new ColorPanel();
     private final ColorPanel warningHighlightColor = new ColorPanel();
+
     private final ColorPanel weakWarningTextColor = new ColorPanel();
     private final ColorPanel weakWarningLabelBackgroundColor = new ColorPanel();
     private final ColorPanel weakWarningHighlightColor = new ColorPanel();
+
     private final ColorPanel infoTextColor = new ColorPanel();
     private final ColorPanel infoLabelBackgroundColor = new ColorPanel();
     private final ColorPanel infoHighlightColor = new ColorPanel();
-    private final JBCheckBox forceErrorsInSameLine = new JBCheckBox("Force problems in the same line even if they are to long to fit");
-    private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox("Draw boxes around problem labels");
-    private final JBCheckBox roundedCornerBoxes = new JBCheckBox("Rounded corners");
-    private final JBCheckBox useEditorFont = new JBCheckBox("Use editor font instead of tooltip font");
 
-    private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox("Show only the problem with the highest severity per line");
+    private final JBCheckBox forceErrorsInSameLine = new JBCheckBox(SettingsBundle.message("settings.forceProblemsInOneLine"));
+    private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox(SettingsBundle.message("settings.drawBoxesAroundProblemLabels"));
+    private final JBCheckBox roundedCornerBoxes = new JBCheckBox(SettingsBundle.message("settings.roundedCornerBoxes"));
+    private final JBCheckBox useEditorFont = new JBCheckBox(SettingsBundle.message("settings.useEditorFont"));
+
+    private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox(SettingsBundle.message("settings.showOnlyHighestPerLine"));
     private final JFormattedTextField inlayFontSizeDeltaText;
     private final JFormattedTextField manualScannerDelay;
-    private final JBCheckBox fillProblemLabels = new JBCheckBox("Fill problem label background");
-    private final JBCheckBox boldProblemLabels = new JBCheckBox("Bold problem labels");
-    private final JBCheckBox italicProblemLabels = new JBCheckBox("Italic problem labels");
-    private final JBTextField problemFilterList = new JBTextField("Problem text beginning filter");
+    private final JBCheckBox fillProblemLabels = new JBCheckBox(SettingsBundle.message("settings.fillProblemLabels"));
+    private final JBCheckBox boldProblemLabels = new JBCheckBox(SettingsBundle.message("settings.boldProblemLabels"));
+    private final JBCheckBox italicProblemLabels = new JBCheckBox(SettingsBundle.message("settings.italicProblemLabels"));
+    private final JBTextField problemFilterList = new JBTextField();
 
     private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME, DocumentMarkupModelScanner.NAME};
     private final JComboBox<String> enabledListener = new ComboBox<>(availableListeners);
@@ -71,24 +84,28 @@ public class SettingsComponent {
 
         showErrors.setSelected(settingsState.isShowErrors());
         highlightErrors.setSelected(settingsState.isHighlightErrors());
+        showErrorsInGutter.setSelected(settingsState.isShowErrorsInGutter());
         errorTextColor.setSelectedColor(settingsState.getErrorTextColor());
         errorLabelBackgroundColor.setSelectedColor(settingsState.getErrorBackgroundColor());
         errorHighlightColor.setSelectedColor(settingsState.getErrorHighlightColor());
 
         showWarnings.setSelected(settingsState.isShowWarnings());
         highlightWarnings.setSelected(settingsState.isHighlightWarnings());
+        showWarningsInGutter.setSelected(settingsState.isShowWarningsInGutter());
         warningTextColor.setSelectedColor(settingsState.getWarningTextColor());
         warningLabelBackgroundColor.setSelectedColor(settingsState.getWarningBackgroundColor());
         warningHighlightColor.setSelectedColor(settingsState.getWarningHighlightColor());
 
         showWeakWarnings.setSelected(settingsState.isShowWeakWarnings());
         highlightWeakWarnings.setSelected(settingsState.isHighlightWeakWarnings());
+        showWeakWarningsInGutter.setSelected(settingsState.isShowWeakWarningsInGutter());
         weakWarningTextColor.setSelectedColor(settingsState.getWeakWarningTextColor());
         weakWarningLabelBackgroundColor.setSelectedColor(settingsState.getWeakWarningBackgroundColor());
         weakWarningHighlightColor.setSelectedColor(settingsState.getWeakWarningHighlightColor());
 
         showInfos.setSelected(settingsState.isShowInfos());
         highlightInfo.setSelected(settingsState.isHighlightInfos());
+        showInfosInGutter.setSelected(settingsState.isShowInfosInGutter());
         infoTextColor.setSelectedColor(settingsState.getInfoTextColor());
         infoLabelBackgroundColor.setSelectedColor(settingsState.getInfoBackgroundColor());
         infoHighlightColor.setSelectedColor(settingsState.getInfoHighlightColor());
@@ -127,61 +144,65 @@ public class SettingsComponent {
         enabledListener.setPreferredSize(enabledListenerDimension);
 
         settingsPanel = FormBuilder.createFormBuilder()
-                .addComponent(new JBLabel("Box / Label"))
+                .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.label")))
                 .addComponent(drawBoxesAroundProblemLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
                 .addComponent(fillProblemLabels, 0)
                 .addComponent(boldProblemLabels, 0)
                 .addComponent(italicProblemLabels, 0)
                 .addSeparator()
-                .addComponent(new JBLabel("General"))
-                .addLabeledComponent(new JBLabel("Enabled problem listener"), enabledListener)
-                .addTooltip("- MarkupModelListener (default): Called after addition of a RangeHighlighter to a file. Faster on large files, slower on small ones")
-                .addTooltip("- HighlightProblemListener: Faster on small to medium sized files, slower on large ones. Called very often and can cause slowdowns.")
-                .addTooltip("- ManualScanner: Scans the DocumentMarkupModel for all highlighters at a fixed delay, uses the same logic ")
-                .addTooltip("   as HighlightProblemListener but can help with slowdowns on big files.")
-                .addLabeledComponent(new JBLabel("ManualScanner delay in milliseconds"), manualScannerDelay)
-                .addTooltip("Delay between manual scans, only used when ManualScanner is enabled")
+                .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.general")))
+                .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.activeProblemListener")), enabledListener)
+                .addTooltip(SettingsBundle.message("settings.markupModelListenerDescription"))
+                .addTooltip(SettingsBundle.message("settings.highlightProblemListenerDescription"))
+                .addTooltip(SettingsBundle.message("settings.manualScannerDescription"))
+                .addTooltip(SettingsBundle.message("settings.manualScannerDescriptionSupplement"))
+                .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.manualScannerDelayLabel")), manualScannerDelay)
+                .addTooltip(SettingsBundle.message("settings.manualScannerDelayTooltip"))
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
                 .addComponent(showOnlyHighestSeverityPerLine, 0)
-                .addLabeledComponent(new JBLabel("Inlay size delta"), inlayFontSizeDeltaText)
-                .addTooltip("Used to have smaller font size for the inlays, should be smaller than editor font size")
-                .addLabeledComponent(new JLabel("Problem filter list"), problemFilterList)
-                .addTooltip("Semicolon separated list of problem text beginnings that will not be handled")
+                .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.inlaySizeDelta")), inlayFontSizeDeltaText)
+                .addTooltip(SettingsBundle.message("settings.inlaySizeDeltaTooltip"))
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
+                .addTooltip(SettingsBundle.message("settings.problemFilterListTooltip"))
                 .addSeparator()
-                .addComponent(new JBLabel("Colors"))
+                .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.colors")))
                 .addComponent(showErrors)
                 .addComponent(highlightErrors)
-                .addLabeledComponent(new JLabel("Error text color:"), errorTextColor)
-                .addLabeledComponent(new JLabel("Error label border color:"), errorLabelBackgroundColor)
-                .addLabeledComponent(new JLabel("Error line highlight color:"), errorHighlightColor)
-                .addLabeledComponent(new JLabel("Additional severities:"), additionalErrorSeverities)
-                .addTooltip("Semicolon separated list of additional error severities e.g. '10, 100'")
+                .addComponent(showErrorsInGutter)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.errorTextColor")), errorTextColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.errorLabelBorderColor")), errorLabelBackgroundColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.errorLineHighlightColor")), errorHighlightColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.additionalSeverities")), additionalErrorSeverities)
+                .addTooltip(SettingsBundle.message("settings.additionalSeveritiesErrorDesc"))
                 .addSeparator()
                 .addComponent(showWarnings)
                 .addComponent(highlightWarnings)
-                .addLabeledComponent(new JLabel("Warning text color:"), warningTextColor)
-                .addLabeledComponent(new JLabel("Warning label border color:"), warningLabelBackgroundColor)
-                .addLabeledComponent(new JLabel("Warning line highlight color:"), warningHighlightColor)
-                .addLabeledComponent(new JLabel("Additional severities:"), additionalWarningSeverities)
-                .addTooltip("Semicolon separated list of additional warning severities e.g. '10, 100'")
+                .addComponent(showWarningsInGutter)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.warningTextColor")), warningTextColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.warningLabelBorderColor")), warningLabelBackgroundColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.warningLineHighlightColor")), warningHighlightColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.additionalSeverities")), additionalWarningSeverities)
+                .addTooltip(SettingsBundle.message("settings.additionalSeveritiesWarningDesc"))
                 .addSeparator()
                 .addComponent(showWeakWarnings)
                 .addComponent(highlightWeakWarnings)
-                .addLabeledComponent(new JLabel("Weak warning text color:"), weakWarningTextColor)
-                .addLabeledComponent(new JLabel("Weak warning label border color:"), weakWarningLabelBackgroundColor)
-                .addLabeledComponent(new JLabel("Weak warning line highlight color:"), weakWarningHighlightColor)
-                .addLabeledComponent(new JLabel("Additional severities:"), additionalWeakWarningSeverities)
-                .addTooltip("Semicolon separated list of additional weak-warning severities e.g. '10, 100'")
+                .addComponent(showWeakWarningsInGutter)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.weakWarningTextColor")), weakWarningTextColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.weakWarningLabelBorderColor")), weakWarningLabelBackgroundColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.weakWarningLineHighlightColor")), weakWarningHighlightColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.additionalSeverities")), additionalWeakWarningSeverities)
+                .addTooltip(SettingsBundle.message("settings.additionalSeveritiesWeakWarningDesc"))
                 .addSeparator()
                 .addComponent(showInfos)
                 .addComponent(highlightInfo)
-                .addLabeledComponent(new JLabel("Info text color:"), infoTextColor)
-                .addLabeledComponent(new JLabel("Info label border color:"), infoLabelBackgroundColor)
-                .addLabeledComponent(new JLabel("Info line highlight color:"), infoHighlightColor)
-                .addLabeledComponent(new JLabel("Additional severities:"), additionalInfoSeverities)
-                .addTooltip("Semicolon separated list of additional info severities e.g. '10, 100'")
+                .addComponent(showInfosInGutter)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.infoTextColor")), infoTextColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.infoLabelBorderColor")), infoLabelBackgroundColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.infoLineHighlightColor")), infoHighlightColor)
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.additionalSeverities")), additionalInfoSeverities)
+                .addTooltip(SettingsBundle.message("settings.additionalSeveritiesInfoDesc"))
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
     }
@@ -288,6 +309,14 @@ public class SettingsComponent {
         highlightErrors.setSelected(isSelected);
     }
 
+    public boolean isShowErrorsInGutter() {
+        return showErrorsInGutter.isSelected();
+    }
+
+    public void setShowErrorsInGutter(boolean isSelected) {
+        showErrorsInGutter.setSelected(isSelected);
+    }
+
     public boolean isShowWarnings() {
         return showWarnings.isSelected();
     }
@@ -302,6 +331,14 @@ public class SettingsComponent {
 
     public void setHighlightWarnings(final boolean isSelected) {
         highlightWarnings.setSelected(isSelected);
+    }
+
+    public boolean isShowWarningsInGutter() {
+        return showWarningsInGutter.isSelected();
+    }
+
+    public void setShowWarningsInGutter(final boolean isSelected) {
+        showWarningsInGutter.setSelected(isSelected);
     }
 
     public boolean isShowWeakWarnings() {
@@ -320,6 +357,14 @@ public class SettingsComponent {
         highlightWeakWarnings.setSelected(isSelected);
     }
 
+    public boolean isShowWeakWarningsInGutter() {
+        return showWeakWarningsInGutter.isSelected();
+    }
+
+    public void setShowWeakWarningsInGutter(boolean isSelected) {
+        showWeakWarningsInGutter.setSelected(isSelected);
+    }
+
     public boolean isShowInfos() {
         return showInfos.isSelected();
     }
@@ -334,6 +379,14 @@ public class SettingsComponent {
 
     public void setHighlightInfo(final boolean isSelected) {
         highlightInfo.setSelected(isSelected);
+    }
+
+    public boolean isShowInfosInGutter() {
+        return showInfosInGutter.isSelected();
+    }
+
+    public void setShowInfosInGutter(boolean isSelected) {
+        showInfosInGutter.setSelected(isSelected);
     }
 
     public Color getErrorTextColor() {

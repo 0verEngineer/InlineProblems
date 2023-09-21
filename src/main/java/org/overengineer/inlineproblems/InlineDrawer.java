@@ -3,21 +3,23 @@ package org.overengineer.inlineproblems;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.colors.EditorFontType;
-import com.intellij.openapi.editor.markup.HighlighterTargetArea;
-import com.intellij.openapi.editor.markup.MarkupModel;
-import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.util.TextRange;
-import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
+import org.overengineer.inlineproblems.utils.SeverityUtil;
 
-import java.awt.*;
+import javax.annotation.Nullable;
+import java.awt.Font;
+import java.awt.Canvas;
+import java.util.List;
 import java.util.Arrays;
 
 
 public class InlineDrawer {
 
-    public void drawProblemLabel(InlineProblem problem, DrawDetails drawDetails) {
+    public void drawProblemLabel(InlineProblem problem) {
+        var drawDetails = problem.getDrawDetails();
         if (!drawDetails.isDrawProblem()) {
             return;
         }
@@ -84,8 +86,16 @@ public class InlineDrawer {
         problem.setInlineProblemLabelHashCode(inlineProblemLabel.hashCode());
     }
 
-    public void drawProblemLineHighlight(InlineProblem problem, DrawDetails drawDetails) {
-        if (!drawDetails.isDrawHighlighter()) {
+    /** Draws the highlighter and the gutter icon for the currently shown problem in the line
+     */
+    public void drawLineHighlighterAndGutterIcon(List<InlineProblem> problemsInLine) {
+        var problem = problemsInLine.get(0);
+        var drawDetails = problem.getDrawDetails();
+
+        /* If a lower severity has drawHighlighter and gutterIcon enabled and in the same line a problem with a higher
+         * severity which has drawHighlighter and gutterIcon disabled is added, no highlighter and gutter icon is shown.
+         */
+        if (!drawDetails.isDrawHighlighter() && drawDetails.getIcon() == null) {
             return;
         }
 
@@ -99,23 +109,44 @@ public class InlineDrawer {
                 Font.PLAIN
         );
 
+        if (!drawDetails.isDrawHighlighter())
+            textAttributes.setBackgroundColor(editor.getColorsScheme().getDefaultBackground());
+
         Document document = editor.getDocument();
 
-        problem.setProblemLineHighlighterHashCode(editor.getMarkupModel().addRangeHighlighter(
+        var highlighter = editor.getMarkupModel().addRangeHighlighter(
                 document.getLineStartOffset(problem.getLine()),
                 document.getLineEndOffset(problem.getLine()),
                 problem.getSeverity(), // Use the severity as layer, hopefully it will not overdraw some important stuff
                 textAttributes,
                 HighlighterTargetArea.EXACT_RANGE
-        ).hashCode());
+        );
+
+        if (drawDetails.getIcon() != null) {
+            removeGutterIconsForLine(editor, problem.getLine());
+            highlighter.setGutterIconRenderer(new GutterRenderer(getGutterText(problemsInLine), drawDetails.getIcon()));
+        }
+
+        problem.setProblemLineHighlighterHashCode(highlighter.hashCode());
     }
 
-    public void undrawErrorLineHighlight(InlineProblem problem) {
+    /**
+     * @param problem the problem
+     * @param problemsInLine the problems in the same line as problem, null if no gutter icons are enabled, keep in mind that
+     *                       it still contains the problem itself
+     */
+    public void undrawErrorLineHighlight(InlineProblem problem, @Nullable List<InlineProblem> problemsInLine) {
         MarkupModel markupModel = problem.getTextEditor().getEditor().getMarkupModel();
 
         Arrays.stream(markupModel.getAllHighlighters())
                 .filter(h -> h.isValid() && h.hashCode() == problem.getProblemLineHighlighterHashCode())
                 .forEach(markupModel::removeHighlighter);
+
+        // Gutter icon re-adding
+        if (problemsInLine != null && problemsInLine.size() > 1) {
+            problemsInLine.remove(problem);
+            drawLineHighlighterAndGutterIcon(problemsInLine);
+        }
     }
 
     public void undrawInlineProblemLabel(InlineProblem problem) {
@@ -150,6 +181,48 @@ public class InlineDrawer {
                     .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
                     .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
                     .forEach(Disposable::dispose);
+        }
+    }
+
+    private String getGutterText(List<InlineProblem> problemsInLine) {
+        StringBuilder text = new StringBuilder();
+        int previousSeverity = -1;
+        String severityString;
+        boolean sizeBiggerThanOne = problemsInLine.size() > 1;
+
+        for (var p : problemsInLine) {
+            if (sizeBiggerThanOne) {
+                if (p.getSeverity() != previousSeverity) {
+                    severityString = SeverityUtil.getSeverityAsString(p.getSeverity()) + "S: \n";
+                    text.append(severityString);
+                }
+                text.append("- ");
+            }
+
+            text.append(p.getText());
+
+            if (sizeBiggerThanOne)
+                text.append("\n");
+
+            previousSeverity = p.getSeverity();
+        }
+
+        return text.toString();
+    }
+
+    private void removeGutterIconsForLine(Editor editor, int line) {
+        Document document = editor.getDocument();
+        int lineStartOffset = document.getLineStartOffset(line);
+        int lineEndOffset = document.getLineEndOffset(line);
+
+        MarkupModel markupModel = editor.getMarkupModel();
+        for (RangeHighlighter highlighter : markupModel.getAllHighlighters()) {
+            if (highlighter.getStartOffset() <= lineEndOffset && highlighter.getEndOffset() >= lineStartOffset) {
+                GutterIconRenderer gutterIconRenderer = highlighter.getGutterIconRenderer();
+                if (gutterIconRenderer instanceof GutterRenderer) {
+                    highlighter.setGutterIconRenderer(null);
+                }
+            }
         }
     }
 }

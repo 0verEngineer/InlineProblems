@@ -94,7 +94,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
 
         Editor editor = textEditor.getEditor();
 
-        if (editor.isDisposed() || editor.getProject().isDisposed() || !editor.getProject().isInitialized() || textEditor.getFile() == null)
+        if (editor.isDisposed() || editor.getProject() == null || editor.getProject().isDisposed() || !editor.getProject().isInitialized() || textEditor.getFile() == null)
             return;
 
         int lineCount = editor.getDocument().getLineCount();

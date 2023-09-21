@@ -29,7 +29,12 @@ public class ProblemManager implements Disposable {
     }
 
     public void removeProblem(InlineProblem problem) {
-        inlineDrawer.undrawErrorLineHighlight(problem);
+        List<InlineProblem> problemsInLine = null;
+        if (settingsState.isShowAnyGutterIcons()) {
+            problemsInLine = getProblemsInLineForProblemSorted(problem);
+        }
+
+        inlineDrawer.undrawErrorLineHighlight(problem, problemsInLine);
         inlineDrawer.undrawInlineProblemLabel(problem);
 
         if (!Collections.synchronizedList(activeProblems).remove(problem)) {
@@ -45,6 +50,8 @@ public class ProblemManager implements Disposable {
      * @param problem problem to add
      */
     public void addProblem(InlineProblem problem) {
+        problem.setDrawDetails(new DrawDetails(problem, problem.getTextEditor().getEditor()));
+
         List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
         problemsInLine.add(problem);
 
@@ -60,19 +67,17 @@ public class ProblemManager implements Disposable {
         /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
         *  it does not work like expected, that is because there are differences in the evaluation and the way it is called */
         problemsInLine.forEach(this::addProblemPrivate);
+
+        inlineDrawer.drawLineHighlighterAndGutterIcon(problemsInLine);
     }
 
     private void addProblemPrivate(InlineProblem problem) {
-        DrawDetails drawDetails = new DrawDetails(problem, problem.getTextEditor().getEditor());
-
         if (problem.getTextEditor().getEditor().getDocument().getLineCount() <= problem.getLine()) {
             logger.warn("Line count is less or equal than problem line, problem not added");
             return;
         }
 
-        inlineDrawer.drawProblemLabel(problem, drawDetails);
-        inlineDrawer.drawProblemLineHighlight(problem, drawDetails);
-
+        inlineDrawer.drawProblemLabel(problem);
         Collections.synchronizedList(activeProblems).add(problem);
     }
 
@@ -153,6 +158,13 @@ public class ProblemManager implements Disposable {
     private List<InlineProblem> getProblemsInLineForProblem(InlineProblem problem) {
         return activeProblems.stream()
                 .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
+                .collect(Collectors.toList());
+    }
+
+    private List<InlineProblem> getProblemsInLineForProblemSorted(InlineProblem problem) {
+        return activeProblems.stream()
+                .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
+                .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
                 .collect(Collectors.toList());
     }
 
