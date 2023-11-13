@@ -100,6 +100,11 @@ public class InlineDrawer {
         }
 
         Editor editor = problem.getTextEditor().getEditor();
+        Document document = editor.getDocument();
+
+        if (document.getLineCount() <= problem.getLine()) {
+            return;
+        }
 
         TextAttributes textAttributes = new TextAttributes(
                 editor.getColorsScheme().getDefaultForeground(),
@@ -111,8 +116,6 @@ public class InlineDrawer {
 
         if (!drawDetails.isDrawHighlighter())
             textAttributes.setBackgroundColor(editor.getColorsScheme().getDefaultBackground());
-
-        Document document = editor.getDocument();
 
         var highlighter = editor.getMarkupModel().addRangeHighlighter(
                 document.getLineStartOffset(problem.getLine()),
