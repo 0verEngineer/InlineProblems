@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.5.1]
+### Fixed
+- SettingsBundle missing default (Settings not working with non english os language)
+- Prevents gutter icon readding when the line of the problem does not exist anymore
+
 ## [0.5.0]
 
 ### Added
