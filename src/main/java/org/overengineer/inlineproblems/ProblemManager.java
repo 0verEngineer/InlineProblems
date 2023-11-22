@@ -83,16 +83,16 @@ public class ProblemManager implements Disposable {
 
     public boolean shouldProblemBeIgnored(int severity) {
         if (severity >= HighlightSeverity.ERROR.myVal) {
-            return !settingsState.isHighlightErrors() && !settingsState.isShowErrors();
+            return !settingsState.isHighlightErrors() && !settingsState.isShowErrors() && !settingsState.isShowErrorsInGutter();
         }
         else if (severity >= HighlightSeverity.WARNING.myVal) {
-            return !settingsState.isHighlightWarnings() && !settingsState.isShowWarnings();
+            return !settingsState.isHighlightWarnings() && !settingsState.isShowWarnings() && !settingsState.isShowWarningsInGutter();
         }
         else if (severity >= HighlightSeverity.WEAK_WARNING.myVal) {
-            return !settingsState.isHighlightWeakWarnings() && !settingsState.isShowWeakWarnings();
+            return !settingsState.isHighlightWeakWarnings() && !settingsState.isShowWeakWarnings() && !settingsState.isShowWeakWarningsInGutter();
         }
         else if (severity >= HighlightSeverity.INFORMATION.myVal) {
-            return !settingsState.isHighlightInfos() && !settingsState.isShowInfos();
+            return !settingsState.isHighlightInfos() && !settingsState.isShowInfos() && !settingsState.isShowInfosInGutter();
         }
 
         return true;

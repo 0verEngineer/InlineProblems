@@ -38,4 +38,19 @@
         <listener class="org.overengineer.inlineproblems.listeners.PluginListener" topic="com.intellij.ide.plugins.DynamicPluginListener" />
         <listener class="org.overengineer.inlineproblems.listeners.ProjectCloseListener" topic="com.intellij.openapi.project.ProjectManagerListener" />
     </applicationListeners>
+
+    <actions>
+        <action id="InlineProblems.ToggleShowProblemsAction"
+                class="org.overengineer.inlineproblems.actions.ToggleShowErrorsAction"
+                text="Toggle Show Errors Problems"
+                icon="com.intellij.icons.ExpUiIcons.Toolwindow.Problems"
+                description="Action that lets you toggle showing errors">
+        </action>
+        <action id="InlineProblems.ToggleShowHighlightsAction"
+                class="org.overengineer.inlineproblems.actions.ToggleShowHighlightsAction"
+                text="Toggle Show Highlights Problems"
+                icon="com.intellij.icons.ExpUiIcons.Nodes.ErrorIntroduction"
+                description="Action that lets you toggle showing errors">
+        </action>
+    </actions>
 </idea-plugin>

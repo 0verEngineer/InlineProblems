@@ -1,6 +1,9 @@
 .gradle
 .qodana
-build
+.idea
+.idea/*
+build/*
+!build/libs
 
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
