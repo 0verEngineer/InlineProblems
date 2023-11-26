@@ -90,6 +90,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean forceProblemsInSameLine = true;
     private boolean useEditorFont = false;
     private int inlayFontSizeDelta = 0;
+    private int alphaColor = 255;
     private boolean fillProblemLabels = false;
     private boolean boldProblemLabels = false;
     private boolean italicProblemLabels = false;

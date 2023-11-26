@@ -34,6 +34,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
     private boolean isBlockElement;
 
     private final int inlayFontSizeDelta;
+    private final int alphaColor;
     private final boolean isUseEditorFont;
 
     private static final int WIDTH_OFFSET = 7;
@@ -59,6 +60,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
 
         this.isUseEditorFont = settings.isUseEditorFont();
         this.inlayFontSizeDelta = settings.getInlayFontSizeDelta();
+        this.alphaColor = settings.getAlphaColor();
     }
 
     @Override
@@ -96,7 +98,12 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
         }
 
         if (isDrawBox) {
-            graphics.setColor(backgroundColor);
+            graphics.setColor(new Color(
+                    backgroundColor.getRed(),
+                    backgroundColor.getGreen(),
+                    backgroundColor.getBlue(),
+                    alphaColor
+            ));
 
             if (isRoundedCorners) {
                 graphics.drawRoundRect(
@@ -138,7 +145,13 @@ public class InlineProblemLabel implements EditorCustomElementRenderer {
             }
         }
 
-        graphics.setColor(textColor);
+        graphics.setColor(new Color(
+                textColor.getRed(),
+                textColor.getGreen(),
+                textColor.getBlue(),
+                alphaColor
+        ));
+
 
         graphics.setFont(FontUtil.getActiveFont(editor));
 

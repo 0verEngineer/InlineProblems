@@ -46,6 +46,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
                 state.isShowOnlyHighestSeverityPerLine() == settingsComponent.isShowOnlyHighestSeverityPerLine() &&
                 state.getInlayFontSizeDelta() == settingsComponent.getInlayFontSizeDelta() &&
+                state.getAlphaColor() == settingsComponent.getAlphaColor() &&
                 state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
                 state.isBoldProblemLabels() == settingsComponent.isBoldProblemLabels() &&
                 state.isItalicProblemLabels() == settingsComponent.isItalicProblemLabels() &&
@@ -133,6 +134,7 @@ public class SettingsConfigurable implements Configurable {
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
         state.setShowOnlyHighestSeverityPerLine(settingsComponent.isShowOnlyHighestSeverityPerLine());
         state.setInlayFontSizeDelta(settingsComponent.getInlayFontSizeDelta());
+        state.setAlphaColor(settingsComponent.getAlphaColor());
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
         state.setBoldProblemLabels(settingsComponent.isBoldProblemLabels());
         state.setItalicProblemLabels(settingsComponent.isItalicProblemLabels());
@@ -195,6 +197,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setUseEditorFont(state.isUseEditorFont());
         settingsComponent.setShowOnlyHighestSeverityPerLine(state.isShowOnlyHighestSeverityPerLine());
         settingsComponent.setInlayFontSizeDelta(state.getInlayFontSizeDelta());
+        settingsComponent.setAlphaColor(state.getAlphaColor());
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
         settingsComponent.setBoldProblemLabels(state.isBoldProblemLabels());
         settingsComponent.setItalicProblemLabels(state.isItalicProblemLabels());

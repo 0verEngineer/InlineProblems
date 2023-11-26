@@ -62,6 +62,7 @@ public class SettingsComponent {
 
     private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox(SettingsBundle.message("settings.showOnlyHighestPerLine"));
     private final JFormattedTextField inlayFontSizeDeltaText;
+    private final JFormattedTextField aplhaColorText;
     private final JFormattedTextField manualScannerDelay;
     private final JBCheckBox fillProblemLabels = new JBCheckBox(SettingsBundle.message("settings.fillProblemLabels"));
     private final JBCheckBox boldProblemLabels = new JBCheckBox(SettingsBundle.message("settings.boldProblemLabels"));
@@ -124,6 +125,9 @@ public class SettingsComponent {
         inlayFontSizeDeltaText = new JFormattedTextField(numberFormatter);
         inlayFontSizeDeltaText.setText(Integer.toString(settingsState.getInlayFontSizeDelta()));
 
+        aplhaColorText = new JFormattedTextField(numberFormatter);
+        aplhaColorText.setText(Integer.toString(settingsState.getAlphaColor()));
+
         manualScannerDelay = new JFormattedTextField(numberFormatter);
         manualScannerDelay.setText(Integer.toString(settingsState.getManualScannerDelay()));
 
@@ -164,6 +168,8 @@ public class SettingsComponent {
                 .addComponent(showOnlyHighestSeverityPerLine, 0)
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.inlaySizeDelta")), inlayFontSizeDeltaText)
                 .addTooltip(SettingsBundle.message("settings.inlaySizeDeltaTooltip"))
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.alphaColor")), aplhaColorText)
+                .addTooltip(SettingsBundle.message("settings.alphaColorTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
                 .addTooltip(SettingsBundle.message("settings.problemFilterListTooltip"))
                 .addSeparator()
@@ -259,6 +265,26 @@ public class SettingsComponent {
 
     public void setInlayFontSizeDelta(int val) {
         inlayFontSizeDeltaText.setText(String.valueOf(Math.max(0, val)));
+    }
+
+    public int getAlphaColor() {
+        int val = 255;
+        // Convert the String
+        try {
+            val = Integer.parseInt(aplhaColorText.getText());
+        }
+        catch (NumberFormatException ignored) {}
+
+        if (val < 0)
+            val = 0;
+        else if (val > 255)
+            val = 255;
+
+        return val;
+    }
+
+    public void setAlphaColor(int val) {
+        aplhaColorText.setText(String.valueOf(Math.max(0, Math.min(255, val))));
     }
 
     public void setUseEditorFont(boolean isSelected) {
