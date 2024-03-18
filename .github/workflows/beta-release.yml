@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: zulu
-          java-version: 11
+          java-version: 17
 
       # Publish the plugin to the Marketplace, this should automatically use the 'beta' channel because we changed the
       #  version in gradle.properties to version-beta
