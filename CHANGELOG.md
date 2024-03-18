@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [0.5.2]
+### Added
+- Compability with 2024.1
+
 ## [0.5.1]
 ### Fixed
 - SettingsBundle missing default (Settings not working with non english os language)
