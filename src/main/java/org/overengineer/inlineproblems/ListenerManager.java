@@ -9,6 +9,7 @@ import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
+import org.overengineer.inlineproblems.utils.FileNameUtil;
 
 
 public class ListenerManager {
@@ -39,6 +40,11 @@ public class ListenerManager {
             for (var project : manager.getOpenProjects()) {
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                 for (var editor : fileEditorManager.getAllEditors()) {
+
+                    if (editor.getFile() == null || FileNameUtil.ignoreFile(editor.getFile().getName())) {
+                        continue;
+                    }
+
                     if (editor instanceof TextEditor) {
                         MarkupModelProblemListener.setup((TextEditor) editor);
                         logger.debug("Installing MarkupModelListener");
@@ -51,6 +57,11 @@ public class ListenerManager {
     public void resetAndRescan() {
         problemManager.reset();
         documentMarkupModelScanner.scanForProblemsManually();
+    }
+
+    public void resetMarkupModelProblemListeners() {
+        MarkupModelProblemListener.disposeAll();
+        installMarkupModelListenerOnAllProjects();
     }
 
     public void changeListener() {

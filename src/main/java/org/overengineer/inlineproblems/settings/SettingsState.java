@@ -96,6 +96,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private int problemLineLengthOffsetPixels = 50;
     private int enabledListener = Listener.MARKUP_MODEL_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";
+    private String fileExtensionBlacklist = "";
 
     private List<Integer> additionalErrorSeverities = new ArrayList<>();
     private List<Integer> additionalWarningSeverities = new ArrayList<>();
