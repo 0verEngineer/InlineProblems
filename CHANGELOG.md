@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [0.5.3]
+### Added
+- Ability to blacklist file extensions so that the plugin will not show anything on blacklisted files
+
 ## [0.5.2]
 ### Added
 - Compability with 2024.1

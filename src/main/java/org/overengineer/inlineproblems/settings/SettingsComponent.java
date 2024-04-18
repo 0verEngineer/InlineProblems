@@ -67,6 +67,7 @@ public class SettingsComponent {
     private final JBCheckBox boldProblemLabels = new JBCheckBox(SettingsBundle.message("settings.boldProblemLabels"));
     private final JBCheckBox italicProblemLabels = new JBCheckBox(SettingsBundle.message("settings.italicProblemLabels"));
     private final JBTextField problemFilterList = new JBTextField();
+    private final JBTextField fileExtensionBlacklist = new JBTextField();
 
     private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME, DocumentMarkupModelScanner.NAME};
     private final JComboBox<String> enabledListener = new ComboBox<>(availableListeners);
@@ -137,6 +138,7 @@ public class SettingsComponent {
         additionalErrorSeverities.setText(settingsState.getAdditionalErrorSeveritiesAsString());
 
         problemFilterList.setText(settingsState.getProblemFilterList());
+        fileExtensionBlacklist.setText(settingsState.getFileExtensionBlacklist());
         enabledListener.setSelectedItem(Optional.of(settingsState.getEnabledListener()));
 
         Dimension enabledListenerDimension = enabledListener.getPreferredSize();
@@ -166,6 +168,8 @@ public class SettingsComponent {
                 .addTooltip(SettingsBundle.message("settings.inlaySizeDeltaTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
                 .addTooltip(SettingsBundle.message("settings.problemFilterListTooltip"))
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.fileExtensionBlacklistLabel")), fileExtensionBlacklist)
+                .addTooltip(SettingsBundle.message("settings.fileExtensionBlaclistTooltip"))
                 .addSeparator()
                 .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.colors")))
                 .addComponent(showErrors)
@@ -491,6 +495,14 @@ public class SettingsComponent {
 
     public void setProblemFilterList(final String newText) {
         problemFilterList.setText(newText);
+    }
+
+    public String getFileExtensionBlacklist() {
+        return fileExtensionBlacklist.getText();
+    }
+
+    public void setFileExtensionBlacklist(final String newText) {
+        fileExtensionBlacklist.setText(newText);
     }
 
     public String getAdditionalInfoSeverities() {

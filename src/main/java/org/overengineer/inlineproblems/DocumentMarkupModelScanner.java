@@ -19,6 +19,7 @@ import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
+import org.overengineer.inlineproblems.utils.FileNameUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,11 +88,13 @@ public class DocumentMarkupModelScanner implements Disposable {
 
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                 for (var editor : fileEditorManager.getAllEditors()) {
+
+                    if (editor.getFile() == null || FileNameUtil.ignoreFile(editor.getFile().getName())) {
+                        continue;
+                    }
+
                     if (editor instanceof TextEditor) {
                         var textEditor = (TextEditor) editor;
-                        if (textEditor.getFile() == null) {
-                            continue;
-                        }
                         problems.addAll(getProblemsInEditor(textEditor));
                     }
                 }
@@ -106,7 +109,7 @@ public class DocumentMarkupModelScanner implements Disposable {
      * millisecond if the HighlightProblemListener is used.
      */
     public void scanForProblemsManuallyInTextEditor(TextEditor textEditor) {
-        if (textEditor.getFile() == null) {
+        if (textEditor.getFile() == null || FileNameUtil.ignoreFile(textEditor.getFile().getName())) {
             return;
         }
 
