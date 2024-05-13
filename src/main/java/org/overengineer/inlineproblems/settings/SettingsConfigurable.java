@@ -8,6 +8,7 @@ import org.overengineer.inlineproblems.ListenerManager;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 
 import javax.swing.*;
+import java.util.Objects;
 
 
 public class SettingsConfigurable implements Configurable {
@@ -82,6 +83,7 @@ public class SettingsConfigurable implements Configurable {
                 state.getManualScannerDelay() == settingsComponent.getManualScannerDelay() &&
 
                 state.getProblemFilterList().equals(settingsComponent.getProblemFilterList()) &&
+                state.getFileExtensionBlacklist().equals(settingsComponent.getFileExtensionBlacklist()) &&
 
                 state.getAdditionalInfoSeveritiesAsString().equals(settingsComponent.getAdditionalInfoSeverities()) &&
                 state.getAdditionalWarningSeveritiesAsString().equals(settingsComponent.getAdditionalWarningSeverities()) &&
@@ -97,6 +99,7 @@ public class SettingsConfigurable implements Configurable {
         SettingsState state = SettingsState.getInstance();
 
         boolean listenerChanged = state.getEnabledListener() != settingsComponent.getEnabledListener();
+        boolean fileExtensionBlacklistChanged = !Objects.equals(state.getFileExtensionBlacklist(), settingsComponent.getFileExtensionBlacklist());
         boolean manualScannerDelayChanged = state.getManualScannerDelay() != settingsComponent.getManualScannerDelay();
 
         state.setShowErrors(settingsComponent.isShowErrors());
@@ -140,6 +143,7 @@ public class SettingsConfigurable implements Configurable {
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setManualScannerDelay(settingsComponent.getManualScannerDelay());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
+        state.setFileExtensionBlacklist(settingsComponent.getFileExtensionBlacklist());
 
         state.setAdditionalInfoSeverities(settingsComponent.getAdditionalInfoSeveritiesList());
         state.setAdditionalWarningSeverities(settingsComponent.getAdditionalWarningSeveritiesList());
@@ -151,6 +155,11 @@ public class SettingsConfigurable implements Configurable {
         }
 
         listenerManager.resetAndRescan();
+
+        // When the blacklist changes we need to re-apply all MarkupModelProblemListeners
+        if (fileExtensionBlacklistChanged && state.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER) {
+            listenerManager.resetMarkupModelProblemListeners();
+        }
 
         if (listenerChanged) {
             listenerManager.changeListener();
@@ -202,6 +211,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setEnabledListener(state.getEnabledListener());
         settingsComponent.setManualScannerDelay(state.getManualScannerDelay());
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
+        settingsComponent.setFileExtensionBlacklist(state.getFileExtensionBlacklist());
 
         settingsComponent.setAdditionalInfoSeverities(state.getAdditionalInfoSeveritiesAsString());
         settingsComponent.setAdditionalWarningSeverities(state.getAdditionalWarningSeveritiesAsString());

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.settings.SettingsState;
+import org.overengineer.inlineproblems.utils.FileNameUtil;
 
 
 public class HighlightProblemListener implements HighlightInfoFilter {
@@ -27,6 +28,10 @@ public class HighlightProblemListener implements HighlightInfoFilter {
 
         if (file == null || !file.isValid())
             return true;
+
+        if (FileNameUtil.ignoreFile(file.getName())) {
+            return true;
+        }
 
         if (!file.getProject().isDisposed()) {
             ApplicationManager.getApplication().invokeLater(() -> handleAccept(file));
