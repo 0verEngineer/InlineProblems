@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [0.5.4]
+### Changed
+- Use unlimited until-build for future IDEA Releases
+
 ## [0.5.3]
 ### Added
 - Ability to blacklist file extensions so that the plugin will not show anything on blacklisted files
