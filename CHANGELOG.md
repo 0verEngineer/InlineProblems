@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+
+## [0.5.5]
+### Changed
+- Try to use unlimited until-build for future IDEA Releases
+
 ## [0.5.4]
 ### Changed
 - Use unlimited until-build for future IDEA Releases
