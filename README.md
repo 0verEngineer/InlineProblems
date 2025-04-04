@@ -30,6 +30,10 @@ Plugin to show problems like errors and warnings inside the text editor (inline)
     <br />
     <a href="https://plugins.jetbrains.com/plugin/20789-inlineproblems">Jetbrains Marketplace</a>
     .
+    <a href="https://codeberg.org/OverEngineer/InlineProblems">Codeberg</a>
+    ·
+    <a href="https://github.com/0verEngineer/InlineProblems">Github</a>
+    .
     <a href="https://github.com/0verEngineer/InlineProblems/issues">Report Bug</a>
     ·
     <a href="https://github.com/0verEngineer/InlineProblems/issues">Request Feature</a>

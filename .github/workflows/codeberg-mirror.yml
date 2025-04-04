@@ -1,0 +1,14 @@
+name: Codeberg Mirror
+
+on: [push]
+
+jobs:
+  codeberg-mirror:
+    name: Codeberg Mirror
+    runs-on: ubuntu-latest
+    steps:
+      - uses: yesolutions/mirror-action@master
+        with:
+          REMOTE: 'https://codeberg.org/OverEngineer/InlineProblems'
+          GIT_USERNAME: ${{ secrets.CODEBERG_USERNAME }}
+          GIT_PASSWORD: ${{ secrets.CODEBERG_TOKEN }}
