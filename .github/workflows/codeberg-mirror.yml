@@ -11,4 +11,4 @@ jobs:
         with:
           REMOTE: 'https://codeberg.org/OverEngineer/InlineProblems'
           GIT_USERNAME: ${{ secrets.CODEBERG_USERNAME }}
-          GIT_PASSWORD: ${{ secrets.CODEBERG_PASSWORD }}
+          GIT_PASSWORD: ${{ secrets.CODEBERG_TOKEN }}
