@@ -126,7 +126,7 @@ Distributed under the GNU General Public License v3 See `LICENSE` for more infor
 <!-- CONTACT -->
 ## Contact
 
-Julian Hackinger - dev@hackinger.io
+Julian Hackinger - dev@hackinger.net
 
 Project Link: [https://github.com/0verEngineer/InlineProblems](https://github.com/0verEngineer/InlineProblems)
 
