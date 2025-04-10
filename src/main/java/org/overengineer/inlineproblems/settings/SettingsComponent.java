@@ -61,6 +61,8 @@ public class SettingsComponent {
     private final JBCheckBox useEditorFont = new JBCheckBox(SettingsBundle.message("settings.useEditorFont"));
 
     private final JBCheckBox showOnlyHighestSeverityPerLine = new JBCheckBox(SettingsBundle.message("settings.showOnlyHighestPerLine"));
+    private final JBCheckBox enableHtmlStripping = new JBCheckBox(SettingsBundle.message("settings.enableHtmlStripping"));
+    private final JBCheckBox enableXmlUnescaping = new JBCheckBox(SettingsBundle.message("settings.enableXmlUnescaping"));
     private final JFormattedTextField inlayFontSizeDeltaText;
     private final JFormattedTextField manualScannerDelay;
     private final JBCheckBox fillProblemLabels = new JBCheckBox(SettingsBundle.message("settings.fillProblemLabels"));
@@ -164,6 +166,8 @@ public class SettingsComponent {
                 .addComponent(forceErrorsInSameLine, 0)
                 .addComponent(useEditorFont, 0)
                 .addComponent(showOnlyHighestSeverityPerLine, 0)
+                .addComponent(enableHtmlStripping, 0)
+                .addComponent(enableXmlUnescaping, 0)
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.inlaySizeDelta")), inlayFontSizeDeltaText)
                 .addTooltip(SettingsBundle.message("settings.inlaySizeDeltaTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
@@ -247,6 +251,14 @@ public class SettingsComponent {
         return showOnlyHighestSeverityPerLine.isSelected();
     }
 
+    public boolean isEnableHtmlStripping() {
+        return enableHtmlStripping.isSelected();
+    }
+
+    public boolean isEnableXmlUnescaping() {
+        return enableXmlUnescaping.isSelected();
+    }
+
     public int getInlayFontSizeDelta() {
         int val = 0;
         // Convert the String
@@ -271,6 +283,14 @@ public class SettingsComponent {
 
     public void setShowOnlyHighestSeverityPerLine(boolean isSelected) {
         showOnlyHighestSeverityPerLine.setSelected(isSelected);
+    }
+
+    public void setEnableHtmlStripping(boolean isSelected) {
+        enableHtmlStripping.setSelected(isSelected);
+    }
+
+    public void setEnableXmlUnescaping(boolean isSelected) {
+        enableXmlUnescaping.setSelected(isSelected);
     }
 
     public boolean isFillProblemLabels() {
