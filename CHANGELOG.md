@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.5.6]
+### Changed
+- Added 2 settings options to disable HTML stripping and XML unescaping
+### Fixed
+- Generics in error messages were stripped because of the HTML stripping
 
 ## [0.5.5]
 ### Changed
