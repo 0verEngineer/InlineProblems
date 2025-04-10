@@ -104,6 +104,8 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private List<Integer> additionalInfoSeverities = new ArrayList<>();
 
     private boolean showOnlyHighestSeverityPerLine = false;
+    private boolean enableHtmlStripping = true;
+    private boolean enableXmlUnescaping = true;
 
     // migration booleans
     private boolean highlightProblemListenerDeprecateMigrationDone = false;
