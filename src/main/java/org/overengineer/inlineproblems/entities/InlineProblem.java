@@ -8,7 +8,8 @@ import com.intellij.openapi.util.text.StringUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-
+import org.overengineer.inlineproblems.definitions.RegexPattern;
+import org.overengineer.inlineproblems.settings.SettingsState;
 
 @Getter
 @Setter
@@ -17,6 +18,7 @@ public class InlineProblem {
 
     // The line the problem first appeared
     private final int line;
+    @Setter
     private int severity;
 
     // If two problems with the same text occur in the same line only one will be shown
@@ -49,13 +51,14 @@ public class InlineProblem {
             String filePath,
             HighlightInfo highlightInfo,
             TextEditor textEditor,
-            RangeHighlighter rangeHighlighter
+            RangeHighlighter rangeHighlighter,
+            SettingsState settingsState
     ) {
         String usedText = highlightInfo.getDescription();
         if (usedText == null)
             usedText = "";
         else
-            usedText = getTextWithoutHtmlOrXml(usedText.stripLeading());
+            usedText = getTextWithHtmlStrippingAndXmlUnescaping(usedText.stripLeading(), settingsState);
 
         this.line = line;
         this.text = usedText;
@@ -72,16 +75,21 @@ public class InlineProblem {
             this.actualEndOffset = highlightInfo.getActualEndOffset() -1;
     }
 
-    public void setSeverity(int severity) {
-        this.severity = severity;
-    }
-
-    private String getTextWithoutHtmlOrXml(String text) {
-        if (text.contains("<"))
+    private String getTextWithHtmlStrippingAndXmlUnescaping(String text, SettingsState settingsState) {
+        if (
+                settingsState.isEnableHtmlStripping() &&
+                text.contains("<") &&
+                RegexPattern.HTML_TAG_PATTERN.matcher(text).find()
+        ) {
             text = StringUtil.stripHtml(text, " ");
+        }
 
-        if (text.contains("&"))
+        if (
+                settingsState.isEnableHtmlStripping() &&
+                text.contains("&")
+        ) {
             text = StringUtil.unescapeXmlEntities(text);
+        }
 
         return text;
     }
