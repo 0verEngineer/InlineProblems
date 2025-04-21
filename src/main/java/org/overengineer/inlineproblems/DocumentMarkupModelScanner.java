@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DocumentMarkupModelScanner implements Disposable {
     private final ProblemManager problemManager = ApplicationManager.getApplication().getService(ProblemManager.class);
+    private final SettingsState settingsState;
 
     private final Logger logger = Logger.getInstance(DocumentMarkupModelScanner.class);
 
@@ -45,6 +46,8 @@ public class DocumentMarkupModelScanner implements Disposable {
 
     private DocumentMarkupModelScanner() {
         Disposer.register(problemManager, this);
+
+        settingsState = SettingsState.getInstance();
 
         mergingUpdateQueue = new MergingUpdateQueue(
                 "DocumentMarkupModelScannerQueue",
@@ -169,7 +172,8 @@ public class DocumentMarkupModelScanner implements Disposable {
                             textEditor.getFile().getPath(),
                             highlightInfo,
                             textEditor,
-                            h
+                            h,
+                            settingsState
                     );
 
                     problemManager.applyCustomSeverity(newProblem);

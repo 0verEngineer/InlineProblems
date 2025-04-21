@@ -144,7 +144,8 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                 textEditor.getFile().getPath(),
                 highlightInfo,
                 textEditor,
-                highlighter
+                highlighter,
+                settingsState
         );
 
         if (type == EventType.CHANGE || type == EventType.REMOVE) {
