@@ -30,6 +30,7 @@ public class InlineProblem {
     private DrawDetails drawDetails;
 
     private int actualEndOffset;
+    private int actualStartffset;
 
     private boolean isBlockElement = false;
 
@@ -73,6 +74,7 @@ public class InlineProblem {
             this.actualEndOffset = highlightInfo.getActualEndOffset();
         else
             this.actualEndOffset = highlightInfo.getActualEndOffset() -1;
+        this.actualStartffset = highlightInfo.getStartOffset();
     }
 
     private String getTextWithHtmlStrippingAndXmlUnescaping(String text, SettingsState settingsState) {

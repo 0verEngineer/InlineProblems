@@ -68,6 +68,8 @@ public class SettingsComponent {
     private final JBCheckBox fillProblemLabels = new JBCheckBox(SettingsBundle.message("settings.fillProblemLabels"));
     private final JBCheckBox boldProblemLabels = new JBCheckBox(SettingsBundle.message("settings.boldProblemLabels"));
     private final JBCheckBox italicProblemLabels = new JBCheckBox(SettingsBundle.message("settings.italicProblemLabels"));
+    private final JBCheckBox enableHovering = new JBCheckBox(SettingsBundle.message("settings.enableHovering"));
+
     private final JBTextField problemFilterList = new JBTextField();
     private final JBTextField fileExtensionBlacklist = new JBTextField();
 
@@ -133,6 +135,7 @@ public class SettingsComponent {
         fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
         boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
         italicProblemLabels.setSelected(settingsState.isItalicProblemLabels());
+        enableHovering.setSelected(settingsState.isHovering());
 
         additionalInfoSeverities.setText(settingsState.getAdditionalInfoSeveritiesAsString());
         additionalWeakWarningSeverities.setText(settingsState.getAdditionalWeakWarningSeveritiesAsString());
@@ -154,6 +157,7 @@ public class SettingsComponent {
                 .addComponent(fillProblemLabels, 0)
                 .addComponent(boldProblemLabels, 0)
                 .addComponent(italicProblemLabels, 0)
+                .addComponent(enableHovering, 0)
                 .addSeparator()
                 .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.general")))
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.activeProblemListener")), enabledListener)
@@ -315,6 +319,13 @@ public class SettingsComponent {
 
     public void setItalicProblemLabels(boolean isSelected) {
         italicProblemLabels.setSelected(isSelected);
+    }
+
+    public boolean isHovering() {
+        return enableHovering.isSelected();
+    }
+    public void setHovering(boolean isSelected) {
+        enableHovering.setSelected(isSelected);
     }
 
     public boolean isShowErrors() {
