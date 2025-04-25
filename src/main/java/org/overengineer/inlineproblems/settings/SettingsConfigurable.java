@@ -135,8 +135,10 @@ public class SettingsConfigurable implements Configurable {
         state.setInfoBackgroundColor(settingsComponent.getInfoLabelBackgroundColor());
         state.setInfoHighlightColor(settingsComponent.getInfoHighlightColor());
 
-        state.setForceProblemsInSameLine(settingsComponent.isForceErrorsInSameLine());
         state.setEnableInlineProblem(settingsComponent.isEnableInlineProblem());
+        state.setEnableInlineProblemsNotifications(settingsComponent.isEnableInlineProblemsNotifications());
+
+        state.setForceProblemsInSameLine(settingsComponent.isForceErrorsInSameLine());
         state.setDrawBoxesAroundErrorLabels(settingsComponent.getDrawBoxesAroundProblemLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
@@ -207,8 +209,10 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setInfoLabelBackgroundColor(state.getInfoBackgroundColor());
         settingsComponent.setInfoHighlightColor(state.getInfoHighlightColor());
 
-        settingsComponent.setForceErrorsInSameLine(state.isForceProblemsInSameLine());
         settingsComponent.setEnableInlineProblem(state.isEnableInlineProblem());
+        settingsComponent.setEnableInlineProblemsNotifications(state.isEnableInlineProblemsNotifications());
+
+        settingsComponent.setForceErrorsInSameLine(state.isForceProblemsInSameLine());
         settingsComponent.setDrawBoxesAroundProblemLabels(state.isDrawBoxesAroundErrorLabels());
         settingsComponent.setRoundedCornerBoxes(state.isRoundedCornerBoxes());
         settingsComponent.setUseEditorFont(state.isUseEditorFont());

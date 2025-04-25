@@ -15,13 +15,10 @@ public class EnableInlineProblemsAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         SettingsState settingsState = SettingsState.getInstance();
-        if (settingsState.isEnableInlineProblem()) {
-            Notifier.notify(SettingsBundle.message("settings.enableInlineProblem.disabled"), NotificationType.IDE_UPDATE, anActionEvent.getProject());
-            settingsState.setEnableInlineProblem(false);
-        } else {
-            Notifier.notify(SettingsBundle.message("settings.enableInlineProblem.enabled"), NotificationType.IDE_UPDATE, anActionEvent.getProject());
-            settingsState.setEnableInlineProblem(true);
+        if (settingsState.isEnableInlineProblemsNotifications()) {
+            Notifier.notify(SettingsBundle.message(settingsState.isEnableInlineProblem() ? "settings.enableInlineProblem.disabled" : "settings.enableInlineProblem.enabled"), NotificationType.IDE_UPDATE, anActionEvent.getProject());
         }
+        settingsState.setEnableInlineProblem(!settingsState.isEnableInlineProblem());
         ApplicationManager.getApplication().invokeAndWait(DocumentMarkupModelScanner.getInstance()::scanForProblemsManually);
     }
 }

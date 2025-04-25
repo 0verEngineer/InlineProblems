@@ -56,6 +56,8 @@ public class SettingsComponent {
     private final ColorPanel infoHighlightColor = new ColorPanel();
 
     private final JBCheckBox enableInlineProblem = new JBCheckBox(SettingsBundle.message("settings.enableInlineProblem"));
+    private final JBCheckBox enableInlineProblemsNotifications = new JBCheckBox(SettingsBundle.message("settings.enableInlineProblemsNotifications"));
+
     private final JBCheckBox forceErrorsInSameLine = new JBCheckBox(SettingsBundle.message("settings.forceProblemsInOneLine"));
     private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox(SettingsBundle.message("settings.drawBoxesAroundProblemLabels"));
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox(SettingsBundle.message("settings.roundedCornerBoxes"));
@@ -117,6 +119,8 @@ public class SettingsComponent {
         infoHighlightColor.setSelectedColor(settingsState.getInfoHighlightColor());
 
         enableInlineProblem.setSelected(settingsState.isEnableInlineProblem());
+        enableInlineProblemsNotifications.setSelected(settingsState.isEnableInlineProblemsNotifications());
+
         forceErrorsInSameLine.setSelected(settingsState.isForceProblemsInSameLine());
         drawBoxesAroundProblemLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
         roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
@@ -155,6 +159,7 @@ public class SettingsComponent {
         settingsPanel = FormBuilder.createFormBuilder()
                 .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.label")))
                 .addComponent(enableInlineProblem, 0)
+                .addComponent(enableInlineProblemsNotifications, 0)
                 .addComponent(drawBoxesAroundProblemLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
                 .addComponent(fillProblemLabels, 0)
@@ -240,6 +245,14 @@ public class SettingsComponent {
 
     public void setEnableInlineProblem(final boolean isSelected) {
         enableInlineProblem.setSelected(isSelected);
+    }
+
+    public boolean isEnableInlineProblemsNotifications() {
+        return enableInlineProblemsNotifications.isSelected();
+    }
+
+    public void setEnableInlineProblemsNotifications(final boolean isSelected) {
+        enableInlineProblemsNotifications.setSelected(isSelected);
     }
 
     public boolean getDrawBoxesAroundProblemLabels() {

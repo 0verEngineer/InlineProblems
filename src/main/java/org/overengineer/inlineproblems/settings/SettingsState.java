@@ -42,6 +42,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean showInfosInGutter = false;
     private boolean clickableContext = false;
     private boolean enableInlineProblem = true;
+    private boolean enableInlineProblemsNotifications = false;
 
     /**
      * Colors renamed from '<NAME>Color' to '<NAME>Col' to solve
