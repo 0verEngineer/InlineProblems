@@ -17,7 +17,8 @@ public class SettingsConfigurable implements Configurable {
 
     private final ListenerManager listenerManager = ListenerManager.getInstance();
 
-    SettingsConfigurable() {}
+    SettingsConfigurable() {
+    }
 
     @Override
     @NlsContexts.ConfigurableName
@@ -42,6 +43,7 @@ public class SettingsConfigurable implements Configurable {
         SettingsState state = SettingsState.getInstance();
 
         boolean oldStateEqualsNewState = state.isForceProblemsInSameLine() == settingsComponent.isForceErrorsInSameLine() &&
+                state.isEnableInlineProblem() == settingsComponent.isEnableInlineProblem() &&
                 state.isDrawBoxesAroundErrorLabels() == settingsComponent.getDrawBoxesAroundProblemLabels() &&
                 state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
@@ -134,6 +136,7 @@ public class SettingsConfigurable implements Configurable {
         state.setInfoHighlightColor(settingsComponent.getInfoHighlightColor());
 
         state.setForceProblemsInSameLine(settingsComponent.isForceErrorsInSameLine());
+        state.setEnableInlineProblem(settingsComponent.isEnableInlineProblem());
         state.setDrawBoxesAroundErrorLabels(settingsComponent.getDrawBoxesAroundProblemLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
@@ -205,6 +208,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setInfoHighlightColor(state.getInfoHighlightColor());
 
         settingsComponent.setForceErrorsInSameLine(state.isForceProblemsInSameLine());
+        settingsComponent.setEnableInlineProblem(state.isEnableInlineProblem());
         settingsComponent.setDrawBoxesAroundProblemLabels(state.isDrawBoxesAroundErrorLabels());
         settingsComponent.setRoundedCornerBoxes(state.isRoundedCornerBoxes());
         settingsComponent.setUseEditorFont(state.isUseEditorFont());

@@ -55,6 +55,7 @@ public class SettingsComponent {
     private final ColorPanel infoLabelBackgroundColor = new ColorPanel();
     private final ColorPanel infoHighlightColor = new ColorPanel();
 
+    private final JBCheckBox enableInlineProblem = new JBCheckBox(SettingsBundle.message("settings.enableInlineProblem"));
     private final JBCheckBox forceErrorsInSameLine = new JBCheckBox(SettingsBundle.message("settings.forceProblemsInOneLine"));
     private final JBCheckBox drawBoxesAroundProblemLabels = new JBCheckBox(SettingsBundle.message("settings.drawBoxesAroundProblemLabels"));
     private final JBCheckBox roundedCornerBoxes = new JBCheckBox(SettingsBundle.message("settings.roundedCornerBoxes"));
@@ -115,6 +116,7 @@ public class SettingsComponent {
         infoLabelBackgroundColor.setSelectedColor(settingsState.getInfoBackgroundColor());
         infoHighlightColor.setSelectedColor(settingsState.getInfoHighlightColor());
 
+        enableInlineProblem.setSelected(settingsState.isEnableInlineProblem());
         forceErrorsInSameLine.setSelected(settingsState.isForceProblemsInSameLine());
         drawBoxesAroundProblemLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
         roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
@@ -152,6 +154,7 @@ public class SettingsComponent {
 
         settingsPanel = FormBuilder.createFormBuilder()
                 .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.label")))
+                .addComponent(enableInlineProblem, 0)
                 .addComponent(drawBoxesAroundProblemLabels, 0)
                 .addComponent(roundedCornerBoxes, 0)
                 .addComponent(fillProblemLabels, 0)
@@ -229,6 +232,14 @@ public class SettingsComponent {
 
     public void setForceErrorsInSameLine(final boolean isSelected) {
         forceErrorsInSameLine.setSelected(isSelected);
+    }
+
+    public boolean isEnableInlineProblem() {
+        return enableInlineProblem.isSelected();
+    }
+
+    public void setEnableInlineProblem(final boolean isSelected) {
+        enableInlineProblem.setSelected(isSelected);
     }
 
     public boolean getDrawBoxesAroundProblemLabels() {
