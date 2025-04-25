@@ -22,20 +22,35 @@
         <applicationConfigurable parentId="appearance"
                                  instance="org.overengineer.inlineproblems.settings.SettingsConfigurable"
                                  id="org.overengineer.inlineproblems.settings.SettingsConfigurable"
-                                 displayName="InlineProblems"/>
+                                 key="application.configurable.InlineProblems"/>
         <applicationService serviceImplementation="org.overengineer.inlineproblems.settings.SettingsState"/>
         <applicationService serviceImplementation="org.overengineer.inlineproblems.ProblemManager"/>
         <daemon.highlightInfoFilter implementation="org.overengineer.inlineproblems.listeners.HighlightProblemListener"
                                     id="org.overengineer.inlineproblems.listeners.HighlightProblemListener"/>
 
         <postStartupActivity implementation="org.overengineer.inlineproblems.ProjectStartupActivity"/>
-        <notificationGroup id="InlineProblems" displayType="BALLOON" />
+        <notificationGroup id="InlineProblems" displayType="BALLOON" bundle="messages.SettingsBundle"
+                           key="notification.group.InlineProblems"/>
     </extensions>
 
     <actions>
-        <action class="org.overengineer.inlineproblems.EnableInlineProblemsAction"
-                id="org.overengineer.inlineproblems.EnableInlineProblemsAction"/>
+        <action class="org.overengineer.inlineproblems.actions.EnableInlineProblemsAction"
+                id="org.overengineer.inlineproblems.actions.EnableInlineProblemsAction"
+        />
+        <action class="org.overengineer.inlineproblems.actions.ShowErrorsAction"
+                id="org.overengineer.inlineproblems.actions.ShowErrorsAction"
+        />
+        <action class="org.overengineer.inlineproblems.actions.ShowWarningsAction"
+                id="org.overengineer.inlineproblems.actions.ShowWarningsAction"
+        />
+        <action class="org.overengineer.inlineproblems.actions.ShowWeakWarningsAction"
+                id="org.overengineer.inlineproblems.actions.ShowWeakWarningsAction"
+        />
+        <action class="org.overengineer.inlineproblems.actions.ShowInfosAction"
+                id="org.overengineer.inlineproblems.actions.ShowInfosAction"
+        />
     </actions>
+
     <projectListeners>
         <listener class="org.overengineer.inlineproblems.listeners.FileEditorListener"
                   topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>

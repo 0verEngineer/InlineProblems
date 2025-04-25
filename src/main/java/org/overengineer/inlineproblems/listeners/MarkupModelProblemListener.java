@@ -88,6 +88,8 @@ public class MarkupModelProblemListener implements MarkupModelListener {
     }
 
     private void handleEvent(EventType type, @NotNull RangeHighlighterEx highlighter) {
+        if (!settingsState.isEnableInlineProblem())
+            return;
 
         if (settingsState.getEnabledListener() != Listener.MARKUP_MODEL_LISTENER)
             return;
