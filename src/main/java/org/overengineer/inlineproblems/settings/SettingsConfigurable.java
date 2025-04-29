@@ -52,7 +52,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
                 state.isBoldProblemLabels() == settingsComponent.isBoldProblemLabels() &&
                 state.isItalicProblemLabels() == settingsComponent.isItalicProblemLabels() &&
-                state.isHovering() == settingsComponent.isHovering() &&
+                state.isClickableContext() == settingsComponent.isClickableContext() &&
 
                 state.getErrorTextColor().equals(settingsComponent.getErrorTextColor()) &&
                 state.getErrorBackgroundColor().equals(settingsComponent.getErrorLabelBackgroundColor()) &&
@@ -144,7 +144,7 @@ public class SettingsConfigurable implements Configurable {
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
         state.setBoldProblemLabels(settingsComponent.isBoldProblemLabels());
         state.setItalicProblemLabels(settingsComponent.isItalicProblemLabels());
-        state.setHovering(settingsComponent.isHovering());
+        state.setClickableContext(settingsComponent.isClickableContext());
 
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setManualScannerDelay(settingsComponent.getManualScannerDelay());
@@ -215,7 +215,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
         settingsComponent.setBoldProblemLabels(state.isBoldProblemLabels());
         settingsComponent.setItalicProblemLabels(state.isItalicProblemLabels());
-        settingsComponent.setHovering(state.isHovering());
+        settingsComponent.setClickableContext(state.isClickableContext());
 
         settingsComponent.setEnabledListener(state.getEnabledListener());
         settingsComponent.setManualScannerDelay(state.getManualScannerDelay());

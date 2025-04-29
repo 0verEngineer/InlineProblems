@@ -69,12 +69,12 @@ public class InlineProblem {
         this.project = textEditor.getEditor().getProject();
         this.highlightInfoStartOffset = highlightInfo.hashCode();
         this.rangeHighlighterHashCode = rangeHighlighter.hashCode();
+        this.actualStartffset = highlightInfo.getStartOffset();
 
         if (highlightInfo.getActualEndOffset() == 0)
             this.actualEndOffset = highlightInfo.getActualEndOffset();
         else
             this.actualEndOffset = highlightInfo.getActualEndOffset() -1;
-        this.actualStartffset = highlightInfo.getStartOffset();
     }
 
     private String getTextWithHtmlStrippingAndXmlUnescaping(String text, SettingsState settingsState) {

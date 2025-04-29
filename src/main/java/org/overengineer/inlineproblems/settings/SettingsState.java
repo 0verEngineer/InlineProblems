@@ -40,7 +40,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean showInfos = false;
     private boolean highlightInfos = false;
     private boolean showInfosInGutter = false;
-    private boolean hovering = false;
+    private boolean clickableContext = false;
 
     /**
      * Colors renamed from '<NAME>Color' to '<NAME>Col' to solve

@@ -42,7 +42,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
     private final boolean isRoundedCorners;
     private final boolean isFillBackground;
     private boolean hovered;
-    private final boolean hoveredEnabled;
+    private final boolean clickableContext;
     private Inlay<?> inlay;
     private final int actualStartOffset;
 
@@ -79,7 +79,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
         this.inlayFontSizeDelta = settings.getInlayFontSizeDelta();
         this.hovered = false;
         this.actualStartOffset = problem.getActualStartffset();
-        hoveredEnabled = settings.isHovering();
+        this.clickableContext = settings.isClickableContext();
     }
 
     @Override
@@ -178,7 +178,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
     }
 
     private void setHovered(boolean hovered) {
-        if (!this.hoveredEnabled || this.hovered == hovered) {
+        if (!this.clickableContext || this.hovered == hovered) {
             return;
         }
         this.hovered = hovered;
@@ -193,7 +193,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
 
     @Override
     public void mouseClicked(@NotNull MouseEvent mouseEvent, @NotNull Point point) {
-        if (!hoveredEnabled) {
+        if (!clickableContext) {
             return;
         }
         if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
@@ -212,7 +212,6 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
                 new ShowIntentionActionsHandler().invoke(project, editor, psiFileInEditor, false);
             } else {
                 ActionUtil.invokeAction((AnAction) action, editor.getComponent(), "EditorInlay", null, null);
-
             }
         }
     }

@@ -68,7 +68,7 @@ public class SettingsComponent {
     private final JBCheckBox fillProblemLabels = new JBCheckBox(SettingsBundle.message("settings.fillProblemLabels"));
     private final JBCheckBox boldProblemLabels = new JBCheckBox(SettingsBundle.message("settings.boldProblemLabels"));
     private final JBCheckBox italicProblemLabels = new JBCheckBox(SettingsBundle.message("settings.italicProblemLabels"));
-    private final JBCheckBox enableHovering = new JBCheckBox(SettingsBundle.message("settings.enableHovering"));
+    private final JBCheckBox clickableContext = new JBCheckBox(SettingsBundle.message("settings.enableClickableContext"));
 
     private final JBTextField problemFilterList = new JBTextField();
     private final JBTextField fileExtensionBlacklist = new JBTextField();
@@ -79,7 +79,7 @@ public class SettingsComponent {
     private final JBTextField additionalInfoSeverities = new JBTextField();
     private final JBTextField additionalWarningSeverities = new JBTextField();
     private final JBTextField additionalWeakWarningSeverities = new JBTextField();
-    private  final JBTextField additionalErrorSeverities = new JBTextField();
+    private final JBTextField additionalErrorSeverities = new JBTextField();
 
     @Getter
     private final JPanel settingsPanel;
@@ -135,7 +135,7 @@ public class SettingsComponent {
         fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
         boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
         italicProblemLabels.setSelected(settingsState.isItalicProblemLabels());
-        enableHovering.setSelected(settingsState.isHovering());
+        clickableContext.setSelected(settingsState.isClickableContext());
 
         additionalInfoSeverities.setText(settingsState.getAdditionalInfoSeveritiesAsString());
         additionalWeakWarningSeverities.setText(settingsState.getAdditionalWeakWarningSeveritiesAsString());
@@ -157,7 +157,7 @@ public class SettingsComponent {
                 .addComponent(fillProblemLabels, 0)
                 .addComponent(boldProblemLabels, 0)
                 .addComponent(italicProblemLabels, 0)
-                .addComponent(enableHovering, 0)
+                .addComponent(clickableContext, 0)
                 .addSeparator()
                 .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.general")))
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.activeProblemListener")), enabledListener)
@@ -268,8 +268,8 @@ public class SettingsComponent {
         // Convert the String
         try {
             val = Integer.parseInt(inlayFontSizeDeltaText.getText());
+        } catch (NumberFormatException ignored) {
         }
-        catch (NumberFormatException ignored) {}
 
         if (val < 0)
             val = 0;
@@ -321,11 +321,12 @@ public class SettingsComponent {
         italicProblemLabels.setSelected(isSelected);
     }
 
-    public boolean isHovering() {
-        return enableHovering.isSelected();
+    public boolean isClickableContext() {
+        return clickableContext.isSelected();
     }
-    public void setHovering(boolean isSelected) {
-        enableHovering.setSelected(isSelected);
+
+    public void setClickableContext(boolean isSelected) {
+        clickableContext.setSelected(isSelected);
     }
 
     public boolean isShowErrors() {
@@ -611,8 +612,7 @@ public class SettingsComponent {
     public int getManualScannerDelay() {
         try {
             return Math.max(Integer.parseInt(manualScannerDelay.getText()), 10);
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             return 100;
         }
     }
