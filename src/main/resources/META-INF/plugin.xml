@@ -35,8 +35,9 @@
 
     <actions>
         <action class="org.overengineer.inlineproblems.actions.EnableInlineProblemsAction"
-                id="org.overengineer.inlineproblems.actions.EnableInlineProblemsAction"
-        />
+                id="org.overengineer.inlineproblems.actions.EnableInlineProblemsAction">
+            <keyboard-shortcut first-keystroke="alt u" keymap="$default"/>
+        </action>
         <action class="org.overengineer.inlineproblems.actions.ShowErrorsAction"
                 id="org.overengineer.inlineproblems.actions.ShowErrorsAction"
         />
