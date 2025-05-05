@@ -19,23 +19,48 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <applicationConfigurable parentId="appearance" instance="org.overengineer.inlineproblems.settings.SettingsConfigurable"
+        <applicationConfigurable parentId="appearance"
+                                 instance="org.overengineer.inlineproblems.settings.SettingsConfigurable"
                                  id="org.overengineer.inlineproblems.settings.SettingsConfigurable"
-                                 displayName="InlineProblems"/>
+                                 key="application.configurable.InlineProblems"/>
         <applicationService serviceImplementation="org.overengineer.inlineproblems.settings.SettingsState"/>
         <applicationService serviceImplementation="org.overengineer.inlineproblems.ProblemManager"/>
-        <daemon.highlightInfoFilter implementation="org.overengineer.inlineproblems.listeners.HighlightProblemListener" id="org.overengineer.inlineproblems.listeners.HighlightProblemListener" />
+        <daemon.highlightInfoFilter implementation="org.overengineer.inlineproblems.listeners.HighlightProblemListener"
+                                    id="org.overengineer.inlineproblems.listeners.HighlightProblemListener"/>
 
-        <postStartupActivity implementation="org.overengineer.inlineproblems.ProjectStartupActivity" />
-        <notificationGroup id="InlineProblems" displayType="BALLOON"/>
+        <postStartupActivity implementation="org.overengineer.inlineproblems.ProjectStartupActivity"/>
+        <notificationGroup id="InlineProblems" displayType="BALLOON" bundle="messages.SettingsBundle"
+                           key="notification.group.InlineProblems"/>
     </extensions>
 
+    <actions>
+        <action class="org.overengineer.inlineproblems.actions.EnableInlineProblemsAction"
+                id="org.overengineer.inlineproblems.actions.EnableInlineProblemsAction">
+            <keyboard-shortcut first-keystroke="alt u" keymap="$default"/>
+        </action>
+        <action class="org.overengineer.inlineproblems.actions.ShowErrorsAction"
+                id="org.overengineer.inlineproblems.actions.ShowErrorsAction"
+        />
+        <action class="org.overengineer.inlineproblems.actions.ShowWarningsAction"
+                id="org.overengineer.inlineproblems.actions.ShowWarningsAction"
+        />
+        <action class="org.overengineer.inlineproblems.actions.ShowWeakWarningsAction"
+                id="org.overengineer.inlineproblems.actions.ShowWeakWarningsAction"
+        />
+        <action class="org.overengineer.inlineproblems.actions.ShowInfosAction"
+                id="org.overengineer.inlineproblems.actions.ShowInfosAction"
+        />
+    </actions>
+
     <projectListeners>
-        <listener class="org.overengineer.inlineproblems.listeners.FileEditorListener" topic="com.intellij.openapi.fileEditor.FileEditorManagerListener" />
+        <listener class="org.overengineer.inlineproblems.listeners.FileEditorListener"
+                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
     </projectListeners>
 
     <applicationListeners>
-        <listener class="org.overengineer.inlineproblems.listeners.PluginListener" topic="com.intellij.ide.plugins.DynamicPluginListener" />
-        <listener class="org.overengineer.inlineproblems.listeners.ProjectCloseListener" topic="com.intellij.openapi.project.ProjectManagerListener" />
+        <listener class="org.overengineer.inlineproblems.listeners.PluginListener"
+                  topic="com.intellij.ide.plugins.DynamicPluginListener"/>
+        <listener class="org.overengineer.inlineproblems.listeners.ProjectCloseListener"
+                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
 </idea-plugin>

@@ -30,6 +30,7 @@ public class InlineProblem {
     private DrawDetails drawDetails;
 
     private int actualEndOffset;
+    private int actualStartffset;
 
     private boolean isBlockElement = false;
 
@@ -68,6 +69,7 @@ public class InlineProblem {
         this.project = textEditor.getEditor().getProject();
         this.highlightInfoStartOffset = highlightInfo.hashCode();
         this.rangeHighlighterHashCode = rangeHighlighter.hashCode();
+        this.actualStartffset = highlightInfo.getStartOffset();
 
         if (highlightInfo.getActualEndOffset() == 0)
             this.actualEndOffset = highlightInfo.getActualEndOffset();

@@ -38,6 +38,7 @@ public class InlineDrawer {
                 problem,
                 drawDetails.getTextColor(),
                 drawDetails.getBackgroundColor(),
+                drawDetails.getTextColor().brighter(),
                 settings
         );
 

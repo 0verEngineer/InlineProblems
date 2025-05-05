@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.5.7]
+### Changed
+- Added feature to enable and disable all problems with a keybind (thanks to khopland)
+- Added feature to hover and click in a problem to get the fix context window (thanks to khopland)
+
 ## [0.5.6]
 ### Changed
 - Added 2 settings options to disable HTML stripping and XML unescaping
