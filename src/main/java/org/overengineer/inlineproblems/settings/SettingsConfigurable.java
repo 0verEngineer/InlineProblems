@@ -17,7 +17,8 @@ public class SettingsConfigurable implements Configurable {
 
     private final ListenerManager listenerManager = ListenerManager.getInstance();
 
-    SettingsConfigurable() {}
+    SettingsConfigurable() {
+    }
 
     @Override
     @NlsContexts.ConfigurableName
@@ -42,6 +43,7 @@ public class SettingsConfigurable implements Configurable {
         SettingsState state = SettingsState.getInstance();
 
         boolean oldStateEqualsNewState = state.isForceProblemsInSameLine() == settingsComponent.isForceErrorsInSameLine() &&
+                state.isEnableInlineProblem() == settingsComponent.isEnableInlineProblem() &&
                 state.isDrawBoxesAroundErrorLabels() == settingsComponent.getDrawBoxesAroundProblemLabels() &&
                 state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
@@ -133,6 +135,9 @@ public class SettingsConfigurable implements Configurable {
         state.setInfoBackgroundColor(settingsComponent.getInfoLabelBackgroundColor());
         state.setInfoHighlightColor(settingsComponent.getInfoHighlightColor());
 
+        state.setEnableInlineProblem(settingsComponent.isEnableInlineProblem());
+        state.setEnableInlineProblemsNotifications(settingsComponent.isEnableInlineProblemsNotifications());
+
         state.setForceProblemsInSameLine(settingsComponent.isForceErrorsInSameLine());
         state.setDrawBoxesAroundErrorLabels(settingsComponent.getDrawBoxesAroundProblemLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
@@ -203,6 +208,9 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setInfoTextColor(state.getInfoTextColor());
         settingsComponent.setInfoLabelBackgroundColor(state.getInfoBackgroundColor());
         settingsComponent.setInfoHighlightColor(state.getInfoHighlightColor());
+
+        settingsComponent.setEnableInlineProblem(state.isEnableInlineProblem());
+        settingsComponent.setEnableInlineProblemsNotifications(state.isEnableInlineProblemsNotifications());
 
         settingsComponent.setForceErrorsInSameLine(state.isForceProblemsInSameLine());
         settingsComponent.setDrawBoxesAroundProblemLabels(state.isDrawBoxesAroundErrorLabels());
