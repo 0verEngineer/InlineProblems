@@ -25,7 +25,7 @@
 <!-- Plugin description -->
 Plugin to show problems like errors and warnings inside the text editor (inline) for IDEs based on the IntelliJ Platform, inspired by Error Lens and InlineError.
 
-You can turn this plugin on and off by the keyboard shortcut `alt+u`. 
+You can turn this plugin on and off with the keyboard shortcut `alt+u`, additional shortcuts can be configured in the settings. 
 <!-- Plugin description end -->
 
   <p align="center">
