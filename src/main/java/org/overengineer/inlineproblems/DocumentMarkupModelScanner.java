@@ -84,24 +84,24 @@ public class DocumentMarkupModelScanner implements Disposable {
 
         if (projectManager != null) {
             List<InlineProblem> problems = new ArrayList<>();
-
-            for (var project : projectManager.getOpenProjects()) {
-                if (!project.isInitialized() || project.isDisposed())
-                    continue;
-
-                FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-                for (var editor : fileEditorManager.getAllEditors()) {
-
-                    if (editor.getFile() == null || FileNameUtil.ignoreFile(editor.getFile().getName())) {
+            if (settingsState.isEnableInlineProblem())
+                for (var project : projectManager.getOpenProjects()) {
+                    if (!project.isInitialized() || project.isDisposed())
                         continue;
-                    }
 
-                    if (editor instanceof TextEditor) {
-                        var textEditor = (TextEditor) editor;
-                        problems.addAll(getProblemsInEditor(textEditor));
+                    FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+                    for (var editor : fileEditorManager.getAllEditors()) {
+
+                        if (editor.getFile() == null || FileNameUtil.ignoreFile(editor.getFile().getName())) {
+                            continue;
+                        }
+
+                        if (editor instanceof TextEditor) {
+                            var textEditor = (TextEditor) editor;
+                            problems.addAll(getProblemsInEditor(textEditor));
+                        }
                     }
                 }
-            }
 
             problemManager.updateFromNewActiveProblems(problems);
         }
@@ -119,7 +119,7 @@ public class DocumentMarkupModelScanner implements Disposable {
         mergingUpdateQueue.queue(new Update("scan") {
             @Override
             public void run() {
-                List<InlineProblem> problems = getProblemsInEditor(textEditor);
+                List<InlineProblem> problems = settingsState.isEnableInlineProblem() ? List.of() : getProblemsInEditor(textEditor);
 
                 problemManager.updateFromNewActiveProblemsForProjectAndFile(
                         problems,
@@ -158,8 +158,7 @@ public class DocumentMarkupModelScanner implements Disposable {
                                 !highlightInfo.getDescription().isEmpty() &&
                                 problemTextBeginningFilterList.stream()
                                         .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase())) &&
-                                fileEndOffset >= highlightInfo.getStartOffset()
-                        ;
+                                fileEndOffset >= highlightInfo.getStartOffset();
                     }
 
                     return false;
