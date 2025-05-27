@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [0.5.8]
+### Fixed
+- Fixed settings not opening with non default locales
+
 ## [0.5.7]
 ### Changed
 - Added feature to enable and disable all problems with a keybind (thanks to khopland)
