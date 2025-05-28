@@ -185,7 +185,7 @@ public class SettingsComponent {
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
                 .addTooltip(SettingsBundle.message("settings.problemFilterListTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.fileExtensionBlacklistLabel")), fileExtensionBlacklist)
-                .addTooltip(SettingsBundle.message("settings.fileExtensionBlaclistTooltip"))
+                .addTooltip(SettingsBundle.message("settings.fileExtensionBlacklistTooltip"))
                 .addSeparator()
                 .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.colors")))
                 .addComponent(showErrors)
