@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.ProjectManager;
@@ -19,7 +20,7 @@ import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
-import org.overengineer.inlineproblems.utils.FileNameUtil;
+import org.overengineer.inlineproblems.utils.FileUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,12 +93,16 @@ public class DocumentMarkupModelScanner implements Disposable {
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                 for (var editor : fileEditorManager.getAllEditors()) {
 
-                    if (editor.getFile() == null || FileNameUtil.ignoreFile(editor.getFile().getName())) {
-                        continue;
-                    }
-
                     if (editor instanceof TextEditor) {
                         var textEditor = (TextEditor) editor;
+
+                        if (
+                                editor.getFile() == null ||
+                                FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
+                        ) {
+                            continue;
+                        }
+
                         problems.addAll(getProblemsInEditor(textEditor));
                     }
                 }
@@ -112,7 +117,10 @@ public class DocumentMarkupModelScanner implements Disposable {
      * millisecond if the HighlightProblemListener is used.
      */
     public void scanForProblemsManuallyInTextEditor(TextEditor textEditor) {
-        if (textEditor.getFile() == null || FileNameUtil.ignoreFile(textEditor.getFile().getName())) {
+        if (
+                textEditor.getFile() == null ||
+                FileUtil.ignoreFile(textEditor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
+        ) {
             return;
         }
 
