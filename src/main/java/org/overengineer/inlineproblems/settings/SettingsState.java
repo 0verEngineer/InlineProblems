@@ -106,6 +106,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean showOnlyHighestSeverityPerLine = false;
     private boolean enableHtmlStripping = true;
     private boolean enableXmlUnescaping = true;
+    private int maxProblemsPerLine = 20;
 
     // migration booleans
     private boolean highlightProblemListenerDeprecateMigrationDone = false;
