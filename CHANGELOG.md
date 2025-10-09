@@ -4,10 +4,19 @@
 
 ## [Unreleased]
 
-## [0.5.7]
+## [0.5.9]
 ### Changed
 - Added a max lines feature to exclude big files
 - Added a max problems per line feature
+
+## [0.5.8]
+### Fixed
+- Fixed settings not opening with non default locales
+
+## [0.5.7]
+### Changed
+- Added feature to enable and disable all problems with a keybind (thanks to khopland)
+- Added feature to hover and click in a problem to get the fix context window (thanks to khopland)
 
 ## [0.5.6]
 ### Changed

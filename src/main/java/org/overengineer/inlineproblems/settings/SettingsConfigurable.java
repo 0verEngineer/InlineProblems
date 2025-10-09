@@ -17,7 +17,8 @@ public class SettingsConfigurable implements Configurable {
 
     private final ListenerManager listenerManager = ListenerManager.getInstance();
 
-    SettingsConfigurable() {}
+    SettingsConfigurable() {
+    }
 
     @Override
     @NlsContexts.ConfigurableName
@@ -42,6 +43,7 @@ public class SettingsConfigurable implements Configurable {
         SettingsState state = SettingsState.getInstance();
 
         boolean oldStateEqualsNewState = state.isForceProblemsInSameLine() == settingsComponent.isForceErrorsInSameLine() &&
+                state.isEnableInlineProblem() == settingsComponent.isEnableInlineProblem() &&
                 state.isDrawBoxesAroundErrorLabels() == settingsComponent.getDrawBoxesAroundProblemLabels() &&
                 state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
@@ -53,6 +55,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
                 state.isBoldProblemLabels() == settingsComponent.isBoldProblemLabels() &&
                 state.isItalicProblemLabels() == settingsComponent.isItalicProblemLabels() &&
+                state.isClickableContext() == settingsComponent.isClickableContext() &&
 
                 state.getErrorTextColor().equals(settingsComponent.getErrorTextColor()) &&
                 state.getErrorBackgroundColor().equals(settingsComponent.getErrorLabelBackgroundColor()) &&
@@ -135,6 +138,9 @@ public class SettingsConfigurable implements Configurable {
         state.setInfoBackgroundColor(settingsComponent.getInfoLabelBackgroundColor());
         state.setInfoHighlightColor(settingsComponent.getInfoHighlightColor());
 
+        state.setEnableInlineProblem(settingsComponent.isEnableInlineProblem());
+        state.setEnableInlineProblemsNotifications(settingsComponent.isEnableInlineProblemsNotifications());
+
         state.setForceProblemsInSameLine(settingsComponent.isForceErrorsInSameLine());
         state.setDrawBoxesAroundErrorLabels(settingsComponent.getDrawBoxesAroundProblemLabels());
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
@@ -147,6 +153,7 @@ public class SettingsConfigurable implements Configurable {
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
         state.setBoldProblemLabels(settingsComponent.isBoldProblemLabels());
         state.setItalicProblemLabels(settingsComponent.isItalicProblemLabels());
+        state.setClickableContext(settingsComponent.isClickableContext());
 
         state.setEnabledListener(settingsComponent.getEnabledListener());
         state.setManualScannerDelay(settingsComponent.getManualScannerDelay());
@@ -207,6 +214,9 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setInfoLabelBackgroundColor(state.getInfoBackgroundColor());
         settingsComponent.setInfoHighlightColor(state.getInfoHighlightColor());
 
+        settingsComponent.setEnableInlineProblem(state.isEnableInlineProblem());
+        settingsComponent.setEnableInlineProblemsNotifications(state.isEnableInlineProblemsNotifications());
+
         settingsComponent.setForceErrorsInSameLine(state.isForceProblemsInSameLine());
         settingsComponent.setDrawBoxesAroundProblemLabels(state.isDrawBoxesAroundErrorLabels());
         settingsComponent.setRoundedCornerBoxes(state.isRoundedCornerBoxes());
@@ -219,6 +229,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
         settingsComponent.setBoldProblemLabels(state.isBoldProblemLabels());
         settingsComponent.setItalicProblemLabels(state.isItalicProblemLabels());
+        settingsComponent.setClickableContext(state.isClickableContext());
 
         settingsComponent.setEnabledListener(state.getEnabledListener());
         settingsComponent.setManualScannerDelay(state.getManualScannerDelay());

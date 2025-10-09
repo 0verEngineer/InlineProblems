@@ -84,13 +84,13 @@ public class DocumentMarkupModelScanner implements Disposable {
 
         if (projectManager != null) {
             List<InlineProblem> problems = new ArrayList<>();
+            if (settingsState.isEnableInlineProblem())
+                for (var project : projectManager.getOpenProjects()) {
+                    if (!project.isInitialized() || project.isDisposed())
+                        continue;
 
-            for (var project : projectManager.getOpenProjects()) {
-                if (!project.isInitialized() || project.isDisposed())
-                    continue;
-
-                FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-                for (var editor : fileEditorManager.getAllEditors()) {
+                    FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+                    for (var editor : fileEditorManager.getAllEditors()) {
 
                     if (editor instanceof TextEditor) {
                         var textEditor = (TextEditor) editor;
@@ -126,7 +126,7 @@ public class DocumentMarkupModelScanner implements Disposable {
         mergingUpdateQueue.queue(new Update("scan") {
             @Override
             public void run() {
-                List<InlineProblem> problems = getProblemsInEditor(textEditor);
+                List<InlineProblem> problems = settingsState.isEnableInlineProblem() ? List.of() : getProblemsInEditor(textEditor);
 
                 problemManager.updateFromNewActiveProblemsForProjectAndFile(
                         problems,
@@ -165,8 +165,7 @@ public class DocumentMarkupModelScanner implements Disposable {
                                 !highlightInfo.getDescription().isEmpty() &&
                                 problemTextBeginningFilterList.stream()
                                         .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase())) &&
-                                fileEndOffset >= highlightInfo.getStartOffset()
-                        ;
+                                fileEndOffset >= highlightInfo.getStartOffset();
                     }
 
                     return false;
