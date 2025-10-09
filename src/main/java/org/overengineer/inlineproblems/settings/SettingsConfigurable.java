@@ -46,6 +46,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
                 state.isShowOnlyHighestSeverityPerLine() == settingsComponent.isShowOnlyHighestSeverityPerLine() &&
+                state.getMaxProblemsPerLine() == settingsComponent.getMaxProblemsPerLine() &&
                 state.isEnableHtmlStripping() == settingsComponent.isEnableHtmlStripping() &&
                 state.isEnableXmlUnescaping() == settingsComponent.isEnableXmlUnescaping() &&
                 state.getInlayFontSizeDelta() == settingsComponent.getInlayFontSizeDelta() &&
@@ -139,6 +140,7 @@ public class SettingsConfigurable implements Configurable {
         state.setRoundedCornerBoxes(settingsComponent.isRoundedCornerBoxes());
         state.setUseEditorFont(settingsComponent.isUseEditorFont());
         state.setShowOnlyHighestSeverityPerLine(settingsComponent.isShowOnlyHighestSeverityPerLine());
+        state.setMaxProblemsPerLine(settingsComponent.getMaxProblemsPerLine());
         state.setEnableHtmlStripping(settingsComponent.isEnableHtmlStripping());
         state.setEnableXmlUnescaping(settingsComponent.isEnableXmlUnescaping());
         state.setInlayFontSizeDelta(settingsComponent.getInlayFontSizeDelta());
@@ -210,6 +212,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setRoundedCornerBoxes(state.isRoundedCornerBoxes());
         settingsComponent.setUseEditorFont(state.isUseEditorFont());
         settingsComponent.setShowOnlyHighestSeverityPerLine(state.isShowOnlyHighestSeverityPerLine());
+        settingsComponent.setMaxProblemsPerLine(state.getMaxProblemsPerLine());
         settingsComponent.setEnableHtmlStripping(state.isEnableHtmlStripping());
         settingsComponent.setEnableXmlUnescaping(state.isEnableXmlUnescaping());
         settingsComponent.setInlayFontSizeDelta(state.getInlayFontSizeDelta());

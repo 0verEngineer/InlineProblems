@@ -64,6 +64,12 @@ public class ProblemManager implements Disposable {
                 removeProblem(p);
         });
 
+        // Limit problems per line
+        int maxProblemsPerLine = settingsState.getMaxProblemsPerLine();
+        if (maxProblemsPerLine > 0 && problemsInLine.size() > maxProblemsPerLine) {
+            problemsInLine.subList(maxProblemsPerLine, problemsInLine.size()).clear();
+        }
+
         /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
         *  it does not work like expected, that is because there are differences in the evaluation and the way it is called */
         problemsInLine.forEach(this::addProblemPrivate);
