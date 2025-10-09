@@ -87,6 +87,7 @@ public class SettingsConfigurable implements Configurable {
 
                 state.getProblemFilterList().equals(settingsComponent.getProblemFilterList()) &&
                 state.getFileExtensionBlacklist().equals(settingsComponent.getFileExtensionBlacklist()) &&
+                state.getMaxFileLines() == settingsComponent.getMaxFileLines() &&
 
                 state.getAdditionalInfoSeveritiesAsString().equals(settingsComponent.getAdditionalInfoSeverities()) &&
                 state.getAdditionalWarningSeveritiesAsString().equals(settingsComponent.getAdditionalWarningSeverities()) &&
@@ -104,6 +105,7 @@ public class SettingsConfigurable implements Configurable {
         boolean listenerChanged = state.getEnabledListener() != settingsComponent.getEnabledListener();
         boolean fileExtensionBlacklistChanged = !Objects.equals(state.getFileExtensionBlacklist(), settingsComponent.getFileExtensionBlacklist());
         boolean manualScannerDelayChanged = state.getManualScannerDelay() != settingsComponent.getManualScannerDelay();
+        boolean maxFileLinesChanged = state.getMaxFileLines() != settingsComponent.getMaxFileLines();
 
         state.setShowErrors(settingsComponent.isShowErrors());
         state.setHighlightErrors(settingsComponent.isHighlightErrors());
@@ -150,6 +152,7 @@ public class SettingsConfigurable implements Configurable {
         state.setManualScannerDelay(settingsComponent.getManualScannerDelay());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
         state.setFileExtensionBlacklist(settingsComponent.getFileExtensionBlacklist());
+        state.setMaxFileLines(settingsComponent.getMaxFileLines());
 
         state.setAdditionalInfoSeverities(settingsComponent.getAdditionalInfoSeveritiesList());
         state.setAdditionalWarningSeverities(settingsComponent.getAdditionalWarningSeveritiesList());
@@ -162,8 +165,8 @@ public class SettingsConfigurable implements Configurable {
 
         listenerManager.resetAndRescan();
 
-        // When the blacklist changes we need to re-apply all MarkupModelProblemListeners
-        if (fileExtensionBlacklistChanged && state.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER) {
+        // When the blacklist or maxFileLines changes we need to re-apply all MarkupModelProblemListeners
+        if ((fileExtensionBlacklistChanged || maxFileLinesChanged) && state.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER) {
             listenerManager.resetMarkupModelProblemListeners();
         }
 

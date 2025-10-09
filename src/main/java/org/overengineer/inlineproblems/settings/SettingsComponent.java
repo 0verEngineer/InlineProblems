@@ -66,6 +66,7 @@ public class SettingsComponent {
     private final JFormattedTextField inlayFontSizeDeltaText;
     private final JFormattedTextField manualScannerDelay;
     private final JFormattedTextField maxProblemsPerLine;
+    private final JFormattedTextField maxFileLines;
     private final JBCheckBox fillProblemLabels = new JBCheckBox(SettingsBundle.message("settings.fillProblemLabels"));
     private final JBCheckBox boldProblemLabels = new JBCheckBox(SettingsBundle.message("settings.boldProblemLabels"));
     private final JBCheckBox italicProblemLabels = new JBCheckBox(SettingsBundle.message("settings.italicProblemLabels"));
@@ -134,6 +135,9 @@ public class SettingsComponent {
         manualScannerDelay = new JFormattedTextField(numberFormatter);
         manualScannerDelay.setText(Integer.toString(settingsState.getManualScannerDelay()));
 
+        maxFileLines = new JFormattedTextField(numberFormatter);
+        maxFileLines.setText(Integer.toString(settingsState.getMaxFileLines()));
+
         fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
         boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
         italicProblemLabels.setSelected(settingsState.isItalicProblemLabels());
@@ -177,9 +181,11 @@ public class SettingsComponent {
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
                 .addTooltip(SettingsBundle.message("settings.problemFilterListTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.fileExtensionBlacklistLabel")), fileExtensionBlacklist)
-                .addTooltip(SettingsBundle.message("settings.fileExtensionBlaclistTooltip"))
+                .addTooltip(SettingsBundle.message("settings.fileExtensionBlacklistTooltip"))
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.maxProblemsPerLineLabel")), maxProblemsPerLine)
                 .addTooltip(SettingsBundle.message("settings.maxProblemsPerLineTooltip"))
+                .addLabeledComponent(new JLabel(SettingsBundle.message("settings.maxFileLinesLabel")), maxFileLines)
+                .addTooltip(SettingsBundle.message("settings.maxFileLinesTooltip"))
                 .addSeparator()
                 .addComponent(new JBLabel(SettingsBundle.message("settings.submenu.colors")))
                 .addComponent(showErrors)
@@ -627,5 +633,18 @@ public class SettingsComponent {
 
     public void setMaxProblemsPerLine(int max) {
         maxProblemsPerLine.setText(Integer.toString(Math.max(0, max)));
+    }
+
+    public int getMaxFileLines() {
+        try {
+            return Math.max(Integer.parseInt(maxFileLines.getText()), 0);
+        }
+        catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public void setMaxFileLines(int lines) {
+        maxFileLines.setText(Integer.toString(Math.max(0, lines)));
     }
 }
