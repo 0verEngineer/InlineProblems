@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.5.7]
+### Changed
+- Added a max lines feature to exclude big files
+- Added a max problems per line feature
+
 ## [0.5.6]
 ### Changed
 - Added 2 settings options to disable HTML stripping and XML unescaping
