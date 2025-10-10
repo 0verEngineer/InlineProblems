@@ -100,6 +100,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private int enabledListener = Listener.MARKUP_MODEL_LISTENER;
     private String problemFilterList = "todo;fixme;open in browser";
     private String fileExtensionBlacklist = "";
+    private int maxFileLines = 0;
 
     private List<Integer> additionalErrorSeverities = new ArrayList<>();
     private List<Integer> additionalWarningSeverities = new ArrayList<>();
@@ -109,6 +110,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean showOnlyHighestSeverityPerLine = false;
     private boolean enableHtmlStripping = true;
     private boolean enableXmlUnescaping = true;
+    private int maxProblemsPerLine = 20;
 
     // migration booleans
     private boolean highlightProblemListenerDeprecateMigrationDone = false;
