@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.settings.SettingsState;
-import org.overengineer.inlineproblems.utils.FileNameUtil;
+import org.overengineer.inlineproblems.utils.FileUtil;
 
 
 public class HighlightProblemListener implements HighlightInfoFilter {
@@ -29,7 +29,8 @@ public class HighlightProblemListener implements HighlightInfoFilter {
         if (file == null || !file.isValid())
             return true;
 
-        if (FileNameUtil.ignoreFile(file.getName())) {
+        // Only check file name here, the line count is checked in the scanForProblemsManuallyInTextEditor call
+        if (FileUtil.ignoreFile(file.getName(), -1)) {
             return true;
         }
 
@@ -48,7 +49,7 @@ public class HighlightProblemListener implements HighlightInfoFilter {
             return;
 
         FileEditor editor = FileEditorManager.getInstance(file.getProject()).getSelectedEditor(file.getVirtualFile());
-        if (editor == null) {
+        if (editor == null || !(editor instanceof TextEditor)) {
             return;
         }
 

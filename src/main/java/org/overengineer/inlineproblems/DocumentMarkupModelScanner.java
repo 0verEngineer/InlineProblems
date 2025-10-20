@@ -19,7 +19,7 @@ import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
-import org.overengineer.inlineproblems.utils.FileNameUtil;
+import org.overengineer.inlineproblems.utils.FileUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,16 +92,20 @@ public class DocumentMarkupModelScanner implements Disposable {
                     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                     for (var editor : fileEditorManager.getAllEditors()) {
 
-                        if (editor.getFile() == null || FileNameUtil.ignoreFile(editor.getFile().getName())) {
+                    if (editor instanceof TextEditor) {
+                        var textEditor = (TextEditor) editor;
+
+                        if (
+                                editor.getFile() == null ||
+                                FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
+                        ) {
                             continue;
                         }
 
-                        if (editor instanceof TextEditor) {
-                            var textEditor = (TextEditor) editor;
-                            problems.addAll(getProblemsInEditor(textEditor));
-                        }
+                        problems.addAll(getProblemsInEditor(textEditor));
                     }
                 }
+            }
 
             problemManager.updateFromNewActiveProblems(problems);
         }
@@ -112,7 +116,10 @@ public class DocumentMarkupModelScanner implements Disposable {
      * millisecond if the HighlightProblemListener is used.
      */
     public void scanForProblemsManuallyInTextEditor(TextEditor textEditor) {
-        if (textEditor.getFile() == null || FileNameUtil.ignoreFile(textEditor.getFile().getName())) {
+        if (
+                textEditor.getFile() == null ||
+                FileUtil.ignoreFile(textEditor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
+        ) {
             return;
         }
 

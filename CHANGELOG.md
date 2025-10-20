@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.5.9]
+### Changed
+- Added a max lines feature to exclude big files
+- Added a max problems per line feature
+
 ## [0.5.8]
 ### Fixed
 - Fixed settings not opening with non default locales
