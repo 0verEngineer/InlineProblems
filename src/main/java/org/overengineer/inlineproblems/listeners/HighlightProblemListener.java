@@ -23,9 +23,10 @@ public class HighlightProblemListener implements HighlightInfoFilter {
 
     @Override
     public boolean accept(@NotNull HighlightInfo highlightInfo, @Nullable PsiFile file) {
+        if (settingsState.isEnableInlineProblem())
+            return true;
         if (settingsState.getEnabledListener() != Listener.HIGHLIGHT_PROBLEMS_LISTENER)
             return true;
-
         if (file == null || !file.isValid())
             return true;
 
