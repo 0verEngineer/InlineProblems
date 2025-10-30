@@ -27,7 +27,8 @@ public class FileUtil {
         if (lineCount >= 0) {
             var maxFileLines = settings.getMaxFileLines();
 
-            if (maxFileLines >= 0 && lineCount >= maxFileLines) {
+            // maxFileLines == 0 => line count is ignored
+            if (maxFileLines > 0 && lineCount >= maxFileLines) {
                 ignore = true;
             }
         }
