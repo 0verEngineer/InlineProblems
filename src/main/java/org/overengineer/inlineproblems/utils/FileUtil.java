@@ -16,7 +16,7 @@ public class FileUtil {
 
         if (fileName != null) {
             for (var e : settings.getFileExtensionBlacklist().split(";")) {
-                if (e.isBlank() || e.isEmpty() || e.equals(";")) continue;
+                if (e.isBlank() || e.equals(";")) continue;
                 if (fileName.endsWith(e)) {
                     ignore = true;
                     break;
@@ -28,7 +28,7 @@ public class FileUtil {
             var maxFileLines = settings.getMaxFileLines();
 
             // maxFileLines == 0 => line count is ignored
-            if (maxFileLines > 0 && lineCount >= maxFileLines) {
+            if (maxFileLines > 0 && lineCount > maxFileLines) {
                 ignore = true;
             }
         }
