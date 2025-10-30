@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.5.10]
+### Fixed
+- Fixed max lines feature 0-ignore logic (problems not appearing)
+- Fixed and improved the problem reset and refresh after using actions (keyboard shortcuts) to enable/disable severity levels or the whole plugin functionality
+
 ## [0.5.9]
 ### Changed
 - Added a max lines feature to exclude big files
