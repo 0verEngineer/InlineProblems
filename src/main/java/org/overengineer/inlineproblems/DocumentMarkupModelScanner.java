@@ -80,23 +80,25 @@ public class DocumentMarkupModelScanner implements Disposable {
     }
 
     public void scanForProblemsManually() {
+        if (!settingsState.isEnableInlineProblem()) {
+            return;
+        }
+
         ProjectManager projectManager = ProjectManager.getInstanceIfCreated();
 
         if (projectManager != null) {
             List<InlineProblem> problems = new ArrayList<>();
-            if (settingsState.isEnableInlineProblem())
-                for (var project : projectManager.getOpenProjects()) {
-                    if (!project.isInitialized() || project.isDisposed())
-                        continue;
+            for (var project : projectManager.getOpenProjects()) {
+                if (!project.isInitialized() || project.isDisposed())
+                    continue;
 
-                    FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-                    for (var editor : fileEditorManager.getAllEditors()) {
+                FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+                for (var editor : fileEditorManager.getAllEditors()) {
 
                     if (editor instanceof TextEditor) {
                         var textEditor = (TextEditor) editor;
 
-                        if (
-                                editor.getFile() == null ||
+                        if (editor.getFile() == null ||
                                 FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
                         ) {
                             continue;
@@ -105,9 +107,8 @@ public class DocumentMarkupModelScanner implements Disposable {
                         problems.addAll(getProblemsInEditor(textEditor));
                     }
                 }
+                problemManager.updateFromNewActiveProblems(problems);
             }
-
-            problemManager.updateFromNewActiveProblems(problems);
         }
     }
 

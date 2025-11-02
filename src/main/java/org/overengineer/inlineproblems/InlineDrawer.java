@@ -9,7 +9,6 @@ import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.SeverityUtil;
 
-import javax.annotation.Nullable;
 import java.awt.Font;
 import java.awt.Canvas;
 import java.util.List;
@@ -139,7 +138,7 @@ public class InlineDrawer {
      * @param problemsInLine the problems in the same line as problem, null if no gutter icons are enabled, keep in mind that
      *                       it still contains the problem itself
      */
-    public void undrawErrorLineHighlight(InlineProblem problem, @Nullable List<InlineProblem> problemsInLine) {
+    public void undrawErrorLineHighlight(InlineProblem problem, List<InlineProblem> problemsInLine) {
         MarkupModel markupModel = problem.getTextEditor().getEditor().getMarkupModel();
 
         Arrays.stream(markupModel.getAllHighlighters())
