@@ -167,7 +167,7 @@
 ### Added
 - Initial release with basic functionality
 
-[Unreleased]: https://github.com/OverEngineer/InlineProblems/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/0verEngineer/InlineProblems/compare/v0.4.0...HEAD
 [0.4.3]: https://github.com/0verEngineer/InlineProblems/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/0verEngineer/InlineProblems/compare/v0.4.0...v0.4.2
 [0.4.0]: https://github.com/0verEngineer/InlineProblems/compare/v0.3.3...v0.4.0
