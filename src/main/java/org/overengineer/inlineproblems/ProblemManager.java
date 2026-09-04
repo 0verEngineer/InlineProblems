@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
+    private static final Comparator<InlineProblem> HIGHEST_SEVERITY_FIRST =
+            (p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity());
+
     @Getter
     private final List<InlineProblem> activeProblems = new ArrayList<>();
 
@@ -37,10 +40,9 @@ public class ProblemManager implements Disposable {
         inlineDrawer.undrawErrorLineHighlight(problem, problemsInLine);
         inlineDrawer.undrawInlineProblemLabel(problem);
 
-        if (!Collections.synchronizedList(activeProblems).remove(problem)) {
+        if (!activeProblems.remove(problem)) {
             logger.warn("Removal of problem failed, resetting");
             resetForEditor(problem.getTextEditor().getEditor());
-            return;
         }
     }
 
@@ -54,10 +56,7 @@ public class ProblemManager implements Disposable {
 
         List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
         problemsInLine.add(problem);
-
-        problemsInLine = problemsInLine.stream()
-                .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
-                .collect(Collectors.toList());
+        problemsInLine.sort(HIGHEST_SEVERITY_FIRST);
 
         problemsInLine.forEach(p -> {
             if (p != problem)
@@ -84,7 +83,7 @@ public class ProblemManager implements Disposable {
         }
 
         inlineDrawer.drawProblemLabel(problem);
-        Collections.synchronizedList(activeProblems).add(problem);
+        activeProblems.add(problem);
     }
 
     public boolean shouldProblemBeIgnored(int severity) {
@@ -161,17 +160,21 @@ public class ProblemManager implements Disposable {
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
     }
 
+    /**
+     * @return a mutable list, the caller is allowed to modify it (InlineDrawer removes the
+     *         problem that is being undrawn from it)
+     */
     private List<InlineProblem> getProblemsInLineForProblem(InlineProblem problem) {
         return activeProblems.stream()
                 .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private List<InlineProblem> getProblemsInLineForProblemSorted(InlineProblem problem) {
-        return activeProblems.stream()
-                .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
-                .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
-                .collect(Collectors.toList());
+        List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
+        problemsInLine.sort(HIGHEST_SEVERITY_FIRST);
+
+        return problemsInLine;
     }
 
     /**
@@ -180,7 +183,7 @@ public class ProblemManager implements Disposable {
      * this function needs to be used.
      */
     private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
-        final List<Integer> processedProblemHashCodes = new ArrayList<>();
+        final Set<Integer> processedProblemHashCodes = new HashSet<>();
         List<InlineProblem> usedProblems;
 
         if (settingsState.isShowOnlyHighestSeverityPerLine()) {
@@ -206,15 +209,20 @@ public class ProblemManager implements Disposable {
             usedProblems = newProblems;
         }
 
+        /* Hash based lookups, the lists can hold thousands of problems and both filters below
+         * used to run a linear search per element. */
+        final Set<InlineProblem> usedProblemSet = new HashSet<>(usedProblems);
+        final Set<InlineProblem> activeProblemSet = new HashSet<>(activeProblemsSnapShot);
+
         activeProblemsSnapShot.stream()
-                .filter(p -> !usedProblems.contains(p))
+                .filter(p -> !usedProblemSet.contains(p))
                 .forEach(p -> {
                     processedProblemHashCodes.add(p.hashCode());
                     removeProblem(p);
                 });
 
         usedProblems.stream()
-                .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblemHashCodes.contains(p.hashCode()))
+                .filter(p -> !activeProblemSet.contains(p) && !processedProblemHashCodes.contains(p.hashCode()))
                 .forEach(this::addProblem);
     }
 }

@@ -182,9 +182,15 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         }
     }
 
+    /**
+     * The markup model belongs to the document, so a highlighter is shared between all editors
+     * of that document (split view). The problem of this listeners own editor is the one to
+     * look for.
+     */
     private InlineProblem findActiveProblemByRangeHighlighter(RangeHighlighter rangeHighlighter) {
         return problemManager.getActiveProblems().stream()
                 .filter(p -> p.getRangeHighlighter() == rangeHighlighter)
+                .filter(p -> Objects.equals(p.getTextEditor(), textEditor))
                 .findFirst()
                 .orElse(null);
     }
