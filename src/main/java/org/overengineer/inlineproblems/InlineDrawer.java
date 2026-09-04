@@ -10,7 +10,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.SeverityUtil;
 
 import java.awt.Font;
-import java.awt.Canvas;
+import java.awt.FontMetrics;
 import java.util.List;
 import java.util.Arrays;
 
@@ -52,8 +52,13 @@ public class InlineDrawer {
 
         Font editorFont = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
 
+        /* The font metrics are taken from the editor content component instead of a throwaway
+         * java.awt.Canvas: instantiating a heavyweight AWT component for every drawn problem
+         * showed up as a hotspot while scrolling (GitHub issue #96). */
+        FontMetrics editorFontMetrics = editor.getContentComponent().getFontMetrics(editorFont);
+
         int problemWidth = inlineProblemLabel.calcWidthInPixels(editor) +
-                new Canvas().getFontMetrics(editorFont).stringWidth(lineText) +
+                editorFontMetrics.stringWidth(lineText) +
                 existingInlineElementsWidth;
 
         // We add 50 as offset here because the calculation is somehow not exact
