@@ -129,7 +129,7 @@ public class ProblemManager implements Disposable {
 
         for (int additionalSeverity : settingsState.getAdditionalInfoSeverities()) {
             if (additionalSeverity == severity) {
-                problem.setSeverity(HighlightSeverity.INFO.myVal);
+                problem.setSeverity(HighlightSeverity.INFORMATION.myVal);
                 return;
             }
         }
