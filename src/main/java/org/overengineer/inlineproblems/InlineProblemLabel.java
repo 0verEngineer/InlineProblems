@@ -4,6 +4,7 @@ import com.intellij.codeInsight.hints.presentation.InputHandler;
 import com.intellij.codeInsight.intention.impl.ShowIntentionActionsHandler;
 import com.intellij.ide.ui.AntialiasingType;
 import com.intellij.ide.ui.UISettings;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
@@ -20,7 +21,6 @@ import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.ui.paint.EffectPainter;
 import lombok.Getter;
 import lombok.Setter;
-import org.jdesktop.swingx.action.ActionManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.entities.InlineProblem;
@@ -196,23 +196,29 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
         if (!clickableContext) {
             return;
         }
+        Inlay<?> currentInlay = inlay;
+        if (currentInlay == null) {
+            return;
+        }
+
         if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
             mouseEvent.consume();
 
-            var editor = inlay.getEditor();
+            Editor editor = currentInlay.getEditor();
             editor.getCaretModel().moveToOffset(actualStartOffset);
             editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
 
-            var action = ActionManager.getInstance().getAction(IdeActions.ACTION_SHOW_INTENTION_ACTIONS);
-            if (action == null) {
-                Project project = editor.getProject();
-                if (project == null) return;
-                PsiFile psiFileInEditor = PsiUtilBase.getPsiFileInEditor(editor, project);
-                if (psiFileInEditor == null) return;
-                new ShowIntentionActionsHandler().invoke(project, editor, psiFileInEditor, false);
-            } else {
-                ActionUtil.invokeAction((AnAction) action, editor.getComponent(), "EditorInlay", null, null);
+            AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SHOW_INTENTION_ACTIONS);
+            if (action != null) {
+                ActionUtil.invokeAction(action, editor.getComponent(), "EditorInlay", null, null);
+                return;
             }
+
+            Project project = editor.getProject();
+            if (project == null) return;
+            PsiFile psiFileInEditor = PsiUtilBase.getPsiFileInEditor(editor, project);
+            if (psiFileInEditor == null) return;
+            new ShowIntentionActionsHandler().invoke(project, editor, psiFileInEditor, false);
         }
     }
 
