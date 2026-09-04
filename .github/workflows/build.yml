@@ -3,6 +3,7 @@
 # - run 'test' and 'verifyPlugin' tasks,
 # - run Qodana inspections,
 # - run 'buildPlugin' task and prepare artifact for the further tests,
+# - run 'runPluginVerifier' task,
 # - create a draft release.
 #
 # Workflow is triggered on push and pull_request events.
@@ -31,6 +32,7 @@ jobs:
       version: ${{ steps.properties.outputs.version }}
       changelog: ${{ steps.properties.outputs.changelog }}
       pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
+      pluginVerifierIdeVersions: ${{ steps.properties.outputs.pluginVerifierIdeVersions }}
     steps:
 
       # Free GitHub Actions Environment Disk Space
@@ -69,16 +71,17 @@ jobs:
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           NAME="$(echo "$PROPERTIES" | grep "^pluginName:" | cut -f2- -d ' ')"
+          IDE_VERSIONS="$(echo "$PROPERTIES" | grep "^pluginVerifierIdeVersions:" | cut -f2- -d ' ' | tr -d ' ')"
           CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
           echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
+          echo "pluginVerifierIdeVersions=$IDE_VERSIONS" >> $GITHUB_OUTPUT
           
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          ./gradlew listProductsReleases # prepare list of IDEs for Plugin Verifier 
 
       # Build plugin
       - name: Build plugin
@@ -172,24 +175,13 @@ jobs:
         with:
           cache-default-branch-only: true
 
-  # Run the plugin structure verification.
-  #
-  # NOTE this job used to run the IntelliJ Plugin Verifier. Commit 9a6304e ("Try to fix plugin
-  #      verification task", 2025-04-10) replaced `runPluginVerifier` with `verifyPlugin`, and
-  #      with gradle-intellij-plugin 1.x those are two different tasks:
-  #        verifyPlugin      - validates the plugin.xml descriptors and the archive structure
-  #        runPluginVerifier - the actual verifier, checks binary compatibility against IDE builds
-  #      So binary incompatibilities with newer IDE versions are currently not caught in CI. The
-  #      -Dplugin.verifier.home.dir property below, the cache step and the listProductsReleases
-  #      call in the build job are all leftovers that only take effect with runPluginVerifier.
-  #      Locally the verifier is still available through the "Run Verifications" run
-  #      configuration in .run/, which does call runPluginVerifier.
-  # TODO decide whether to re-enable it. The commit message suggests it was failing back then,
-  #      which is plausible with an open untilBuild plus the internal APIs this plugin uses
-  #      (HighlightInfo, DocumentMarkupModel, FontInfo, ShowIntentionActionsHandler) - it likely
-  #      needs an explicit ideVersions/failureLevel configuration rather than a plain re-add.
-  #      Also note that the task was renamed when the IntelliJ Platform Gradle Plugin 2.x came
-  #      out, so verify the task names again when migrating off 1.x.
+  # Run the plugin structure verification (verifyPlugin) and the IntelliJ Plugin Verifier
+  # (runPluginVerifier). With gradle-intellij-plugin 1.x these are two different tasks:
+  #   verifyPlugin      - validates the plugin.xml descriptors and the archive structure
+  #   runPluginVerifier - checks binary compatibility against the IDE build pinned in
+  #                       gradle.properties (pluginVerifierIdeVersions)
+  # Note that the task names changed with the IntelliJ Platform Gradle Plugin 2.x, so they have to
+  # be revisited when migrating off 1.x.
   verify:
     name: Verify plugin
     needs: [ build ]
@@ -220,16 +212,20 @@ jobs:
         with:
           gradle-home-cache-cleanup: true
 
-      # Cache Plugin Verifier IDEs
+      # Cache Plugin Verifier IDEs. Keyed on the pinned IDE build itself and not on
+      # gradle.properties, because that file also holds pluginVersion - keying on the file would
+      # invalidate a multi gigabyte cache entry on every version bump. One IDE is roughly 3.5 GB
+      # unpacked, so keep pluginVerifierIdeVersions short: GitHub allows 10 GB of caches per
+      # repository in total, shared with the Gradle cache.
       - name: Setup Plugin Verifier IDEs Cache
         uses: actions/cache@v4
         with:
           path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
-          key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
+          key: plugin-verifier-${{ needs.build.outputs.pluginVerifierIdeVersions }}
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks
-        run: ./gradlew verifyPlugin -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+        run: ./gradlew verifyPlugin runPluginVerifier -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
 
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result

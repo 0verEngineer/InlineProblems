@@ -1,5 +1,6 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
+import org.jetbrains.intellij.tasks.RunPluginVerifierTask.FailureLevel
 
 fun properties(key: String) = project.findProperty(key).toString()
 
@@ -128,5 +129,27 @@ tasks {
     runIde {
         maxHeapSize = "4g"
         minHeapSize = "2g"
+    }
+
+    runPluginVerifier {
+        /* Without an explicit list the IDE builds are derived from pluginSinceBuild through the
+         * listProductsReleases task. With an open untilBuild that currently resolves to 14 builds
+         * at 1.8 to 3.5 GB unpacked each - more than a CI runner has after cleanup, which is the
+         * likely reason the task was failing before. */
+        ideVersions.set(
+            properties("pluginVerifierIdeVersions").split(',').map(String::trim).filter(String::isNotEmpty)
+        )
+
+        /* Only genuine breakage fails the build. The plugin knowingly builds on internal API
+         * (HighlightInfo, DocumentMarkupModel, FontInfo, ShowIntentionActionsHandler), so
+         * INTERNAL_API_USAGES and the deprecation levels would be permanently red without saying
+         * anything actionable. They are still listed in the report under build/reports/pluginVerifier. */
+        failureLevel.set(
+            listOf(
+                FailureLevel.COMPATIBILITY_PROBLEMS,
+                FailureLevel.INVALID_PLUGIN,
+                FailureLevel.MISSING_DEPENDENCIES,
+            )
+        )
     }
 }
