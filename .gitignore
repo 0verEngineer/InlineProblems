@@ -2,6 +2,16 @@
 .qodana
 build
 
+### Local only ###
+# Environment files with local tokens/secrets
+.env
+.env.*
+# Local review/planning notes
+IMPROVEMENTS.md
+# AI assistant working directories
+.claude/
+.aider*
+
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -11,6 +21,11 @@ build
 *.iml
 *.ipr
 out/
+# Generated per machine / per IDE version, not worth tracking
+.idea/modules.xml
+.idea/copilot*
+.idea/shelf/
+.idea/workspace.xml
 !**/src/main/**/out/
 !**/src/test/**/out/
 

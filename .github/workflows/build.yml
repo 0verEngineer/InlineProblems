@@ -3,7 +3,6 @@
 # - run 'test' and 'verifyPlugin' tasks,
 # - run Qodana inspections,
 # - run 'buildPlugin' task and prepare artifact for the further tests,
-# - run 'runPluginVerifier' task,
 # - create a draft release.
 #
 # Workflow is triggered on push and pull_request events.
@@ -138,12 +137,6 @@ jobs:
           name: tests-result
           path: ${{ github.workspace }}/build/reports/tests
 
-      # Upload the Kover report to CodeCov
-      - name: Upload Code Coverage Report
-        uses: codecov/codecov-action@v4
-        with:
-          files: ${{ github.workspace }}/build/reports/kover/report.xml
-
   # Run Qodana inspections and provide report
   inspectCode:
     name: Inspect code
@@ -179,7 +172,24 @@ jobs:
         with:
           cache-default-branch-only: true
 
-    # Run plugin structure verification along with IntelliJ Plugin Verifier
+  # Run the plugin structure verification.
+  #
+  # NOTE this job used to run the IntelliJ Plugin Verifier. Commit 9a6304e ("Try to fix plugin
+  #      verification task", 2025-04-10) replaced `runPluginVerifier` with `verifyPlugin`, and
+  #      with gradle-intellij-plugin 1.x those are two different tasks:
+  #        verifyPlugin      - validates the plugin.xml descriptors and the archive structure
+  #        runPluginVerifier - the actual verifier, checks binary compatibility against IDE builds
+  #      So binary incompatibilities with newer IDE versions are currently not caught in CI. The
+  #      -Dplugin.verifier.home.dir property below, the cache step and the listProductsReleases
+  #      call in the build job are all leftovers that only take effect with runPluginVerifier.
+  #      Locally the verifier is still available through the "Run Verifications" run
+  #      configuration in .run/, which does call runPluginVerifier.
+  # TODO decide whether to re-enable it. The commit message suggests it was failing back then,
+  #      which is plausible with an open untilBuild plus the internal APIs this plugin uses
+  #      (HighlightInfo, DocumentMarkupModel, FontInfo, ShowIntentionActionsHandler) - it likely
+  #      needs an explicit ideVersions/failureLevel configuration rather than a plain re-add.
+  #      Also note that the task was renamed when the IntelliJ Platform Gradle Plugin 2.x came
+  #      out, so verify the task names again when migrating off 1.x.
   verify:
     name: Verify plugin
     needs: [ build ]
