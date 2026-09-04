@@ -138,7 +138,12 @@ public class ProblemManager implements Disposable {
 
     public void reset() {
         final List<InlineProblem> activeProblemSnapShot = List.copyOf(activeProblems);
-        activeProblemSnapShot.forEach(this::removeProblem);
+
+        runInInlayBatchMode(
+                collectEditors(activeProblemSnapShot, List.of()),
+                0,
+                () -> activeProblemSnapShot.forEach(this::removeProblem)
+        );
     }
 
     /**
@@ -146,11 +151,15 @@ public class ProblemManager implements Disposable {
      * while the project is closing, the editors are still alive at that point.
      */
     public void resetForProject(Project project) {
-        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
-
-        activeProblemsSnapShot.stream()
+        final List<InlineProblem> problemsToRemove = activeProblems.stream()
                 .filter(p -> Objects.equals(p.getProject(), project))
-                .forEach(this::removeProblem);
+                .collect(Collectors.toList());
+
+        runInInlayBatchMode(
+                collectEditors(problemsToRemove, List.of()),
+                0,
+                () -> problemsToRemove.forEach(this::removeProblem)
+        );
     }
 
     /**
@@ -181,11 +190,15 @@ public class ProblemManager implements Disposable {
     }
 
     public void resetForEditor(Editor editor) {
-        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
-
-        activeProblemsSnapShot.stream()
+        final List<InlineProblem> problemsToRemove = activeProblems.stream()
                 .filter(aP -> aP.getTextEditor().getEditor().equals(editor))
-                .forEach(this::removeProblem);
+                .collect(Collectors.toList());
+
+        runInInlayBatchMode(
+                collectEditors(problemsToRemove, List.of()),
+                0,
+                () -> problemsToRemove.forEach(this::removeProblem)
+        );
     }
 
     public void updateFromNewActiveProblems(List<InlineProblem> problems) {
@@ -254,6 +267,48 @@ public class ProblemManager implements Disposable {
             usedProblems = newProblems;
         }
 
+        final List<InlineProblem> problemsToApply = usedProblems;
+
+        /* Every added or removed inlay makes the editor recalculate its preferred size
+         * (EditorSizeManager.validateSize, the hotspot in the traces of issue #96). In batch mode
+         * that happens once for the whole diff instead of once per inlay, which is what makes a
+         * bulk change of a few thousand problems affordable. */
+        runInInlayBatchMode(
+                collectEditors(activeProblemsSnapShot, problemsToApply),
+                0,
+                () -> applyProblemDiff(problemsToApply, activeProblemsSnapShot)
+        );
+    }
+
+    private List<Editor> collectEditors(List<InlineProblem> first, List<InlineProblem> second) {
+        final Set<Editor> editors = new LinkedHashSet<>();
+
+        for (InlineProblem problem : first) {
+            editors.add(problem.getTextEditor().getEditor());
+        }
+
+        for (InlineProblem problem : second) {
+            editors.add(problem.getTextEditor().getEditor());
+        }
+
+        editors.removeIf(Editor::isDisposed);
+
+        return new ArrayList<>(editors);
+    }
+
+    /** Nests one InlayModel.execute per involved editor around the operation. */
+    private void runInInlayBatchMode(List<Editor> editors, int index, Runnable operation) {
+        if (index >= editors.size()) {
+            operation.run();
+            return;
+        }
+
+        editors.get(index)
+                .getInlayModel()
+                .execute(true, () -> runInInlayBatchMode(editors, index + 1, operation));
+    }
+
+    private void applyProblemDiff(List<InlineProblem> usedProblems, List<InlineProblem> activeProblemsSnapShot) {
         /* Hash based lookups, the lists can hold thousands of problems and both loops below used
          * to run a linear search per element. */
         final Set<InlineProblem> usedProblemSet = new HashSet<>(usedProblems);

@@ -6,6 +6,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,10 +15,17 @@ import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.FileUtil;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 
 public class HighlightProblemListener implements HighlightInfoFilter {
     private final DocumentMarkupModelScanner markupModelScanner = DocumentMarkupModelScanner.getInstance();
     private final SettingsState settingsState = SettingsState.getInstance();
+
+    /* Static because the platform may instantiate the filter more than once. Entries are removed
+     * as soon as the queued task runs, so the set stays at the number of files being analyzed. */
+    private static final Set<VirtualFile> pendingFiles = ConcurrentHashMap.newKeySet();
 
     @Override
     public boolean accept(@NotNull HighlightInfo highlightInfo, @Nullable PsiFile file) {
@@ -33,8 +41,20 @@ public class HighlightProblemListener implements HighlightInfoFilter {
             return true;
         }
 
-        if (!file.getProject().isDisposed()) {
-            ApplicationManager.getApplication().invokeLater(() -> handleAccept(file));
+        if (file.getProject().isDisposed()) {
+            return true;
+        }
+
+        /* accept() is called once per HighlightInfo, so a single analysis run of a file with a
+         * thousand problems used to post a thousand EDT tasks that all end up doing the same
+         * rescan. One pending task per file is enough. */
+        VirtualFile virtualFile = file.getVirtualFile();
+
+        if (virtualFile != null && pendingFiles.add(virtualFile)) {
+            ApplicationManager.getApplication().invokeLater(() -> {
+                pendingFiles.remove(virtualFile);
+                handleAccept(file);
+            });
         }
 
         return true;
