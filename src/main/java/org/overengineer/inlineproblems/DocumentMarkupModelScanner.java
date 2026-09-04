@@ -107,8 +107,9 @@ public class DocumentMarkupModelScanner implements Disposable {
                         problems.addAll(getProblemsInEditor(textEditor));
                     }
                 }
-                problemManager.updateFromNewActiveProblems(problems);
             }
+
+            problemManager.updateFromNewActiveProblems(problems);
         }
     }
 
