@@ -2,13 +2,10 @@ package org.overengineer.inlineproblems;
 
 import com.intellij.codeInsight.hints.presentation.InputHandler;
 import com.intellij.codeInsight.intention.impl.ShowIntentionActionsHandler;
-import com.intellij.ide.ui.AntialiasingType;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
 import com.intellij.openapi.editor.ScrollType;
-import com.intellij.openapi.editor.impl.FontInfo;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.DumbService;
@@ -26,7 +23,6 @@ import org.overengineer.inlineproblems.utils.FontUtil;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.font.FontRenderContext;
 
 
 @Getter
@@ -85,14 +81,12 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
     }
 
     public int calcWidthInPixels(@NotNull Editor editor) {
-        var editorContext = FontInfo.getFontRenderContext(editor.getComponent());
-        var context = new FontRenderContext(editorContext.getTransform(),
-                AntialiasingType.getKeyForCurrentScope(false),
-                UISettings.getEditorFractionalMetricsHint());
+        return calcWidthInPixels(FontUtil.getLabelFontMetrics(editor));
+    }
 
-        var fontMetrics = FontInfo.getFontMetrics(FontUtil.getActiveFont(editor), context);
-
-        return fontMetrics.stringWidth(text) + WIDTH_OFFSET;
+    /** Overload for callers that already hold the metrics, see {@link FontUtil#getLabelFontMetrics}. */
+    public int calcWidthInPixels(@NotNull FontMetrics labelFontMetrics) {
+        return labelFontMetrics.stringWidth(text) + WIDTH_OFFSET;
     }
 
     @Override

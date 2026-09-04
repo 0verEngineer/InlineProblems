@@ -1,29 +1,28 @@
 package org.overengineer.inlineproblems;
 
 import com.intellij.openapi.editor.*;
-import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.TextRange;
+import org.overengineer.inlineproblems.entities.EditorDrawContext;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.SeverityUtil;
 
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.util.List;
 
 
 public class InlineDrawer {
 
-    public void drawProblemLabel(InlineProblem problem) {
+    public void drawProblemLabel(InlineProblem problem, EditorDrawContext context) {
         var drawDetails = problem.getDrawDetails();
         if (!drawDetails.isDrawProblem()) {
             return;
         }
 
-        SettingsState settings = SettingsState.getInstance();
+        SettingsState settings = context.getSettings();
         Editor editor = problem.getTextEditor().getEditor();
         var inlayModel = editor.getInlayModel();
 
@@ -48,17 +47,13 @@ public class InlineDrawer {
             existingInlineElementsWidth += existingElement.getWidthInPixels();
         }
 
-        int editorWidth = editor.getScrollingModel().getVisibleArea().width;
+        /* Width and metrics come from the context: they only depend on the editor, and obtaining
+         * them per problem - the label font in particular, whose construction builds a fallback
+         * chain - was the bulk of the cost of drawing a file with many problems. */
+        int editorWidth = context.getEditorWidth();
 
-        Font editorFont = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
-
-        /* The font metrics are taken from the editor content component instead of a throwaway
-         * java.awt.Canvas: instantiating a heavyweight AWT component for every drawn problem
-         * showed up as a hotspot while scrolling (GitHub issue #96). */
-        FontMetrics editorFontMetrics = editor.getContentComponent().getFontMetrics(editorFont);
-
-        int problemWidth = inlineProblemLabel.calcWidthInPixels(editor) +
-                editorFontMetrics.stringWidth(lineText) +
+        int problemWidth = inlineProblemLabel.calcWidthInPixels(context.getLabelFontMetrics()) +
+                context.getEditorFontMetrics().stringWidth(lineText) +
                 existingInlineElementsWidth;
 
         /* The offset is added because the width calculation is not exact. It is configurable

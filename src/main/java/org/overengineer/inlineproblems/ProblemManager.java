@@ -8,6 +8,7 @@ import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import lombok.Getter;
 import org.overengineer.inlineproblems.entities.DrawDetails;
+import org.overengineer.inlineproblems.entities.EditorDrawContext;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
@@ -58,7 +59,17 @@ public class ProblemManager implements Disposable {
      * @param problem problem to add
      */
     public void addProblem(InlineProblem problem) {
-        problem.setDrawDetails(new DrawDetails(problem, problem.getTextEditor().getEditor()));
+        addProblem(problem, EditorDrawContext.forEditor(problem.getTextEditor().getEditor()));
+    }
+
+    /**
+     * To add problems, if there are existing problems in the same line, they will be removed and re-added to ensure the
+     * correct order (ordered by severity)
+     * @param problem problem to add
+     * @param context drawing data of the editor, shared by all problems drawn in one pass
+     */
+    public void addProblem(InlineProblem problem, EditorDrawContext context) {
+        problem.setDrawDetails(new DrawDetails(problem, problem.getTextEditor().getEditor(), context.getSettings()));
 
         List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
         problemsInLine.add(problem);
@@ -75,20 +86,18 @@ public class ProblemManager implements Disposable {
             problemsInLine.subList(maxProblemsPerLine, problemsInLine.size()).clear();
         }
 
-        /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
-        *  it does not work like expected, that is because there are differences in the evaluation and the way it is called */
-        problemsInLine.forEach(this::addProblemPrivate);
+        problemsInLine.forEach(p -> addProblemPrivate(p, context));
 
         inlineDrawer.drawLineHighlighterAndGutterIcon(problemsInLine);
     }
 
-    private void addProblemPrivate(InlineProblem problem) {
+    private void addProblemPrivate(InlineProblem problem, EditorDrawContext context) {
         if (problem.getTextEditor().getEditor().getDocument().getLineCount() <= problem.getLine()) {
             logger.warn("Line count is less or equal than problem line, problem not added");
             return;
         }
 
-        inlineDrawer.drawProblemLabel(problem);
+        inlineDrawer.drawProblemLabel(problem, context);
         activeProblems.add(problem);
     }
 
@@ -275,6 +284,16 @@ public class ProblemManager implements Disposable {
         applyProblemDiff(usedProblems, activeProblemsSnapShot);
     }
 
+    /** Builds the drawing context once per editor instead of once per problem. */
+    private void drawProblems(List<InlineProblem> problems) {
+        final Map<Editor, EditorDrawContext> contexts = new HashMap<>();
+
+        for (InlineProblem problem : problems) {
+            Editor editor = problem.getTextEditor().getEditor();
+            addProblem(problem, contexts.computeIfAbsent(editor, EditorDrawContext::forEditor));
+        }
+    }
+
     private List<Editor> collectEditors(List<InlineProblem> first, List<InlineProblem> second) {
         final Set<Editor> editors = new LinkedHashSet<>();
 
@@ -376,7 +395,7 @@ public class ProblemManager implements Disposable {
                 collectEditors(problemsToRemove, problemsToAdd),
                 () -> {
                     problemsToRemove.forEach(this::removeProblem);
-                    problemsToAdd.forEach(this::addProblem);
+                    drawProblems(problemsToAdd);
                 }
         );
     }
