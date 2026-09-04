@@ -94,11 +94,15 @@ You can turn this plugin on and off with the keyboard shortcut `alt+u`, addition
 ## Getting Started
 
 - Clone the repository and open it with IntelliJ
-- The plugin targets the IntelliJ Platform `2021.2.4` and Java 11 (see `gradle.properties`),
-  so Gradle has to run on a JDK that still supports a Java 11 target, e.g.
-  `JAVA_HOME=/path/to/jdk-17 ./gradlew buildPlugin`
-- Useful tasks: `buildPlugin` (builds the distribution), `runIde` (starts a sandbox IDE with the
-  plugin), `verifyPlugin` (plugin structure check)
+- The plugin targets the IntelliJ Platform `2025.1.7` and Java 21 (see `gradle.properties`), and
+  builds with Gradle 9, so any JDK from 17 up to the current one works: `./gradlew buildPlugin`
+- Useful tasks:
+  - `buildPlugin` - builds the distribution ZIP
+  - `runIde` - starts a sandbox IDE with the plugin
+  - `verifyPluginStructure` - descriptor and archive structure check
+  - `verifyPlugin` - IntelliJ Plugin Verifier, binary compatibility against the IDE pinned in
+    `pluginVerifierIdeVersions`
+  - `printProductsReleases` - lists the IDE builds available for the verifier
 - Lombok is used, so the Lombok plugin has to be enabled in the development IDE
 
 

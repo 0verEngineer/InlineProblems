@@ -31,8 +31,6 @@ jobs:
     outputs:
       version: ${{ steps.properties.outputs.version }}
       changelog: ${{ steps.properties.outputs.changelog }}
-      pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
-      pluginVerifierIdeVersions: ${{ steps.properties.outputs.pluginVerifierIdeVersions }}
     steps:
 
       # Free GitHub Actions Environment Disk Space
@@ -50,12 +48,12 @@ jobs:
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v2
 
-      # Setup Java 11 environment for the next steps
+      # Setup Java 21 environment for the next steps
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 11
+          java-version: 21
 
       # Setup Gradle
       - name: Setup Gradle
@@ -71,13 +69,10 @@ jobs:
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           NAME="$(echo "$PROPERTIES" | grep "^pluginName:" | cut -f2- -d ' ')"
-          IDE_VERSIONS="$(echo "$PROPERTIES" | grep "^pluginVerifierIdeVersions:" | cut -f2- -d ' ' | tr -d ' ')"
           CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
-          echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
-          echo "pluginVerifierIdeVersions=$IDE_VERSIONS" >> $GITHUB_OUTPUT
           
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
@@ -120,7 +115,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 11
+          java-version: 21
 
       # Setup Gradle
       - name: Setup Gradle
@@ -175,13 +170,13 @@ jobs:
         with:
           cache-default-branch-only: true
 
-  # Run the plugin structure verification (verifyPlugin) and the IntelliJ Plugin Verifier
-  # (runPluginVerifier). With gradle-intellij-plugin 1.x these are two different tasks:
-  #   verifyPlugin      - validates the plugin.xml descriptors and the archive structure
-  #   runPluginVerifier - checks binary compatibility against the IDE build pinned in
-  #                       gradle.properties (pluginVerifierIdeVersions)
-  # Note that the task names changed with the IntelliJ Platform Gradle Plugin 2.x, so they have to
-  # be revisited when migrating off 1.x.
+  # Run the plugin structure verification and the IntelliJ Plugin Verifier. Note the task names,
+  # they were swapped by the move to the IntelliJ Platform Gradle Plugin 2.x:
+  #   verifyPluginStructure - validates the plugin.xml descriptors and the archive structure
+  #                           (this was called verifyPlugin with the 1.x plugin)
+  #   verifyPlugin          - the IntelliJ Plugin Verifier, checks binary compatibility against
+  #                           the IDE build pinned in gradle.properties (pluginVerifierIdeVersions)
+  #                           (this was called runPluginVerifier with the 1.x plugin)
   verify:
     name: Verify plugin
     needs: [ build ]
@@ -204,7 +199,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 11
+          java-version: 21
 
       # Setup Gradle
       - name: Setup Gradle
@@ -212,20 +207,12 @@ jobs:
         with:
           gradle-home-cache-cleanup: true
 
-      # Cache Plugin Verifier IDEs. Keyed on the pinned IDE build itself and not on
-      # gradle.properties, because that file also holds pluginVersion - keying on the file would
-      # invalidate a multi gigabyte cache entry on every version bump. One IDE is roughly 3.5 GB
-      # unpacked, so keep pluginVerifierIdeVersions short: GitHub allows 10 GB of caches per
-      # repository in total, shared with the Gradle cache.
-      - name: Setup Plugin Verifier IDEs Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
-          key: plugin-verifier-${{ needs.build.outputs.pluginVerifierIdeVersions }}
-
-      # Run Verify Plugin task and IntelliJ Plugin Verifier tool
+      # No dedicated IDE cache: the 2.x plugin resolves the verified IDE as a regular Gradle
+      # dependency, so it lands in the Gradle cache that setup-gradle already handles. One IDE is
+      # roughly 4 GB, so keep pluginVerifierIdeVersions short - GitHub allows 10 GB of caches per
+      # repository in total.
       - name: Run Plugin Verification tasks
-        run: ./gradlew verifyPlugin runPluginVerifier -Dplugin.verifier.home.dir=${{ needs.build.outputs.pluginVerifierHomeDir }}
+        run: ./gradlew verifyPluginStructure verifyPlugin
 
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result

@@ -7,6 +7,10 @@
 #
 # Workflow is triggered manually.
 
+# TODO this workflow is broken since the move to the IntelliJ Platform Gradle Plugin 2.x: the
+#      runIdeForUiTests task does not exist any more, UI tests are driven by testIdeUi now. There
+#      are also no UI tests in the project, so the workflow never had anything to run. It is kept
+#      as a starting point, it only runs on manual dispatch.
 name: Run UI Tests
 on:
   workflow_dispatch
@@ -35,12 +39,12 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v4
 
-      # Setup Java 11 environment for the next steps
+      # Setup Java 21 environment for the next steps
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 11
+          java-version: 21
 
       # Run IDEA prepared for UI testing
       - name: Run IDE

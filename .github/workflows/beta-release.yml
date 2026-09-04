@@ -31,12 +31,12 @@ jobs:
           sed -i "/pluginVersion = / s/ = .*/ = $VERSION_WITH_BUILDNUMBER/" gradle.properties
           echo "Version: $VERSION_WITH_BUILDNUMBER"
 
-      # Setup Java 11 environment for the next steps
+      # Setup Java 21 environment for the next steps
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 11
+          java-version: 21
 
       # Setup Gradle
       - name: Setup Gradle
