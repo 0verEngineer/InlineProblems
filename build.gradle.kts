@@ -5,10 +5,10 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.11.0"
-    id("io.freefair.lombok") version "6.6"
-    id("org.jetbrains.changelog") version "2.0.0"
-    id("org.jetbrains.qodana") version "0.1.13"
+    id("org.jetbrains.intellij") version "1.17.4"
+    id("io.freefair.lombok") version "8.6"
+    id("org.jetbrains.changelog") version "2.2.1"
+    id("org.jetbrains.qodana") version "2024.1.5"
 }
 
 group = properties("pluginGroup")
@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.projectlombok:lombok:1.18.24")
+    implementation("org.projectlombok:lombok:1.18.34")
 }
 
 // Configure Gradle IntelliJ Plugin
@@ -42,9 +42,9 @@ changelog {
 // Configure Gradle Qodana Plugin - read more: https://github.com/JetBrains/gradle-qodana-plugin
 qodana {
     cachePath.set(file(".qodana").canonicalPath)
-    reportPath.set(file("build/reports/inspections").canonicalPath)
-    saveReport.set(true)
-    showReport.set(System.getenv("QODANA_SHOW_REPORT")?.toBoolean() ?: false)
+    resultsPath.set(file("build/reports/inspections").canonicalPath)
+    // reportPath, saveReport and showReport were removed from the plugin, the report handling is
+    // configured through qodana.yml and the Qodana action in the CI now.
 }
 
 tasks {
