@@ -4,7 +4,6 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.InlayModel;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import lombok.Getter;
@@ -17,6 +16,11 @@ import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
+    /* Entering and leaving the inlay batch mode costs about two full editor size computations,
+     * while staying out of it costs one size validation per changed inlay. Batching therefore only
+     * pays from a couple of changes on. */
+    private static final int BATCH_MODE_THRESHOLD = 2;
+
     private static final Comparator<InlineProblem> HIGHEST_SEVERITY_FIRST =
             (p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity());
 
@@ -34,14 +38,6 @@ public class ProblemManager implements Disposable {
     }
 
     public void removeProblem(InlineProblem problem) {
-        runInInlayBatchMode(
-                List.of(problem.getTextEditor().getEditor()),
-                0,
-                () -> removeProblemInternal(problem)
-        );
-    }
-
-    private void removeProblemInternal(InlineProblem problem) {
         List<InlineProblem> problemsInLine = null;
         if (settingsState.isShowAnyGutterIcons()) {
             problemsInLine = getProblemsInLineForProblemSorted(problem);
@@ -56,20 +52,12 @@ public class ProblemManager implements Disposable {
         }
     }
 
-    public void addProblem(InlineProblem problem) {
-        runInInlayBatchMode(
-                List.of(problem.getTextEditor().getEditor()),
-                0,
-                () -> addProblemInternal(problem)
-        );
-    }
-
     /**
      * To add problems, if there are existing problems in the same line, they will be removed and re-added to ensure the
      * correct order (ordered by severity)
      * @param problem problem to add
      */
-    private void addProblemInternal(InlineProblem problem) {
+    public void addProblem(InlineProblem problem) {
         problem.setDrawDetails(new DrawDetails(problem, problem.getTextEditor().getEditor()));
 
         List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
@@ -157,8 +145,8 @@ public class ProblemManager implements Disposable {
         final List<InlineProblem> activeProblemSnapShot = List.copyOf(activeProblems);
 
         runInInlayBatchMode(
+                activeProblemSnapShot.size(),
                 collectEditors(activeProblemSnapShot, List.of()),
-                0,
                 () -> activeProblemSnapShot.forEach(this::removeProblem)
         );
     }
@@ -173,8 +161,8 @@ public class ProblemManager implements Disposable {
                 .collect(Collectors.toList());
 
         runInInlayBatchMode(
+                problemsToRemove.size(),
                 collectEditors(problemsToRemove, List.of()),
-                0,
                 () -> problemsToRemove.forEach(this::removeProblem)
         );
     }
@@ -212,8 +200,8 @@ public class ProblemManager implements Disposable {
                 .collect(Collectors.toList());
 
         runInInlayBatchMode(
+                problemsToRemove.size(),
                 collectEditors(problemsToRemove, List.of()),
-                0,
                 () -> problemsToRemove.forEach(this::removeProblem)
         );
     }
@@ -284,17 +272,7 @@ public class ProblemManager implements Disposable {
             usedProblems = newProblems;
         }
 
-        final List<InlineProblem> problemsToApply = usedProblems;
-
-        /* Every added or removed inlay makes the editor recalculate its preferred size
-         * (EditorSizeManager.validateSize, the hotspot in the traces of issue #96). In batch mode
-         * that happens once for the whole diff instead of once per inlay, which is what makes a
-         * bulk change of a few thousand problems affordable. */
-        runInInlayBatchMode(
-                collectEditors(activeProblemsSnapShot, problemsToApply),
-                0,
-                () -> applyProblemDiff(problemsToApply, activeProblemsSnapShot)
-        );
+        applyProblemDiff(usedProblems, activeProblemsSnapShot);
     }
 
     private List<Editor> collectEditors(List<InlineProblem> first, List<InlineProblem> second) {
@@ -314,15 +292,25 @@ public class ProblemManager implements Disposable {
     }
 
     /**
-     * Nests one {@link InlayModel#execute} per involved editor around the operation. Every added or
-     * removed inlay makes the editor recalculate its preferred size
-     * (EditorSizeManager.validateSize, the hotspot in the traces of issue #96); in batch mode that
-     * happens once for the whole operation instead of once per inlay.
+     * Runs the operation with the inlay models of the given editors in batch mode, but only if
+     * enough inlays are going to change for that to pay off.
      * <p>
-     * Editors that are gone, or that are already batching because of an enclosing call, are
-     * skipped - that way the single problem entry points can batch as well without nesting
-     * redundantly.
+     * Without batch mode every added or removed inlay makes the editor recalculate its preferred
+     * size (EditorSizeManager.validateSize, the hotspot in the traces of issue #96). Batch mode is
+     * not free either though: EditorSizeManager computes the full preferred size when it starts
+     * and drops its cache when it finishes, so entering and leaving costs roughly two full size
+     * computations. For a single changed inlay that is a loss, and for none at all - by far the
+     * most common case, since most scans find nothing to change - it is pure overhead.
      */
+    private void runInInlayBatchMode(int expectedInlayOperations, List<Editor> editors, Runnable operation) {
+        if (expectedInlayOperations < BATCH_MODE_THRESHOLD) {
+            operation.run();
+            return;
+        }
+
+        runInInlayBatchMode(editors, 0, operation);
+    }
+
     private void runInInlayBatchMode(List<Editor> editors, int index, Runnable operation) {
         if (index >= editors.size()) {
             operation.run();
@@ -336,14 +324,8 @@ public class ProblemManager implements Disposable {
             return;
         }
 
-        InlayModel inlayModel = editor.getInlayModel();
-
-        if (inlayModel.isInBatchMode()) {
-            runInInlayBatchMode(editors, index + 1, operation);
-            return;
-        }
-
-        inlayModel.execute(true, () -> runInInlayBatchMode(editors, index + 1, operation));
+        // InlayModel.execute already ignores a nested call, so no guard is needed here
+        editor.getInlayModel().execute(true, () -> runInInlayBatchMode(editors, index + 1, operation));
     }
 
     private void applyProblemDiff(List<InlineProblem> usedProblems, List<InlineProblem> activeProblemsSnapShot) {
@@ -356,9 +338,15 @@ public class ProblemManager implements Disposable {
             knownProblems.putIfAbsent(problem, problem);
         }
 
-        activeProblemsSnapShot.stream()
-                .filter(p -> !usedProblemSet.contains(p))
-                .forEach(this::removeProblem);
+        final List<InlineProblem> problemsToRemove = new ArrayList<>();
+
+        for (InlineProblem problem : activeProblemsSnapShot) {
+            if (!usedProblemSet.contains(problem)) {
+                problemsToRemove.add(problem);
+            }
+        }
+
+        final List<InlineProblem> problemsToAdd = new ArrayList<>();
 
         for (InlineProblem problem : usedProblems) {
             InlineProblem knownProblem = knownProblems.get(problem);
@@ -371,10 +359,25 @@ public class ProblemManager implements Disposable {
                 continue;
             }
 
-            addProblem(problem);
+            problemsToAdd.add(problem);
 
             // Also keeps a second, identical problem in the same batch from being drawn twice
             knownProblems.put(problem, problem);
         }
+
+        /* Deciding what changes before touching the editor is what allows the common case - a scan
+         * that finds nothing to redraw - to stay out of the inlay batch mode entirely. */
+        if (problemsToRemove.isEmpty() && problemsToAdd.isEmpty()) {
+            return;
+        }
+
+        runInInlayBatchMode(
+                problemsToRemove.size() + problemsToAdd.size(),
+                collectEditors(problemsToRemove, problemsToAdd),
+                () -> {
+                    problemsToRemove.forEach(this::removeProblem);
+                    problemsToAdd.forEach(this::addProblem);
+                }
+        );
     }
 }
