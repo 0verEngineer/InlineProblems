@@ -17,7 +17,6 @@ import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -158,7 +157,7 @@ public class SettingsComponent {
 
         problemFilterList.setText(settingsState.getProblemFilterList());
         fileExtensionBlacklist.setText(settingsState.getFileExtensionBlacklist());
-        enabledListener.setSelectedItem(Optional.of(settingsState.getEnabledListener()));
+        setEnabledListener(settingsState.getEnabledListener());
 
         Dimension enabledListenerDimension = enabledListener.getPreferredSize();
         enabledListenerDimension.width += 100;
@@ -626,6 +625,10 @@ public class SettingsComponent {
     }
 
     public void setEnabledListener(int index) {
+        if (index < 0 || index >= availableListeners.length) {
+            index = 0;
+        }
+
         enabledListener.setSelectedIndex(index);
     }
 

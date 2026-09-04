@@ -44,6 +44,7 @@ public class SettingsConfigurable implements Configurable {
 
         boolean oldStateEqualsNewState = state.isForceProblemsInSameLine() == settingsComponent.isForceErrorsInSameLine() &&
                 state.isEnableInlineProblem() == settingsComponent.isEnableInlineProblem() &&
+                state.isEnableInlineProblemsNotifications() == settingsComponent.isEnableInlineProblemsNotifications() &&
                 state.isDrawBoxesAroundErrorLabels() == settingsComponent.getDrawBoxesAroundProblemLabels() &&
                 state.isRoundedCornerBoxes() == settingsComponent.isRoundedCornerBoxes() &&
                 state.isUseEditorFont() == settingsComponent.isUseEditorFont() &&
@@ -235,6 +236,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setManualScannerDelay(state.getManualScannerDelay());
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
         settingsComponent.setFileExtensionBlacklist(state.getFileExtensionBlacklist());
+        settingsComponent.setMaxFileLines(state.getMaxFileLines());
 
         settingsComponent.setAdditionalInfoSeverities(state.getAdditionalInfoSeveritiesAsString());
         settingsComponent.setAdditionalWarningSeverities(state.getAdditionalWarningSeveritiesAsString());
