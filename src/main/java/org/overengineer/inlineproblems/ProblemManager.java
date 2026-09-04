@@ -4,6 +4,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import lombok.Getter;
 import org.overengineer.inlineproblems.entities.DrawDetails;
@@ -191,9 +192,15 @@ public class ProblemManager implements Disposable {
         updateFromNewActiveProblems(problems, List.copyOf(activeProblems));
     }
 
-    public void updateFromNewActiveProblemsForProjectAndFile(List<InlineProblem> problems, Project project, String filePath) {
+    /**
+     * Diffs the problems of a single editor. Filtering by project and file instead of by editor
+     * would break a split view: the snapshot would contain the problems of both editors showing
+     * the file, while the scan only ever covers one of them, so the two editors would keep
+     * removing each others problems.
+     */
+    public void updateFromNewActiveProblemsForTextEditor(List<InlineProblem> problems, TextEditor textEditor) {
         final List<InlineProblem> activeProblemsSnapShot = activeProblems.stream()
-                .filter(p -> p.getProject().equals(project) && p.getFile().equals(filePath))
+                .filter(p -> Objects.equals(p.getTextEditor(), textEditor))
                 .collect(Collectors.toList());
 
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
@@ -222,7 +229,6 @@ public class ProblemManager implements Disposable {
      * this function needs to be used.
      */
     private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
-        final Set<Integer> processedProblemHashCodes = new HashSet<>();
         List<InlineProblem> usedProblems;
 
         if (settingsState.isShowOnlyHighestSeverityPerLine()) {
@@ -248,20 +254,34 @@ public class ProblemManager implements Disposable {
             usedProblems = newProblems;
         }
 
-        /* Hash based lookups, the lists can hold thousands of problems and both filters below
-         * used to run a linear search per element. */
+        /* Hash based lookups, the lists can hold thousands of problems and both loops below used
+         * to run a linear search per element. */
         final Set<InlineProblem> usedProblemSet = new HashSet<>(usedProblems);
-        final Set<InlineProblem> activeProblemSet = new HashSet<>(activeProblemsSnapShot);
+        final Map<InlineProblem, InlineProblem> knownProblems = new HashMap<>();
+
+        for (InlineProblem problem : activeProblemsSnapShot) {
+            knownProblems.putIfAbsent(problem, problem);
+        }
 
         activeProblemsSnapShot.stream()
                 .filter(p -> !usedProblemSet.contains(p))
-                .forEach(p -> {
-                    processedProblemHashCodes.add(p.hashCode());
-                    removeProblem(p);
-                });
+                .forEach(this::removeProblem);
 
-        usedProblems.stream()
-                .filter(p -> !activeProblemSet.contains(p) && !processedProblemHashCodes.contains(p.hashCode()))
-                .forEach(this::addProblem);
+        for (InlineProblem problem : usedProblems) {
+            InlineProblem knownProblem = knownProblems.get(problem);
+
+            /* The problem is already drawn and only its offsets may have shifted. Redrawing it
+             * would dispose and recreate its inlay for nothing, and every inlay change makes the
+             * editor recalculate its preferred size. */
+            if (knownProblem != null) {
+                knownProblem.refreshPositionFrom(problem);
+                continue;
+            }
+
+            addProblem(problem);
+
+            // Also keeps a second, identical problem in the same batch from being drawn twice
+            knownProblems.put(problem, problem);
+        }
     }
 }

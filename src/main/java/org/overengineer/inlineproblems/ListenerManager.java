@@ -6,7 +6,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.ProjectManager;
 import org.overengineer.inlineproblems.entities.enums.Listener;
-import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.FileUtil;
@@ -72,11 +71,11 @@ public class ListenerManager {
         }
 
         if (settings.getActiveListener() == Listener.MARKUP_MODEL_LISTENER) {
-            documentMarkupModelScanner.setDelayMilliseconds(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS);
+            documentMarkupModelScanner.setDelayMilliseconds(DocumentMarkupModelScanner.SAFETY_NET_SCAN_DELAY_MILLIS);
             installMarkupModelListenerOnAllProjects();
         }
         else if (settings.getActiveListener() == Listener.HIGHLIGHT_PROBLEMS_LISTENER) {
-            documentMarkupModelScanner.setDelayMilliseconds(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS);
+            documentMarkupModelScanner.setDelayMilliseconds(DocumentMarkupModelScanner.SAFETY_NET_SCAN_DELAY_MILLIS);
         }
         else if (settings.getActiveListener() == Listener.MANUAL_SCANNING) {
             documentMarkupModelScanner.setDelayMilliseconds(settings.getManualScannerDelay());

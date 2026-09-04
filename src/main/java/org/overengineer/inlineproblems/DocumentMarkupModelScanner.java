@@ -35,7 +35,16 @@ public class DocumentMarkupModelScanner implements Disposable {
 
     private final Logger logger = Logger.getInstance(DocumentMarkupModelScanner.class);
 
-    private int delayMilliseconds = HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS;
+    /* The periodic full scan is only a safety net when one of the event driven listeners is
+     * active, so it may run rarely. It used to run every 2 seconds, which meant rebuilding every
+     * problem of every open editor on the EDT that often. */
+    public static final int SAFETY_NET_SCAN_DELAY_MILLIS = 10_000;
+
+    /* Coalescing window for the per editor rescans. A daemon run fires thousands of markup events
+     * within a few hundred milliseconds, and all of them should end up in one rescan. */
+    private static final int RESCAN_MERGE_MILLIS = 100;
+
+    private int delayMilliseconds = SAFETY_NET_SCAN_DELAY_MILLIS;
 
     private static DocumentMarkupModelScanner instance;
 
@@ -50,7 +59,7 @@ public class DocumentMarkupModelScanner implements Disposable {
 
         mergingUpdateQueue = new MergingUpdateQueue(
                 "DocumentMarkupModelScannerQueue",
-                10,
+                RESCAN_MERGE_MILLIS,
                 true,
                 null,
                 this,
@@ -129,16 +138,15 @@ public class DocumentMarkupModelScanner implements Disposable {
             return;
         }
 
-        mergingUpdateQueue.queue(new Update("scan") {
+        /* The editor is the identity of the update: queued rescans of the same editor collapse
+         * into one, while rescans of different editors stay independent. With a shared identity
+         * only one of several open editors got rescanned. */
+        mergingUpdateQueue.queue(new Update(textEditor) {
             @Override
             public void run() {
                 List<InlineProblem> problems = settingsState.isEnableInlineProblem() ? getProblemsInEditor(textEditor) : List.of();
 
-                problemManager.updateFromNewActiveProblemsForProjectAndFile(
-                        problems,
-                        textEditor.getEditor().getProject(),
-                        textEditor.getFile().getPath()
-                );
+                problemManager.updateFromNewActiveProblemsForTextEditor(problems, textEditor);
             }
         });
     }

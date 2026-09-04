@@ -18,7 +18,6 @@ import org.overengineer.inlineproblems.utils.FileUtil;
 public class HighlightProblemListener implements HighlightInfoFilter {
     private final DocumentMarkupModelScanner markupModelScanner = DocumentMarkupModelScanner.getInstance();
     private final SettingsState settingsState = SettingsState.getInstance();
-    public static final int ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS = 2000;
 
     @Override
     public boolean accept(@NotNull HighlightInfo highlightInfo, @Nullable PsiFile file) {
