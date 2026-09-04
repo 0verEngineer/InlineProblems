@@ -53,6 +53,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isEnableHtmlStripping() == settingsComponent.isEnableHtmlStripping() &&
                 state.isEnableXmlUnescaping() == settingsComponent.isEnableXmlUnescaping() &&
                 state.getInlayFontSizeDelta() == settingsComponent.getInlayFontSizeDelta() &&
+                state.getProblemLineLengthOffsetPixels() == settingsComponent.getProblemLineLengthOffsetPixels() &&
                 state.isFillProblemLabels() == settingsComponent.isFillProblemLabels() &&
                 state.isBoldProblemLabels() == settingsComponent.isBoldProblemLabels() &&
                 state.isItalicProblemLabels() == settingsComponent.isItalicProblemLabels() &&
@@ -151,6 +152,7 @@ public class SettingsConfigurable implements Configurable {
         state.setEnableHtmlStripping(settingsComponent.isEnableHtmlStripping());
         state.setEnableXmlUnescaping(settingsComponent.isEnableXmlUnescaping());
         state.setInlayFontSizeDelta(settingsComponent.getInlayFontSizeDelta());
+        state.setProblemLineLengthOffsetPixels(settingsComponent.getProblemLineLengthOffsetPixels());
         state.setFillProblemLabels(settingsComponent.isFillProblemLabels());
         state.setBoldProblemLabels(settingsComponent.isBoldProblemLabels());
         state.setItalicProblemLabels(settingsComponent.isItalicProblemLabels());
@@ -227,6 +229,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setEnableHtmlStripping(state.isEnableHtmlStripping());
         settingsComponent.setEnableXmlUnescaping(state.isEnableXmlUnescaping());
         settingsComponent.setInlayFontSizeDelta(state.getInlayFontSizeDelta());
+        settingsComponent.setProblemLineLengthOffsetPixels(state.getProblemLineLengthOffsetPixels());
         settingsComponent.setFillProblemLabels(state.isFillProblemLabels());
         settingsComponent.setBoldProblemLabels(state.isBoldProblemLabels());
         settingsComponent.setItalicProblemLabels(state.isItalicProblemLabels());

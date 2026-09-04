@@ -61,8 +61,9 @@ public class InlineDrawer {
                 editorFontMetrics.stringWidth(lineText) +
                 existingInlineElementsWidth;
 
-        // We add 50 as offset here because the calculation is somehow not exact
-        if (problemWidth + 50 > editorWidth && !settings.isForceProblemsInSameLine())
+        /* The offset is added because the width calculation is not exact. It is configurable
+         * because the deviation depends on the font and the editor. */
+        if (problemWidth + settings.getProblemLineLengthOffsetPixels() > editorWidth && !settings.isForceProblemsInSameLine())
         {
             inlineProblemLabel.setBlockElement(true);
             problem.setBlockElement(true);

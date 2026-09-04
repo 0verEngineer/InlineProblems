@@ -64,6 +64,7 @@ public class SettingsComponent {
     private final JBCheckBox enableHtmlStripping = new JBCheckBox(SettingsBundle.message("settings.enableHtmlStripping"));
     private final JBCheckBox enableXmlUnescaping = new JBCheckBox(SettingsBundle.message("settings.enableXmlUnescaping"));
     private final JFormattedTextField inlayFontSizeDeltaText;
+    private final JFormattedTextField problemLineLengthOffsetPixels;
     private final JFormattedTextField manualScannerDelay;
     private final JFormattedTextField maxProblemsPerLine;
     private final JFormattedTextField maxFileLines;
@@ -136,6 +137,9 @@ public class SettingsComponent {
         inlayFontSizeDeltaText = new JFormattedTextField(numberFormatter);
         inlayFontSizeDeltaText.setText(Integer.toString(settingsState.getInlayFontSizeDelta()));
 
+        problemLineLengthOffsetPixels = new JFormattedTextField(numberFormatter);
+        problemLineLengthOffsetPixels.setText(Integer.toString(settingsState.getProblemLineLengthOffsetPixels()));
+
         maxProblemsPerLine = new JFormattedTextField(numberFormatter);
         maxProblemsPerLine.setText(Integer.toString(settingsState.getMaxProblemsPerLine()));
 
@@ -189,6 +193,8 @@ public class SettingsComponent {
                 .addComponent(enableXmlUnescaping, 0)
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.inlaySizeDelta")), inlayFontSizeDeltaText)
                 .addTooltip(SettingsBundle.message("settings.inlaySizeDeltaTooltip"))
+                .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.problemLineLengthOffsetLabel")), problemLineLengthOffsetPixels)
+                .addTooltip(SettingsBundle.message("settings.problemLineLengthOffsetTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
                 .addTooltip(SettingsBundle.message("settings.problemFilterListTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.fileExtensionBlacklistLabel")), fileExtensionBlacklist)
@@ -674,6 +680,19 @@ public class SettingsComponent {
 
     public void setMaxProblemsPerLine(int max) {
         maxProblemsPerLine.setText(Integer.toString(Math.max(0, max)));
+    }
+
+    public int getProblemLineLengthOffsetPixels() {
+        try {
+            return Math.max(Integer.parseInt(problemLineLengthOffsetPixels.getText()), 0);
+        }
+        catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public void setProblemLineLengthOffsetPixels(int offset) {
+        problemLineLengthOffsetPixels.setText(Integer.toString(Math.max(0, offset)));
     }
 
     public int getMaxFileLines() {
