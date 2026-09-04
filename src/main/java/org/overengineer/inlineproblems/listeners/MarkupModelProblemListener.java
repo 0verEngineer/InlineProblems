@@ -19,8 +19,9 @@ import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.ProblemTextFilter;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -29,7 +30,9 @@ public class MarkupModelProblemListener implements MarkupModelListener {
     private final ProblemManager problemManager;
     private final TextEditor textEditor;
 
-    private static final List<Disposable> disposables = new ArrayList<>();
+    /* One listener per TextEditor. The map is also used to avoid installing a second listener
+     * on an editor that already has one, which would double every problem event. */
+    private static final Map<TextEditor, Disposable> disposables = new HashMap<>();
 
     public static final String NAME = "MarkupModelListener (default)";
 
@@ -69,6 +72,10 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             return;
         }
 
+        if (disposables.containsKey(textEditor)) {
+            return;
+        }
+
         Disposable disposable = new MarkupModelProblemListenerDisposable();
         Disposer.register(ApplicationManager.getApplication().getService(ProblemManager.class), disposable);
 
@@ -77,15 +84,29 @@ public class MarkupModelProblemListener implements MarkupModelListener {
                 new MarkupModelProblemListener(textEditor)
         );
 
-        disposables.add(disposable);
+        disposables.put(textEditor, disposable);
+    }
+
+    /**
+     * Removes the listeners of all editors that are gone, to be called when an editor is closed.
+     * Without this the disposable stays registered on the ProblemManager for the whole IDE
+     * session, one per file that was ever opened.
+     */
+    public static void disposeInvalid() {
+        List.copyOf(disposables.keySet()).stream()
+                .filter(tE -> !tE.isValid() || tE.getEditor().isDisposed())
+                .forEach(tE -> {
+                    Disposable disposable = disposables.remove(tE);
+
+                    if (disposable != null) {
+                        Disposer.dispose(disposable);
+                    }
+                });
     }
 
     public static void disposeAll() {
-        List.copyOf(disposables)
-                .forEach(d -> {
-                    Disposer.dispose(d);
-                    disposables.remove(d);
-                });
+        List.copyOf(disposables.values()).forEach(Disposer::dispose);
+        disposables.clear();
     }
 
     private void handleEvent(EventType type, @NotNull RangeHighlighterEx highlighter) {

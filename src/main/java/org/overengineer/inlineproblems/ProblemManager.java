@@ -140,6 +140,45 @@ public class ProblemManager implements Disposable {
         activeProblemSnapShot.forEach(this::removeProblem);
     }
 
+    /**
+     * Removes all problems of the given project including their drawn elements. To be called
+     * while the project is closing, the editors are still alive at that point.
+     */
+    public void resetForProject(Project project) {
+        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
+
+        activeProblemsSnapShot.stream()
+                .filter(p -> Objects.equals(p.getProject(), project))
+                .forEach(this::removeProblem);
+    }
+
+    /**
+     * Drops all problems that belong to an editor or project that is already gone. Their inlays
+     * and highlighters died with the editor, so nothing has to be undrawn - undrawing would
+     * even mean touching a disposed editor.
+     */
+    public void removeObsoleteProblems() {
+        final List<InlineProblem> obsoleteProblems = activeProblems.stream()
+                .filter(ProblemManager::isObsolete)
+                .collect(Collectors.toList());
+
+        if (obsoleteProblems.isEmpty()) {
+            return;
+        }
+
+        activeProblems.removeAll(obsoleteProblems);
+        logger.debug("Dropped " + obsoleteProblems.size() + " problem(s) of closed editors");
+    }
+
+    private static boolean isObsolete(InlineProblem problem) {
+        Project project = problem.getProject();
+        if (project == null || project.isDisposed()) {
+            return true;
+        }
+
+        return !problem.getTextEditor().isValid() || problem.getTextEditor().getEditor().isDisposed();
+    }
+
     public void resetForEditor(Editor editor) {
         final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
 

@@ -77,7 +77,14 @@ public class DocumentMarkupModelScanner implements Disposable {
 
     @Override
     public void dispose() {
+        /* Without cancelling the future the scan keeps running after a plugin unload, and the
+         * stale static instance would make a reload end up with two scheduled scans. */
+        cancelScheduledFuture();
         mergingUpdateQueue.cancelAllUpdates();
+
+        if (instance == this) {
+            instance = null;
+        }
     }
 
     public void scanForProblemsManually() {
@@ -204,10 +211,15 @@ public class DocumentMarkupModelScanner implements Disposable {
     }
 
     private void cancelScheduledFuture() {
-        if (!scheduledFuture.cancel(false)) {
-            if (!scheduledFuture.cancel(true)) {
-                logger.warn("Unable to cancel scheduledFuture");
-            }
+        ScheduledFuture<?> future = scheduledFuture;
+        if (future == null) {
+            return;
+        }
+
+        scheduledFuture = null;
+
+        if (!future.cancel(false) && !future.isDone()) {
+            logger.warn("Unable to cancel the scheduled manual scan");
         }
     }
 

@@ -1,9 +1,11 @@
 package org.overengineer.inlineproblems.listeners;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.overengineer.inlineproblems.ProblemManager;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.FileUtil;
@@ -14,6 +16,15 @@ import java.util.Arrays;
 public class FileEditorListener implements FileEditorManagerListener {
 
     SettingsState settingsState = SettingsState.getInstance();
+
+    @Override
+    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        MarkupModelProblemListener.disposeInvalid();
+
+        ApplicationManager.getApplication()
+                .getService(ProblemManager.class)
+                .removeObsoleteProblems();
+    }
 
     @Override
     public void fileOpenedSync(
