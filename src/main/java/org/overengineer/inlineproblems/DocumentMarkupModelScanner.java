@@ -127,7 +127,7 @@ public class DocumentMarkupModelScanner implements Disposable {
         mergingUpdateQueue.queue(new Update("scan") {
             @Override
             public void run() {
-                List<InlineProblem> problems = settingsState.isEnableInlineProblem() ? List.of() : getProblemsInEditor(textEditor);
+                List<InlineProblem> problems = settingsState.isEnableInlineProblem() ? getProblemsInEditor(textEditor) : List.of();
 
                 problemManager.updateFromNewActiveProblemsForProjectAndFile(
                         problems,
