@@ -6,6 +6,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.ex.RangeHighlighterEx;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.impl.DocumentMarkupModel;
 import com.intellij.openapi.editor.impl.event.MarkupModelListener;
 import com.intellij.openapi.fileEditor.TextEditor;
@@ -151,7 +152,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         );
 
         if (type == EventType.CHANGE || type == EventType.REMOVE) {
-            problemToRemove = findActiveProblemByRangeHighlighterHashCode(highlighter.hashCode());
+            problemToRemove = findActiveProblemByRangeHighlighter(highlighter);
 
             if (problemToRemove == null) {
                 return;
@@ -189,9 +190,9 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         }
     }
 
-    private InlineProblem findActiveProblemByRangeHighlighterHashCode(int hashCode) {
+    private InlineProblem findActiveProblemByRangeHighlighter(RangeHighlighter rangeHighlighter) {
         return problemManager.getActiveProblems().stream()
-                .filter(p -> p.getRangeHighlighterHashCode() == hashCode)
+                .filter(p -> p.getRangeHighlighter() == rangeHighlighter)
                 .findFirst()
                 .orElse(null);
     }

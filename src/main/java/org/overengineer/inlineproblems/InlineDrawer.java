@@ -1,9 +1,10 @@
 package org.overengineer.inlineproblems;
 
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.colors.EditorFontType;
+import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.markup.*;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.TextRange;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
@@ -12,7 +13,6 @@ import org.overengineer.inlineproblems.utils.SeverityUtil;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.util.List;
-import java.util.Arrays;
 
 
 public class InlineDrawer {
@@ -67,13 +67,13 @@ public class InlineDrawer {
             inlineProblemLabel.setBlockElement(true);
             problem.setBlockElement(true);
 
-            inlayModel.addBlockElement(
+            problem.setInlay(inlayModel.addBlockElement(
                     editor.getDocument().getLineStartOffset(problem.getLine()),
                     false,
                     true,
                     1,
                     inlineProblemLabel
-            );
+            ));
         }
         else {
             InlayProperties properties = new InlayProperties()
@@ -81,14 +81,12 @@ public class InlineDrawer {
                     .disableSoftWrapping(true)
                     .priority(1);
 
-            inlayModel.addAfterLineEndElement(
+            problem.setInlay(inlayModel.addAfterLineEndElement(
                     problem.getActualEndOffset(),
                     properties,
                     inlineProblemLabel
-            );
+            ));
         }
-
-        problem.setInlineProblemLabelHashCode(inlineProblemLabel.hashCode());
     }
 
     /** Draws the highlighter and the gutter icon for the currently shown problem in the line
@@ -135,7 +133,7 @@ public class InlineDrawer {
             highlighter.setGutterIconRenderer(new GutterRenderer(getGutterText(problemsInLine), drawDetails.getIcon()));
         }
 
-        problem.setProblemLineHighlighterHashCode(highlighter.hashCode());
+        problem.setLineHighlighter(highlighter);
     }
 
     /**
@@ -144,11 +142,15 @@ public class InlineDrawer {
      *                       it still contains the problem itself
      */
     public void undrawErrorLineHighlight(InlineProblem problem, List<InlineProblem> problemsInLine) {
-        MarkupModel markupModel = problem.getTextEditor().getEditor().getMarkupModel();
+        RangeHighlighter lineHighlighter = problem.getLineHighlighter();
 
-        Arrays.stream(markupModel.getAllHighlighters())
-                .filter(h -> h.isValid() && h.hashCode() == problem.getProblemLineHighlighterHashCode())
-                .forEach(markupModel::removeHighlighter);
+        if (lineHighlighter != null) {
+            problem.setLineHighlighter(null);
+
+            if (lineHighlighter.isValid()) {
+                problem.getTextEditor().getEditor().getMarkupModel().removeHighlighter(lineHighlighter);
+            }
+        }
 
         // Gutter icon re-adding
         if (problemsInLine != null && problemsInLine.size() > 1) {
@@ -158,37 +160,20 @@ public class InlineDrawer {
     }
 
     public void undrawInlineProblemLabel(InlineProblem problem) {
-        Editor editor = problem.getTextEditor().getEditor();
-        Document document = editor.getDocument();
+        Inlay<?> inlay = problem.getInlay();
 
-        // Here is not checked if single or multi line, both are disposed because we do not have the info here
-        // We search for all elements because they can move
-        int documentLineStartOffset = document.getLineStartOffset(0);
-        int endLine = document.getLineCount() - 1;
-        if (endLine < 0) endLine = 0;
-        int documentLineEndOffset = document.getLineEndOffset(endLine);
-
-        if (problem.isBlockElement()) {
-            editor.getInlayModel()
-                    .getBlockElementsInRange(
-                            documentLineStartOffset,
-                            documentLineEndOffset
-                    )
-                    .stream()
-                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                    .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
-                    .forEach(Disposable::dispose);
+        if (inlay == null) {
+            return;
         }
-        else {
-            editor.getInlayModel()
-                    .getAfterLineEndElementsInRange(
-                            documentLineStartOffset,
-                            documentLineEndOffset
-                    )
-                    .stream()
-                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                    .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
-                    .forEach(Disposable::dispose);
+
+        problem.setInlay(null);
+
+        /* The inlay moves with the document, so the reference stays correct. Searching all
+         * elements of the document for a matching renderer hash code, as it was done before,
+         * is both slow (GitHub issue #96) and ambiguous on a hash collision, which could leave
+         * the label behind or dispose a foreign one (GitHub issues #38, #44). */
+        if (inlay.isValid()) {
+            Disposer.dispose(inlay);
         }
     }
 
@@ -224,13 +209,32 @@ public class InlineDrawer {
         int lineEndOffset = document.getLineEndOffset(line);
 
         MarkupModel markupModel = editor.getMarkupModel();
+
+        /* Only the highlighters overlapping the line are relevant. Materializing every
+         * highlighter of the editor was one of the hotspots in GitHub issue #96. */
+        if (markupModel instanceof MarkupModelEx) {
+            ((MarkupModelEx) markupModel).processRangeHighlightersOverlappingWith(
+                    lineStartOffset,
+                    lineEndOffset,
+                    highlighter -> {
+                        removeOwnGutterIcon(highlighter);
+                        return true;
+                    }
+            );
+
+            return;
+        }
+
         for (RangeHighlighter highlighter : markupModel.getAllHighlighters()) {
             if (highlighter.getStartOffset() <= lineEndOffset && highlighter.getEndOffset() >= lineStartOffset) {
-                GutterIconRenderer gutterIconRenderer = highlighter.getGutterIconRenderer();
-                if (gutterIconRenderer instanceof GutterRenderer) {
-                    highlighter.setGutterIconRenderer(null);
-                }
+                removeOwnGutterIcon(highlighter);
             }
+        }
+    }
+
+    private void removeOwnGutterIcon(RangeHighlighter highlighter) {
+        if (highlighter.getGutterIconRenderer() instanceof GutterRenderer) {
+            highlighter.setGutterIconRenderer(null);
         }
     }
 }

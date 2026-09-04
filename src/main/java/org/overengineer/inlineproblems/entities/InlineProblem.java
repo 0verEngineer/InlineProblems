@@ -1,6 +1,7 @@
 package org.overengineer.inlineproblems.entities;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.openapi.editor.Inlay;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
@@ -13,7 +14,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 
 @Getter
 @Setter
-@EqualsAndHashCode(exclude = {"line", "problemLineHighlighterHashCode", "inlineProblemLabelHashCode", "isBlockElement", "drawDetails"})
+@EqualsAndHashCode(exclude = {"line", "lineHighlighter", "inlay", "isBlockElement", "drawDetails"})
 public class InlineProblem {
 
     // The line the problem first appeared
@@ -35,16 +36,13 @@ public class InlineProblem {
     private boolean isBlockElement = false;
 
     // Set after drawing the line highlight, used to remove it again
-    private int problemLineHighlighterHashCode;
+    private RangeHighlighter lineHighlighter;
 
     // Set after drawing the inlay, used to remove the inlay again
-    private int inlineProblemLabelHashCode = 0;
+    private Inlay<?> inlay;
 
-    // Used to determine if the problem has moved
-    private int highlightInfoStartOffset;
-
-    // Used to identify the problem, should never change even if problem the problem moved
-    private int rangeHighlighterHashCode;
+    // Used to identify the problem, should never change even if the problem moved
+    private final RangeHighlighter rangeHighlighter;
 
 
     public InlineProblem(
@@ -67,8 +65,7 @@ public class InlineProblem {
         this.textEditor = textEditor;
         this.file = filePath;
         this.project = textEditor.getEditor().getProject();
-        this.highlightInfoStartOffset = highlightInfo.hashCode();
-        this.rangeHighlighterHashCode = rangeHighlighter.hashCode();
+        this.rangeHighlighter = rangeHighlighter;
         this.actualStartffset = highlightInfo.getStartOffset();
 
         if (highlightInfo.getActualEndOffset() == 0)
