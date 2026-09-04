@@ -66,7 +66,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         Editor editor = textEditor.getEditor();
         var documentMarkupModel = DocumentMarkupModel.forDocument(editor.getDocument(), editor.getProject(), false);
 
-        if (!(documentMarkupModel instanceof MarkupModelEx) || textEditor.getFile() == null) {
+        if (!(documentMarkupModel instanceof MarkupModelEx markupModelEx) || textEditor.getFile() == null) {
             return;
         }
 
@@ -77,7 +77,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         Disposable disposable = new MarkupModelProblemListenerDisposable();
         Disposer.register(ApplicationManager.getApplication().getService(ProblemManager.class), disposable);
 
-        ((MarkupModelEx) documentMarkupModel).addMarkupModelListener(
+        markupModelEx.addMarkupModelListener(
                 disposable,
                 new MarkupModelProblemListener(textEditor)
         );

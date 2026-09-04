@@ -101,9 +101,7 @@ public class DocumentMarkupModelScanner implements Disposable {
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                 for (var editor : fileEditorManager.getAllEditors()) {
 
-                    if (editor instanceof TextEditor) {
-                        var textEditor = (TextEditor) editor;
-
+                    if (editor instanceof TextEditor textEditor) {
                         if (editor.getFile() == null ||
                                 FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
                         ) {
@@ -163,8 +161,7 @@ public class DocumentMarkupModelScanner implements Disposable {
 
         Arrays.stream(highlighters)
                 .filter(h -> {
-                    if (h.isValid() && h.getErrorStripeTooltip() instanceof HighlightInfo) {
-                        HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
+                    if (h.isValid() && h.getErrorStripeTooltip() instanceof HighlightInfo highlightInfo) {
                         String description = highlightInfo.getDescription();
 
                         return description != null &&

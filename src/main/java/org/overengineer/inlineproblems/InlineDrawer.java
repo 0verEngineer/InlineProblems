@@ -213,8 +213,8 @@ public class InlineDrawer {
 
         /* Only the highlighters overlapping the line are relevant. Materializing every
          * highlighter of the editor was one of the hotspots in GitHub issue #96. */
-        if (markupModel instanceof MarkupModelEx) {
-            ((MarkupModelEx) markupModel).processRangeHighlightersOverlappingWith(
+        if (markupModel instanceof MarkupModelEx markupModelEx) {
+            markupModelEx.processRangeHighlightersOverlappingWith(
                     lineStartOffset,
                     lineEndOffset,
                     highlighter -> {

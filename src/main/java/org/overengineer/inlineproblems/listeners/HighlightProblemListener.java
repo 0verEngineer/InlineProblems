@@ -49,11 +49,11 @@ public class HighlightProblemListener implements HighlightInfoFilter {
             return;
 
         FileEditor editor = FileEditorManager.getInstance(file.getProject()).getSelectedEditor(file.getVirtualFile());
-        if (editor == null || !(editor instanceof TextEditor)) {
+
+        // instanceof also covers editor being null
+        if (!(editor instanceof TextEditor textEditor)) {
             return;
         }
-
-        TextEditor textEditor = (TextEditor) editor;
 
         markupModelScanner.scanForProblemsManuallyInTextEditor(textEditor);
     }

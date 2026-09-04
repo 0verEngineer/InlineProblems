@@ -40,8 +40,7 @@ public class ListenerManager {
             for (var project : manager.getOpenProjects()) {
                 FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                 for (var editor : fileEditorManager.getAllEditors()) {
-                    if (editor instanceof TextEditor) {
-                        var textEditor = (TextEditor) editor;
+                    if (editor instanceof TextEditor textEditor) {
                         if (
                             editor.getFile() == null ||
                             FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
@@ -49,7 +48,7 @@ public class ListenerManager {
                             continue;
                         }
 
-                        MarkupModelProblemListener.setup((TextEditor) editor);
+                        MarkupModelProblemListener.setup(textEditor);
                         logger.debug("Installing MarkupModelListener");
                     }
                 }

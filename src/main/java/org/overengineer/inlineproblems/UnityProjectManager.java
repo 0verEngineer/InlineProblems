@@ -50,7 +50,7 @@ public class UnityProjectManager {
         projects.add(project);
 
         if (!isUnityProjectOpenedBefore && isAUnityProjectOpened()) {
-            handleUnityProjectOpened(project.getProject());
+            handleUnityProjectOpened(project.project());
         }
     }
 
@@ -58,7 +58,7 @@ public class UnityProjectManager {
         boolean isUnityProjectOpenedBefore = isAUnityProjectOpened();
 
         List<InlineProblemProject> projectsToRemove = projects.stream()
-                .filter(p -> p.getProject().equals(project))
+                .filter(p -> p.project().equals(project))
                 .collect(Collectors.toList());
 
         if (projectsToRemove.size() != 1)
@@ -75,17 +75,18 @@ public class UnityProjectManager {
         ProjectManager projectManager = ProjectManager.getInstance();
         if (projectManager != null) {
             for (var project : projectManager.getOpenProjects()) {
-                if (unityProjectScanner.isUnityProject(project))
-                    projectOpened(new InlineProblemProject(project, ProjectType.UNITY_GAME_ENGINE));
-                else
-                    projectOpened(new InlineProblemProject(project, ProjectType.DEFAULT));
+                ProjectType type = unityProjectScanner.isUnityProject(project)
+                        ? ProjectType.UNITY_GAME_ENGINE
+                        : ProjectType.DEFAULT;
+
+                projectOpened(new InlineProblemProject(project, type));
             }
         }
     }
 
     private boolean isAUnityProjectOpened() {
         return projects.stream()
-                .anyMatch(p -> p.getType().equals(ProjectType.UNITY_GAME_ENGINE));
+                .anyMatch(p -> p.type() == ProjectType.UNITY_GAME_ENGINE);
     }
 
     private void handleUnityProjectOpened(Project project) {

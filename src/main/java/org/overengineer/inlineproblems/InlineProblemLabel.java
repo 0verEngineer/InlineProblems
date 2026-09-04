@@ -4,8 +4,12 @@ import com.intellij.codeInsight.hints.presentation.InputHandler;
 import com.intellij.codeInsight.intention.impl.ShowIntentionActionsHandler;
 import com.intellij.ide.ui.AntialiasingType;
 import com.intellij.ide.ui.UISettings;
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUiKind;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.editor.Editor;
@@ -210,7 +214,22 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
 
             AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SHOW_INTENTION_ACTIONS);
             if (action != null) {
-                ActionUtil.invokeAction(action, editor.getComponent(), "EditorInlay", null, null);
+                /* Both the Component and the DataContext overloads of invokeAction are deprecated
+                 * in the 2025.1 baseline, the remaining one takes an AnActionEvent. The data
+                 * context of the content component is what carries CommonDataKeys.EDITOR.
+                 * The verifier reports this call as deprecated against 2025.3, where the last
+                 * overload got deprecated too - the successor does not exist in 2025.1 yet, so it
+                 * has to wait for the next baseline bump. */
+                AnActionEvent event = AnActionEvent.createEvent(
+                        action,
+                        DataManager.getInstance().getDataContext(editor.getContentComponent()),
+                        null,
+                        ActionPlaces.EDITOR_INLAY,
+                        ActionUiKind.NONE,
+                        null
+                );
+
+                ActionUtil.invokeAction(action, event, null);
                 return;
             }
 
