@@ -4,14 +4,6 @@ import com.intellij.codeInsight.hints.presentation.InputHandler;
 import com.intellij.codeInsight.intention.impl.ShowIntentionActionsHandler;
 import com.intellij.ide.ui.AntialiasingType;
 import com.intellij.ide.ui.UISettings;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionUiKind;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
@@ -19,6 +11,7 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.impl.FontInfo;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtilBase;
@@ -205,40 +198,35 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
             return;
         }
 
-        if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
-            mouseEvent.consume();
-
-            Editor editor = currentInlay.getEditor();
-            editor.getCaretModel().moveToOffset(actualStartOffset);
-            editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
-
-            AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SHOW_INTENTION_ACTIONS);
-            if (action != null) {
-                /* Both the Component and the DataContext overloads of invokeAction are deprecated
-                 * in the 2025.1 baseline, the remaining one takes an AnActionEvent. The data
-                 * context of the content component is what carries CommonDataKeys.EDITOR.
-                 * The verifier reports this call as deprecated against 2025.3, where the last
-                 * overload got deprecated too - the successor does not exist in 2025.1 yet, so it
-                 * has to wait for the next baseline bump. */
-                AnActionEvent event = AnActionEvent.createEvent(
-                        action,
-                        DataManager.getInstance().getDataContext(editor.getContentComponent()),
-                        null,
-                        ActionPlaces.EDITOR_INLAY,
-                        ActionUiKind.NONE,
-                        null
-                );
-
-                ActionUtil.invokeAction(action, event, null);
-                return;
-            }
-
-            Project project = editor.getProject();
-            if (project == null) return;
-            PsiFile psiFileInEditor = PsiUtilBase.getPsiFileInEditor(editor, project);
-            if (psiFileInEditor == null) return;
-            new ShowIntentionActionsHandler().invoke(project, editor, psiFileInEditor, false);
+        if (mouseEvent.getButton() != MouseEvent.BUTTON1) {
+            return;
         }
+
+        mouseEvent.consume();
+
+        Editor editor = currentInlay.getEditor();
+        editor.getCaretModel().moveToOffset(actualStartOffset);
+        editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
+
+        Project project = editor.getProject();
+
+        // The intentions are computed from the indexes, which are not available while indexing
+        if (project == null || DumbService.isDumb(project)) {
+            return;
+        }
+
+        PsiFile psiFileInEditor = PsiUtilBase.getPsiFileInEditor(editor, project);
+        if (psiFileInEditor == null) {
+            return;
+        }
+
+        /* Deliberately not routed through the action system. Every ActionUtil.invokeAction and
+         * performAction overload is deprecated as of 2025.3, so there is no non-deprecated way
+         * left to trigger IdeActions.ACTION_SHOW_INTENTION_ACTIONS programmatically. This handler
+         * is what that action delegates to and is not deprecated in either the 2025.1 baseline or
+         * 2025.3. It is also the path that actually ran in the released versions, because the
+         * action lookup used the wrong ActionManager and always returned null. */
+        new ShowIntentionActionsHandler().invoke(project, editor, psiFileInEditor, false);
     }
 
     @Override
