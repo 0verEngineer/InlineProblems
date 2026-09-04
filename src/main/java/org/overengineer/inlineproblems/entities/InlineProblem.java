@@ -87,7 +87,7 @@ public class InlineProblem {
         }
 
         if (
-                settingsState.isEnableHtmlStripping() &&
+                settingsState.isEnableXmlUnescaping() &&
                 text.contains("&")
         ) {
             text = StringUtil.unescapeXmlEntities(text);
