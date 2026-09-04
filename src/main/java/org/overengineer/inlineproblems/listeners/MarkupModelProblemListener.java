@@ -17,9 +17,9 @@ import org.overengineer.inlineproblems.ProblemManager;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.settings.SettingsState;
+import org.overengineer.inlineproblems.utils.ProblemTextFilter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -159,15 +159,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
             }
         }
 
-        List<String> problemTextBeginningFilterList = new ArrayList<>(
-                Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
-        );
-
-        if (
-                newProblem.getText().isEmpty() ||
-                        problemTextBeginningFilterList.stream()
-                                .anyMatch(f -> newProblem.getText().toLowerCase().startsWith(f.toLowerCase()))
-        ) {
+        if (newProblem.getText().isEmpty() || ProblemTextFilter.isFiltered(newProblem.getText())) {
             return;
         }
 

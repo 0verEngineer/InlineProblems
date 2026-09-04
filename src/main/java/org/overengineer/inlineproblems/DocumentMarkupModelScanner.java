@@ -20,6 +20,7 @@ import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.FileUtil;
+import org.overengineer.inlineproblems.utils.ProblemTextFilter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -155,18 +156,15 @@ public class DocumentMarkupModelScanner implements Disposable {
                 .forDocument(document, editor.getProject(), false)
                 .getAllHighlighters();
 
-        List<String> problemTextBeginningFilterList = new ArrayList<>(
-                Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
-        );
-
         Arrays.stream(highlighters)
                 .filter(h -> {
                     if (h.isValid() && h.getErrorStripeTooltip() instanceof HighlightInfo) {
                         HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
-                        return highlightInfo.getDescription() != null &&
-                                !highlightInfo.getDescription().isEmpty() &&
-                                problemTextBeginningFilterList.stream()
-                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase())) &&
+                        String description = highlightInfo.getDescription();
+
+                        return description != null &&
+                                !description.isEmpty() &&
+                                !ProblemTextFilter.isFiltered(description) &&
                                 fileEndOffset >= highlightInfo.getStartOffset();
                     }
 
