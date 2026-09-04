@@ -86,7 +86,7 @@ public class SettingsConfigurable implements Configurable {
                 state.isHighlightInfos() == settingsComponent.isHighlightInfo() &&
                 state.isShowInfosInGutter() == settingsComponent.isShowInfosInGutter() &&
 
-                state.getEnabledListener() == settingsComponent.getEnabledListener() &&
+                state.getActiveListener() == settingsComponent.getEnabledListener() &&
                 state.getManualScannerDelay() == settingsComponent.getManualScannerDelay() &&
 
                 state.getProblemFilterList().equals(settingsComponent.getProblemFilterList()) &&
@@ -106,7 +106,7 @@ public class SettingsConfigurable implements Configurable {
     public void apply() {
         SettingsState state = SettingsState.getInstance();
 
-        boolean listenerChanged = state.getEnabledListener() != settingsComponent.getEnabledListener();
+        boolean listenerChanged = state.getActiveListener() != settingsComponent.getEnabledListener();
         boolean fileExtensionBlacklistChanged = !Objects.equals(state.getFileExtensionBlacklist(), settingsComponent.getFileExtensionBlacklist());
         boolean manualScannerDelayChanged = state.getManualScannerDelay() != settingsComponent.getManualScannerDelay();
         boolean maxFileLinesChanged = state.getMaxFileLines() != settingsComponent.getMaxFileLines();
@@ -156,7 +156,7 @@ public class SettingsConfigurable implements Configurable {
         state.setItalicProblemLabels(settingsComponent.isItalicProblemLabels());
         state.setClickableContext(settingsComponent.isClickableContext());
 
-        state.setEnabledListener(settingsComponent.getEnabledListener());
+        state.setActiveListener(settingsComponent.getEnabledListener());
         state.setManualScannerDelay(settingsComponent.getManualScannerDelay());
         state.setProblemFilterList(settingsComponent.getProblemFilterList());
         state.setFileExtensionBlacklist(settingsComponent.getFileExtensionBlacklist());
@@ -167,14 +167,14 @@ public class SettingsConfigurable implements Configurable {
         state.setAdditionalWeakWarningSeverities(settingsComponent.getAdditionalWeakWarningSeveritiesList());
         state.setAdditionalErrorSeverities(settingsComponent.getAdditionalErrorSeveritiesList());
 
-        if (manualScannerDelayChanged && state.getEnabledListener() == Listener.MANUAL_SCANNING) {
+        if (manualScannerDelayChanged && state.getActiveListener() == Listener.MANUAL_SCANNING) {
             DocumentMarkupModelScanner.getInstance().setDelayMilliseconds(state.getManualScannerDelay());
         }
 
         listenerManager.resetAndRescan();
 
         // When the blacklist or maxFileLines changes we need to re-apply all MarkupModelProblemListeners
-        if ((fileExtensionBlacklistChanged || maxFileLinesChanged) && state.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER) {
+        if ((fileExtensionBlacklistChanged || maxFileLinesChanged) && state.getActiveListener() == Listener.MARKUP_MODEL_LISTENER) {
             listenerManager.resetMarkupModelProblemListeners();
         }
 
@@ -232,7 +232,7 @@ public class SettingsConfigurable implements Configurable {
         settingsComponent.setItalicProblemLabels(state.isItalicProblemLabels());
         settingsComponent.setClickableContext(state.isClickableContext());
 
-        settingsComponent.setEnabledListener(state.getEnabledListener());
+        settingsComponent.setEnabledListener(state.getActiveListener());
         settingsComponent.setManualScannerDelay(state.getManualScannerDelay());
         settingsComponent.setProblemFilterList(state.getProblemFilterList());
         settingsComponent.setFileExtensionBlacklist(state.getFileExtensionBlacklist());

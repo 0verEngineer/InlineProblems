@@ -7,10 +7,8 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import lombok.Getter;
-import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.bundles.SettingsBundle;
-import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
-import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
+import org.overengineer.inlineproblems.entities.enums.Listener;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
@@ -77,8 +75,10 @@ public class SettingsComponent {
     private final JBTextField problemFilterList = new JBTextField();
     private final JBTextField fileExtensionBlacklist = new JBTextField();
 
-    private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME, DocumentMarkupModelScanner.NAME};
-    private final JComboBox<String> enabledListener = new ComboBox<>(availableListeners);
+    private static final List<Listener> availableListeners = List.of(Listener.values());
+    private final JComboBox<String> enabledListener = new ComboBox<>(
+            availableListeners.stream().map(Listener::getDisplayName).toArray(String[]::new)
+    );
 
     private final JBTextField additionalInfoSeverities = new JBTextField();
     private final JBTextField additionalWarningSeverities = new JBTextField();
@@ -157,7 +157,7 @@ public class SettingsComponent {
 
         problemFilterList.setText(settingsState.getProblemFilterList());
         fileExtensionBlacklist.setText(settingsState.getFileExtensionBlacklist());
-        setEnabledListener(settingsState.getEnabledListener());
+        setEnabledListener(settingsState.getActiveListener());
 
         Dimension enabledListenerDimension = enabledListener.getPreferredSize();
         enabledListenerDimension.width += 100;
@@ -620,16 +620,19 @@ public class SettingsComponent {
         additionalWeakWarningSeverities.setText(newText);
     }
 
-    public int getEnabledListener() {
-        return enabledListener.getSelectedIndex();
-    }
+    public Listener getEnabledListener() {
+        int index = enabledListener.getSelectedIndex();
 
-    public void setEnabledListener(int index) {
-        if (index < 0 || index >= availableListeners.length) {
-            index = 0;
+        if (index < 0 || index >= availableListeners.size()) {
+            return Listener.DEFAULT;
         }
 
-        enabledListener.setSelectedIndex(index);
+        return availableListeners.get(index);
+    }
+
+    public void setEnabledListener(Listener listener) {
+        // indexOf returns -1 for an unknown value, which falls back to the first entry
+        enabledListener.setSelectedIndex(Math.max(0, availableListeners.indexOf(listener)));
     }
 
     private List<Integer> getSeverityIntegerList(String text) {

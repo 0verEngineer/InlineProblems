@@ -68,18 +68,18 @@ public class ListenerManager {
     }
 
     public void changeListener() {
-        if (settings.getEnabledListener() != Listener.MARKUP_MODEL_LISTENER) {
+        if (settings.getActiveListener() != Listener.MARKUP_MODEL_LISTENER) {
             MarkupModelProblemListener.disposeAll();
         }
 
-        if (settings.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER) {
+        if (settings.getActiveListener() == Listener.MARKUP_MODEL_LISTENER) {
             documentMarkupModelScanner.setDelayMilliseconds(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS);
             installMarkupModelListenerOnAllProjects();
         }
-        else if (settings.getEnabledListener() == Listener.HIGHLIGHT_PROBLEMS_LISTENER) {
+        else if (settings.getActiveListener() == Listener.HIGHLIGHT_PROBLEMS_LISTENER) {
             documentMarkupModelScanner.setDelayMilliseconds(HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS);
         }
-        else if (settings.getEnabledListener() == Listener.MANUAL_SCANNING) {
+        else if (settings.getActiveListener() == Listener.MANUAL_SCANNING) {
             documentMarkupModelScanner.setDelayMilliseconds(settings.getManualScannerDelay());
         }
 

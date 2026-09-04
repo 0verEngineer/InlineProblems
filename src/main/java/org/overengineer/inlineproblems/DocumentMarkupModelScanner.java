@@ -43,8 +43,6 @@ public class DocumentMarkupModelScanner implements Disposable {
 
     private ScheduledFuture<?> scheduledFuture;
 
-    public static final String NAME = "ManualScanner";
-
     private DocumentMarkupModelScanner() {
         Disposer.register(problemManager, this);
 
@@ -61,7 +59,7 @@ public class DocumentMarkupModelScanner implements Disposable {
         );
 
         SettingsState settingsState = SettingsState.getInstance();
-        if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
+        if (settingsState.getActiveListener() == Listener.MANUAL_SCANNING) {
             delayMilliseconds = settingsState.getManualScannerDelay();
         }
 

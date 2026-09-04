@@ -18,14 +18,13 @@ import org.overengineer.inlineproblems.utils.FileUtil;
 public class HighlightProblemListener implements HighlightInfoFilter {
     private final DocumentMarkupModelScanner markupModelScanner = DocumentMarkupModelScanner.getInstance();
     private final SettingsState settingsState = SettingsState.getInstance();
-    public static final String NAME = "HighlightProblemListener";
     public static final int ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS = 2000;
 
     @Override
     public boolean accept(@NotNull HighlightInfo highlightInfo, @Nullable PsiFile file) {
         if (!settingsState.isEnableInlineProblem())
             return true;
-        if (settingsState.getEnabledListener() != Listener.HIGHLIGHT_PROBLEMS_LISTENER)
+        if (settingsState.getActiveListener() != Listener.HIGHLIGHT_PROBLEMS_LISTENER)
             return true;
         if (file == null || !file.isValid())
             return true;
@@ -43,7 +42,7 @@ public class HighlightProblemListener implements HighlightInfoFilter {
     }
 
     public void handleAccept(PsiFile file) {
-        if (settingsState.getEnabledListener() != Listener.HIGHLIGHT_PROBLEMS_LISTENER)
+        if (settingsState.getActiveListener() != Listener.HIGHLIGHT_PROBLEMS_LISTENER)
             return;
 
         if (file.getProject().isDisposed() || file.getVirtualFile() == null)

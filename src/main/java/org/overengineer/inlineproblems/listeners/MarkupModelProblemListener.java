@@ -34,8 +34,6 @@ public class MarkupModelProblemListener implements MarkupModelListener {
      * on an editor that already has one, which would double every problem event. */
     private static final Map<TextEditor, Disposable> disposables = new HashMap<>();
 
-    public static final String NAME = "MarkupModelListener (default)";
-
     private enum EventType {
         ADD, REMOVE, CHANGE
     }
@@ -113,7 +111,7 @@ public class MarkupModelProblemListener implements MarkupModelListener {
         if (!settingsState.isEnableInlineProblem())
             return;
 
-        if (settingsState.getEnabledListener() != Listener.MARKUP_MODEL_LISTENER)
+        if (settingsState.getActiveListener() != Listener.MARKUP_MODEL_LISTENER)
             return;
 
         Editor editor = textEditor.getEditor();

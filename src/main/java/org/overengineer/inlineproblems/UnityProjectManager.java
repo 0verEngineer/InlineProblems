@@ -22,7 +22,7 @@ public class UnityProjectManager {
 
     private final List<InlineProblemProject> projects = new ArrayList<>();
 
-    private int enabledListenerBefore;
+    private Listener enabledListenerBefore;
 
     @Getter
     private final UnityProjectScanner unityProjectScanner = new UnityProjectScanner();
@@ -34,7 +34,7 @@ public class UnityProjectManager {
     private static UnityProjectManager instance;
 
     private UnityProjectManager() {
-        enabledListenerBefore = settings.getEnabledListener();
+        enabledListenerBefore = settings.getActiveListener();
     }
 
     public static UnityProjectManager getInstance() {
@@ -89,11 +89,11 @@ public class UnityProjectManager {
     }
 
     private void handleUnityProjectOpened(Project project) {
-        enabledListenerBefore = settings.getEnabledListener();
+        enabledListenerBefore = settings.getActiveListener();
         if (enabledListenerBefore == Listener.MANUAL_SCANNING)
             return;
 
-        settings.setEnabledListener(Listener.MANUAL_SCANNING);
+        settings.setActiveListener(Listener.MANUAL_SCANNING);
 
         ListenerManager listenerManager = ListenerManager.getInstance();
         listenerManager.resetAndRescan();
@@ -105,8 +105,8 @@ public class UnityProjectManager {
         if (enabledListenerBefore == Listener.MANUAL_SCANNING)
             return;
 
-        if (settings.getEnabledListener() == Listener.MANUAL_SCANNING) {
-            settings.setEnabledListener(enabledListenerBefore);
+        if (settings.getActiveListener() == Listener.MANUAL_SCANNING) {
+            settings.setActiveListener(enabledListenerBefore);
 
             ListenerManager listenerManager = ListenerManager.getInstance();
             listenerManager.resetAndRescan();

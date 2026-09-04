@@ -32,7 +32,7 @@ public class FileEditorListener implements FileEditorManagerListener {
             @NotNull VirtualFile file,
             @NotNull Pair<FileEditor[], FileEditorProvider[]> editors
     ) {
-        if (settingsState.getEnabledListener() != Listener.MARKUP_MODEL_LISTENER)
+        if (settingsState.getActiveListener() != Listener.MARKUP_MODEL_LISTENER)
             return;
 
         // Precheck only file name, later we check the line count only
