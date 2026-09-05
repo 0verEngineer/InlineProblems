@@ -17,7 +17,6 @@
 - The active problem listener is stored as an enum instead of an int whose meaning depended on the order of the settings combo box
 - The IntelliJ Plugin Verifier runs in the CI again, it had silently been replaced by the plugin structure check
 - UI test setup ported from runIdeForUiTests to testIdeUi and the IntelliJ Starter framework
-- .idea is no longer tracked
 
 ### Fixed
 - The HighlightProblemListener never reported anything, and "Show only highest severity per line" removed the problems instead of drawing them, both because of an inverted check
