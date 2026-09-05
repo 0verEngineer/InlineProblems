@@ -45,7 +45,7 @@ public class InlineProblem {
     private DrawDetails drawDetails;
 
     private int actualEndOffset;
-    private int actualStartffset;
+    private int actualStartOffset;
 
     private boolean isBlockElement = false;
 
@@ -80,7 +80,7 @@ public class InlineProblem {
         this.file = filePath;
         this.project = textEditor.getEditor().getProject();
         this.rangeHighlighter = rangeHighlighter;
-        this.actualStartffset = highlightInfo.getStartOffset();
+        this.actualStartOffset = highlightInfo.getStartOffset();
 
         if (highlightInfo.getActualEndOffset() == 0)
             this.actualEndOffset = highlightInfo.getActualEndOffset();
@@ -94,7 +94,7 @@ public class InlineProblem {
      * offsets, which are used as the click target, have to follow.
      */
     public void refreshPositionFrom(InlineProblem newProblem) {
-        this.actualStartffset = newProblem.actualStartffset;
+        this.actualStartOffset = newProblem.actualStartOffset;
         this.actualEndOffset = newProblem.actualEndOffset;
         this.rangeHighlighter = newProblem.rangeHighlighter;
     }

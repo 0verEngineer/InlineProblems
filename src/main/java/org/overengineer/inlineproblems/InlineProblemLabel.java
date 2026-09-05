@@ -71,7 +71,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
         this.isUseEditorFont = settings.isUseEditorFont();
         this.inlayFontSizeDelta = settings.getInlayFontSizeDelta();
         this.hovered = false;
-        this.actualStartOffset = problem.getActualStartffset();
+        this.actualStartOffset = problem.getActualStartOffset();
         this.clickableContext = settings.isClickableContext();
     }
 
