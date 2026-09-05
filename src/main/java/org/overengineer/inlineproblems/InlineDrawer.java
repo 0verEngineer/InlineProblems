@@ -133,7 +133,10 @@ public class InlineDrawer {
     /**
      * @param problem the problem
      * @param problemsInLine the problems in the same line as problem, null if no gutter icons are enabled, keep in mind that
-     *                       it still contains the problem itself
+     *                       it still contains the problem itself.
+     *                       <b>The list is modified:</b> the problem is removed from it before the
+     *                       gutter icon is redrawn for the ones that remain, so callers have to
+     *                       pass a list they own.
      */
     public void undrawErrorLineHighlight(InlineProblem problem, List<InlineProblem> problemsInLine) {
         RangeHighlighter lineHighlighter = problem.getLineHighlighter();
