@@ -221,10 +221,6 @@ public class ProblemManager implements Disposable {
         );
     }
 
-    public void updateFromNewActiveProblems(List<InlineProblem> problems) {
-        updateFromNewActiveProblems(problems, List.copyOf(activeProblems));
-    }
-
     /**
      * Diffs the problems of a single editor. Filtering by project and file instead of by editor
      * would break a split view: the snapshot would contain the problems of both editors showing

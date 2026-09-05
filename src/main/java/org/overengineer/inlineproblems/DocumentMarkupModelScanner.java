@@ -94,35 +94,39 @@ public class DocumentMarkupModelScanner implements Disposable {
         }
     }
 
+    /**
+     * Only the visible editors are scanned. A background tab is not analyzed by the daemon either,
+     * and once it becomes visible the daemon run that follows fires the markup events that trigger
+     * a rescan of it.
+     */
     public void scanForProblemsManually() {
         if (!settingsState.isEnableInlineProblem()) {
             return;
         }
 
         ProjectManager projectManager = ProjectManager.getInstanceIfCreated();
+        if (projectManager == null) {
+            return;
+        }
 
-        if (projectManager != null) {
-            List<InlineProblem> problems = new ArrayList<>();
-            for (var project : projectManager.getOpenProjects()) {
-                if (!project.isInitialized() || project.isDisposed())
+        for (var project : projectManager.getOpenProjects()) {
+            if (!project.isInitialized() || project.isDisposed())
+                continue;
+
+            for (var editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
+                if (!(editor instanceof TextEditor textEditor)) {
                     continue;
-
-                FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-                for (var editor : fileEditorManager.getAllEditors()) {
-
-                    if (editor instanceof TextEditor textEditor) {
-                        if (editor.getFile() == null ||
-                                FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
-                        ) {
-                            continue;
-                        }
-
-                        problems.addAll(getProblemsInEditor(textEditor));
-                    }
                 }
-            }
 
-            problemManager.updateFromNewActiveProblems(problems);
+                if (
+                        editor.getFile() == null ||
+                        FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
+                ) {
+                    continue;
+                }
+
+                problemManager.updateFromNewActiveProblemsForTextEditor(getProblemsInEditor(textEditor), textEditor);
+            }
         }
     }
 
