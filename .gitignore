@@ -9,6 +9,8 @@ build
 .env.*
 # Local review/planning notes
 IMPROVEMENTS.md
+improvements_offen.md
+idea.log
 # AI assistant working directories
 .claude/
 .aider*
