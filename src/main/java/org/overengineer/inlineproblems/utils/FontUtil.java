@@ -40,31 +40,30 @@ public class FontUtil {
         }
 
         var fontType = EditorFontType.PLAIN;
+        int fontStyle = Font.PLAIN;
 
         if (settingsState.isBoldProblemLabels() && settingsState.isItalicProblemLabels()) {
             fontType = EditorFontType.BOLD_ITALIC;
+            fontStyle = Font.BOLD | Font.ITALIC;
         }
         else if (settingsState.isItalicProblemLabels()) {
             fontType = EditorFontType.ITALIC;
+            fontStyle = Font.ITALIC;
         }
         else if (settingsState.isBoldProblemLabels()) {
             fontType = EditorFontType.BOLD;
+            fontStyle = Font.BOLD;
         }
 
-        if (settingsState.isUseEditorFont()) {
-            return UIUtil.getFontWithFallback(
-                    editor.getColorsScheme().getFont(fontType).getFontName(),
-                    fontType.ordinal(),
-                    editorFontSize - appliedDelta
-            );
-        }
-        else {
-            Font toolTipFont = UIUtil.getToolTipFont();
-            return UIUtil.getFontWithFallback(
-                    toolTipFont.getFontName(),
-                    fontType.ordinal(),
-                    editorFontSize - appliedDelta
-            );
-        }
+        int fontSize = editorFontSize - appliedDelta;
+
+        Font baseFont = settingsState.isUseEditorFont()
+                ? editor.getColorsScheme().getFont(fontType)
+                : UIUtil.getToolTipFont();
+
+        /* getFamily() and not getFontName(): the latter returns the resolved name of the first
+         * physical font, which throws away the fallback chain of a composite font - characters
+         * the first font does not cover then render as boxes (GitHub issue #58). */
+        return UIUtil.getFontWithFallback(baseFont.getFamily(), fontStyle, fontSize);
     }
 }
