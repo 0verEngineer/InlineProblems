@@ -89,79 +89,28 @@ public class SettingsComponent {
     @Getter
     private final JPanel settingsPanel;
 
+    /**
+     * Only builds the widgets. Their values come from {@link SettingsConfigurable#reset()}, which
+     * the platform calls after createComponent - having both do it meant three checkboxes were
+     * silently missing here (enableHtmlStripping, enableXmlUnescaping and
+     * showOnlyHighestSeverityPerLine, two of them enabled by default), so any path reaching
+     * apply() without a preceding reset() would have written false for them.
+     */
     public SettingsComponent() {
-        SettingsState settingsState = SettingsState.getInstance();
-
-        showErrors.setSelected(settingsState.isShowErrors());
-        highlightErrors.setSelected(settingsState.isHighlightErrors());
-        showErrorsInGutter.setSelected(settingsState.isShowErrorsInGutter());
-        errorTextColor.setSelectedColor(settingsState.getErrorTextColor());
-        errorLabelBackgroundColor.setSelectedColor(settingsState.getErrorBackgroundColor());
-        errorHighlightColor.setSelectedColor(settingsState.getErrorHighlightColor());
-
-        showWarnings.setSelected(settingsState.isShowWarnings());
-        highlightWarnings.setSelected(settingsState.isHighlightWarnings());
-        showWarningsInGutter.setSelected(settingsState.isShowWarningsInGutter());
-        warningTextColor.setSelectedColor(settingsState.getWarningTextColor());
-        warningLabelBackgroundColor.setSelectedColor(settingsState.getWarningBackgroundColor());
-        warningHighlightColor.setSelectedColor(settingsState.getWarningHighlightColor());
-
-        showWeakWarnings.setSelected(settingsState.isShowWeakWarnings());
-        highlightWeakWarnings.setSelected(settingsState.isHighlightWeakWarnings());
-        showWeakWarningsInGutter.setSelected(settingsState.isShowWeakWarningsInGutter());
-        weakWarningTextColor.setSelectedColor(settingsState.getWeakWarningTextColor());
-        weakWarningLabelBackgroundColor.setSelectedColor(settingsState.getWeakWarningBackgroundColor());
-        weakWarningHighlightColor.setSelectedColor(settingsState.getWeakWarningHighlightColor());
-
-        showInfos.setSelected(settingsState.isShowInfos());
-        highlightInfo.setSelected(settingsState.isHighlightInfos());
-        showInfosInGutter.setSelected(settingsState.isShowInfosInGutter());
-        infoTextColor.setSelectedColor(settingsState.getInfoTextColor());
-        infoLabelBackgroundColor.setSelectedColor(settingsState.getInfoBackgroundColor());
-        infoHighlightColor.setSelectedColor(settingsState.getInfoHighlightColor());
-
-        enableInlineProblem.setSelected(settingsState.isEnableInlineProblem());
-        enableInlineProblemsNotifications.setSelected(settingsState.isEnableInlineProblemsNotifications());
-
-        forceErrorsInSameLine.setSelected(settingsState.isForceProblemsInSameLine());
-        drawBoxesAroundProblemLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
-        roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
-
-        useEditorFont.setSelected(settingsState.isUseEditorFont());
-
         NumberFormat intFormat = NumberFormat.getIntegerInstance();
         intFormat.setGroupingUsed(false);
         NumberFormatter numberFormatter = new NumberFormatter(intFormat);
         numberFormatter.setValueClass(Integer.class); // Optional, ensures we always get a int value
 
         inlayFontSizeDeltaText = new JFormattedTextField(numberFormatter);
-        inlayFontSizeDeltaText.setText(Integer.toString(settingsState.getInlayFontSizeDelta()));
 
         problemLineLengthOffsetPixels = new JFormattedTextField(numberFormatter);
-        problemLineLengthOffsetPixels.setText(Integer.toString(settingsState.getProblemLineLengthOffsetPixels()));
 
         maxProblemsPerLine = new JFormattedTextField(numberFormatter);
-        maxProblemsPerLine.setText(Integer.toString(settingsState.getMaxProblemsPerLine()));
 
         manualScannerDelay = new JFormattedTextField(numberFormatter);
-        manualScannerDelay.setText(Integer.toString(settingsState.getManualScannerDelay()));
 
         maxFileLines = new JFormattedTextField(numberFormatter);
-        maxFileLines.setText(Integer.toString(settingsState.getMaxFileLines()));
-
-        fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
-        boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
-        italicProblemLabels.setSelected(settingsState.isItalicProblemLabels());
-        clickableContext.setSelected(settingsState.isClickableContext());
-
-        additionalInfoSeverities.setText(settingsState.getAdditionalInfoSeveritiesAsString());
-        additionalWeakWarningSeverities.setText(settingsState.getAdditionalWeakWarningSeveritiesAsString());
-        additionalWarningSeverities.setText(settingsState.getAdditionalWarningSeveritiesAsString());
-        additionalErrorSeverities.setText(settingsState.getAdditionalErrorSeveritiesAsString());
-
-        problemFilterList.setText(settingsState.getProblemFilterList());
-        fileExtensionBlacklist.setText(settingsState.getFileExtensionBlacklist());
-        setEnabledListener(settingsState.getActiveListener());
 
         Dimension enabledListenerDimension = enabledListener.getPreferredSize();
         enabledListenerDimension.width += 100;
