@@ -34,6 +34,13 @@ public class ProblemManager implements Disposable {
     @Getter
     private final List<InlineProblem> activeProblems = new ArrayList<>();
 
+    /* Index over activeProblems for the "which problems sit in the same line" lookup, which runs
+     * once per added problem. Without it that is a scan of the whole list, so drawing a file with
+     * n problems costs O(n^2) - measured as a noticeable part of the initial draw of a file with
+     * 1268 problems. The line of a problem is final, so an entry never has to move while the
+     * problem is in the list. */
+    private final Map<TextEditor, Map<Integer, List<InlineProblem>>> problemsByEditorAndLine = new HashMap<>();
+
     private final InlineDrawer inlineDrawer = new InlineDrawer();
 
     private final SettingsState settingsState = SettingsState.getInstance();
@@ -52,6 +59,8 @@ public class ProblemManager implements Disposable {
 
         inlineDrawer.undrawErrorLineHighlight(problem, problemsInLine);
         inlineDrawer.undrawInlineProblemLabel(problem);
+
+        removeFromIndex(problem);
 
         if (!activeProblems.remove(problem)) {
             logger.warn("Removal of problem failed, resetting");
@@ -105,6 +114,7 @@ public class ProblemManager implements Disposable {
 
         inlineDrawer.drawProblemLabel(problem, context);
         activeProblems.add(problem);
+        addToIndex(problem);
     }
 
     public boolean shouldProblemBeIgnored(int severity) {
@@ -197,6 +207,7 @@ public class ProblemManager implements Disposable {
         }
 
         activeProblems.removeAll(obsoleteProblems);
+        obsoleteProblems.forEach(this::removeFromIndex);
         logger.debug("Dropped " + obsoleteProblems.size() + " problem(s) of closed editors");
     }
 
@@ -236,13 +247,51 @@ public class ProblemManager implements Disposable {
     }
 
     /**
-     * @return a mutable list, the caller is allowed to modify it (InlineDrawer removes the
+     * @return a mutable copy, the caller is allowed to modify it (InlineDrawer removes the
      *         problem that is being undrawn from it)
      */
     private List<InlineProblem> getProblemsInLineForProblem(InlineProblem problem) {
-        return activeProblems.stream()
-                .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
-                .collect(Collectors.toCollection(ArrayList::new));
+        Map<Integer, List<InlineProblem>> problemsByLine = problemsByEditorAndLine.get(problem.getTextEditor());
+
+        if (problemsByLine == null) {
+            return new ArrayList<>();
+        }
+
+        List<InlineProblem> problemsInLine = problemsByLine.get(problem.getLine());
+
+        return problemsInLine == null ? new ArrayList<>() : new ArrayList<>(problemsInLine);
+    }
+
+    private void addToIndex(InlineProblem problem) {
+        problemsByEditorAndLine
+                .computeIfAbsent(problem.getTextEditor(), e -> new HashMap<>())
+                .computeIfAbsent(problem.getLine(), l -> new ArrayList<>())
+                .add(problem);
+    }
+
+    private void removeFromIndex(InlineProblem problem) {
+        Map<Integer, List<InlineProblem>> problemsByLine = problemsByEditorAndLine.get(problem.getTextEditor());
+
+        if (problemsByLine == null) {
+            return;
+        }
+
+        List<InlineProblem> problemsInLine = problemsByLine.get(problem.getLine());
+
+        if (problemsInLine == null) {
+            return;
+        }
+
+        problemsInLine.remove(problem);
+
+        // Empty entries would keep the editor referenced after its problems are gone
+        if (problemsInLine.isEmpty()) {
+            problemsByLine.remove(problem.getLine());
+        }
+
+        if (problemsByLine.isEmpty()) {
+            problemsByEditorAndLine.remove(problem.getTextEditor());
+        }
     }
 
     private List<InlineProblem> getProblemsInLineForProblemSorted(InlineProblem problem) {
