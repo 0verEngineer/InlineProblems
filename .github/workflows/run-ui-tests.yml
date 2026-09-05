@@ -1,16 +1,18 @@
-# GitHub Actions Workflow for launching UI tests on Linux, Windows, and Mac in the following steps:
-# - prepare and launch IDE with your plugin and robot-server plugin, which is needed to interact with UI
-# - wait for IDE to start
-# - run UI tests with separate Gradle task
+# GitHub Actions Workflow for running the UI tests against a real IDE.
 #
-# Please check https://github.com/JetBrains/intellij-ui-test-robot for information about UI tests with IntelliJ Platform
+# UI tests are driven by the IntelliJ Starter framework through the `testIdeUi` task of the
+# IntelliJ Platform Gradle Plugin 2.x. The test code starts and drives the IDE itself, so unlike
+# the old runIdeForUiTests setup there is no separate "start the IDE and wait for the robot server"
+# dance - the task is all that has to run.
+#
+# Note: there are no UI tests in the project yet, so the task currently runs an empty suite. The
+# workflow exists so that adding the first test under src/test is enough to get it covered here.
+#
+# Please check https://plugins.jetbrains.com/docs/intellij/testing-plugins.html for information
+# about testing plugins.
 #
 # Workflow is triggered manually.
 
-# TODO this workflow is broken since the move to the IntelliJ Platform Gradle Plugin 2.x: the
-#      runIdeForUiTests task does not exist any more, UI tests are driven by testIdeUi now. There
-#      are also no UI tests in the project, so the workflow never had anything to run. It is kept
-#      as a starting point, it only runs on manual dispatch.
 name: Run UI Tests
 on:
   workflow_dispatch
@@ -18,22 +20,29 @@ on:
 jobs:
 
   testUI:
+    name: Run UI Tests
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
+          # A real IDE needs a display, which a Linux runner does not have
           - os: ubuntu-latest
-            runIde: |
-              export DISPLAY=:99.0
-              Xvfb -ac :99 -screen 0 1920x1080x16 &
-              gradle runIdeForUiTests &
+            uiTests: xvfb-run --auto-servernum ./gradlew testIdeUi
           - os: windows-latest
-            runIde: start gradlew.bat runIdeForUiTests
+            uiTests: ./gradlew testIdeUi
           - os: macos-latest
-            runIde: ./gradlew runIdeForUiTests &
+            uiTests: ./gradlew testIdeUi
 
     steps:
+
+      # Free GitHub Actions Environment Disk Space, an IDE download needs several GB
+      - name: Maximize Build Space
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          large-packages: false
 
       # Check out current repository
       - name: Fetch Sources
@@ -46,18 +55,23 @@ jobs:
           distribution: zulu
           java-version: 21
 
-      # Run IDEA prepared for UI testing
-      - name: Run IDE
-        run: ${{ matrix.runIde }}
-
-      # Wait for IDEA to be started
-      - name: Health Check
-        uses: jtalk/url-health-check-action@v3
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          url: http://127.0.0.1:8082
-          max-attempts: 15
-          retry-delay: 30s
+          gradle-home-cache-cleanup: true
 
-      # Run tests
-      - name: Tests
-        run: ./gradlew test
+      # Run the UI tests
+      - name: Run UI Tests
+        run: ${{ matrix.uiTests }}
+
+      # Collect the results of failed tests, including the IDE logs and screenshots the Starter
+      # framework writes for a failed run
+      - name: Collect UI Test Results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results-${{ matrix.os }}
+          path: |
+            ${{ github.workspace }}/build/reports/tests
+            ${{ github.workspace }}/build/idea-ide-starter

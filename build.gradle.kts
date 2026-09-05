@@ -1,5 +1,6 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel
 
 fun properties(key: String) = providers.gradleProperty(key)
@@ -34,7 +35,14 @@ dependencies {
 
         pluginVerifier()
         zipSigner()
+
+        // Drives a real IDE for the UI tests, see the testIdeUi task below
+        testFramework(TestFrameworkType.Starter)
     }
+
+    testImplementation(platform("org.junit:junit-bom:${properties("junitVersion").get()}"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 // Configure the IntelliJ Platform Gradle Plugin
@@ -139,9 +147,28 @@ qodana {
     resultsPath.set(file("build/reports/inspections").canonicalPath)
 }
 
+/* UI tests run against a real IDE, so they get their own task instead of hanging off `test`.
+ * Replaces the runIdeForUiTests task of the old gradle-intellij-plugin, which drove the IDE
+ * through the robot-server plugin - the 2.x plugin uses the IntelliJ Starter framework.
+ *
+ * There are no UI tests yet, so the task currently runs an empty suite. The plumbing is here so
+ * that adding the first test under src/test/java is all it takes. */
+val testIdeUi by intellijPlatformTesting.testIdeUi.registering {
+    task {
+        useJUnitPlatform()
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
+    }
+}
+
 tasks {
     wrapper {
         gradleVersion = properties("gradleVersion").get()
+    }
+
+    test {
+        useJUnitPlatform()
     }
 
     // Set the JVM compatibility versions
