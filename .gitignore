@@ -24,11 +24,8 @@ idea.log
 *.iml
 *.ipr
 out/
-# Generated per machine / per IDE version, not worth tracking
-.idea/modules.xml
-.idea/copilot*
-.idea/shelf/
-.idea/workspace.xml
+# The IDE rewrites these on every version change, so they are not tracked
+.idea/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
