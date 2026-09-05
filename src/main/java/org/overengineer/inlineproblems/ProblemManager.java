@@ -19,7 +19,13 @@ import java.util.stream.Collectors;
 public class ProblemManager implements Disposable {
     /* Entering and leaving the inlay batch mode costs about two full editor size computations,
      * while staying out of it costs one size validation per changed inlay. Batching therefore only
-     * pays from a couple of changes on. */
+     * pays from a couple of changes on.
+     *
+     * The number the threshold is compared against is a lower bound: addProblem also removes and
+     * redraws the problems that already sit in the same line, which is not visible from the diff
+     * lists. Measured, a single added problem in a line that already had one ends up at three
+     * inlay operations, where batching and not batching cost about the same - so the imprecision
+     * does not matter in practice. */
     private static final int BATCH_MODE_THRESHOLD = 2;
 
     private static final Comparator<InlineProblem> HIGHEST_SEVERITY_FIRST =
