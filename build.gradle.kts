@@ -153,7 +153,7 @@ qodana {
  *
  * There are no UI tests yet, so the task currently runs an empty suite. The plumbing is here so
  * that adding the first test under src/test/java is all it takes. */
-val testIdeUi by intellijPlatformTesting.testIdeUi.registering {
+intellijPlatformTesting.testIdeUi.register("testIdeUi") {
     task {
         useJUnitPlatform()
         testLogging {
@@ -169,6 +169,12 @@ tasks {
 
     test {
         useJUnitPlatform()
+    }
+
+    // Pointless without test sources, and running both instrumentation tasks in one build
+    // crashes InstrumentCodeTask ("1 >= 1"). instrumentCode still covers the shipped code.
+    named("instrumentTestCode") {
+        enabled = false
     }
 
     // Set the JVM compatibility versions
