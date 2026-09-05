@@ -8,6 +8,8 @@ import org.overengineer.inlineproblems.utils.FontUtil;
 
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -30,7 +32,14 @@ public class EditorDrawContext {
     private final FontMetrics editorFontMetrics;
     private final FontMetrics labelFontMetrics;
 
+    /* DrawDetails only depend on the severity, the settings and the color scheme, all of which are
+     * fixed for one drawing pass - so at most four different instances are needed instead of one
+     * per problem. */
+    private final Map<Integer, DrawDetails> drawDetailsBySeverity = new HashMap<>();
+    private final Editor editor;
+
     private EditorDrawContext(Editor editor) {
+        this.editor = editor;
         settings = SettingsState.getInstance();
         editorWidth = editor.getScrollingModel().getVisibleArea().width;
         editorFont = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
@@ -44,5 +53,12 @@ public class EditorDrawContext {
 
     public static EditorDrawContext forEditor(Editor editor) {
         return new EditorDrawContext(editor);
+    }
+
+    public DrawDetails getDrawDetails(InlineProblem problem) {
+        return drawDetailsBySeverity.computeIfAbsent(
+                problem.getSeverity(),
+                severity -> new DrawDetails(problem, editor, settings)
+        );
     }
 }

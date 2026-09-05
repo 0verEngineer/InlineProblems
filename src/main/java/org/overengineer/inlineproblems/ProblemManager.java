@@ -84,7 +84,7 @@ public class ProblemManager implements Disposable {
      * @param context drawing data of the editor, shared by all problems drawn in one pass
      */
     public void addProblem(InlineProblem problem, EditorDrawContext context) {
-        problem.setDrawDetails(new DrawDetails(problem, problem.getTextEditor().getEditor(), context.getSettings()));
+        problem.setDrawDetails(context.getDrawDetails(problem));
 
         List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
         problemsInLine.add(problem);
