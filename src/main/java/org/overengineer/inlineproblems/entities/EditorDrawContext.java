@@ -1,10 +1,12 @@
 package org.overengineer.inlineproblems.entities;
 
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.colors.EditorFontType;
 import lombok.Getter;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.FontUtil;
 
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +28,8 @@ import java.util.Map;
 public class EditorDrawContext {
     private final SettingsState settings;
     private final int editorWidth;
+    private final Font editorFont;
+    private final FontMetrics editorFontMetrics;
     private final FontMetrics labelFontMetrics;
 
     /* DrawDetails only depend on the severity, the settings and the color scheme, all of which are
@@ -38,6 +42,12 @@ public class EditorDrawContext {
         this.editor = editor;
         settings = SettingsState.getInstance();
         editorWidth = editor.getScrollingModel().getVisibleArea().width;
+        editorFont = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
+
+        /* The metrics are taken from the editor content component instead of a throwaway
+         * java.awt.Canvas: instantiating a heavyweight AWT component per drawn problem showed up
+         * as a hotspot while scrolling (GitHub issue #96). */
+        editorFontMetrics = editor.getContentComponent().getFontMetrics(editorFont);
         labelFontMetrics = FontUtil.getLabelFontMetrics(editor);
     }
 

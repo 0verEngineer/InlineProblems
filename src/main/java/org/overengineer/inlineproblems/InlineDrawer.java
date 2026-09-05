@@ -3,6 +3,7 @@ package org.overengineer.inlineproblems;
 import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.markup.*;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.Disposer;
 import org.overengineer.inlineproblems.entities.EditorDrawContext;
 import org.overengineer.inlineproblems.entities.InlineProblem;
@@ -25,6 +26,12 @@ public class InlineDrawer {
         Editor editor = problem.getTextEditor().getEditor();
         var inlayModel = editor.getInlayModel();
 
+        TextRange textRange = new TextRange(
+                editor.getDocument().getLineStartOffset(problem.getLine()),
+                editor.getDocument().getLineEndOffset(problem.getLine())
+        );
+        String lineText = editor.getDocument().getText(textRange);
+
         InlineProblemLabel inlineProblemLabel = new InlineProblemLabel(
                 problem,
                 drawDetails.getTextColor(),
@@ -45,13 +52,13 @@ public class InlineDrawer {
          * chain - was the bulk of the cost of drawing a file with many problems. */
         int editorWidth = context.getEditorWidth();
 
-        /* The editor already knows where the line ends. Asking it is cheaper than copying the
-         * line out of the document and measuring it, and it is also more correct: measuring the
-         * raw text with the plain editor font ignores tabs, folding and mixed fonts. */
-        int lineWidth = editor.offsetToXY(editor.getDocument().getLineEndOffset(problem.getLine())).x;
-
+        /* The line is measured with the font metrics instead of asking the editor for the x
+         * position of the line end: the drawing runs inside InlayModel.execute, and every call
+         * that needs the editor layout - offsetToXY among them - throws
+         * "Current operation is not permitted during batch inlay update" there. Batch mode exists
+         * precisely so the layout is not recomputed, so it cannot answer layout questions. */
         int problemWidth = inlineProblemLabel.calcWidthInPixels(context.getLabelFontMetrics()) +
-                lineWidth +
+                context.getEditorFontMetrics().stringWidth(lineText) +
                 existingInlineElementsWidth;
 
         /* The offset is added because the width calculation is not exact. It is configurable
