@@ -18,10 +18,10 @@ public class GutterRenderer extends GutterIconRenderer {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof GutterRenderer) {
-            GutterRenderer other = (GutterRenderer) obj;
+        if (obj instanceof GutterRenderer other) {
             return Objects.equals(getIcon(), other.getIcon()) && Objects.equals(getTooltipText(), other.getTooltipText());
         }
+
         return false;
     }
 

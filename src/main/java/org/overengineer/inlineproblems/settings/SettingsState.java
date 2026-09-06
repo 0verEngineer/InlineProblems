@@ -97,7 +97,7 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     private boolean boldProblemLabels = false;
     private boolean italicProblemLabels = false;
     private int problemLineLengthOffsetPixels = 50;
-    private int enabledListener = Listener.MARKUP_MODEL_LISTENER;
+    private int enabledListener = Listener.DEFAULT.getId();
     private String problemFilterList = "todo;fixme;open in browser";
     private String fileExtensionBlacklist = "";
     private int maxFileLines = 0;
@@ -115,6 +115,20 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
     // migration booleans
     private boolean highlightProblemListenerDeprecateMigrationDone = false;
     private boolean filterListMigrationDone01 = false;
+
+    /**
+     * The persisted {@link #enabledListener} is an id and not the enum itself to stay compatible
+     * with the settings files of older versions.
+     */
+    @Transient
+    public Listener getActiveListener() {
+        return Listener.fromId(enabledListener);
+    }
+
+    @Transient
+    public void setActiveListener(Listener listener) {
+        enabledListener = listener.getId();
+    }
 
     public static SettingsState getInstance() {
         return ApplicationManager.getApplication().getService(SettingsState.class);
@@ -152,8 +166,8 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
 
         // listener
         if (!highlightProblemListenerDeprecateMigrationDone) {
-            if (enabledListener == Listener.HIGHLIGHT_PROBLEMS_LISTENER) {
-                enabledListener = Listener.MARKUP_MODEL_LISTENER;
+            if (getActiveListener() == Listener.HIGHLIGHT_PROBLEMS_LISTENER) {
+                setActiveListener(Listener.MARKUP_MODEL_LISTENER);
             }
 
             highlightProblemListenerDeprecateMigrationDone = true;

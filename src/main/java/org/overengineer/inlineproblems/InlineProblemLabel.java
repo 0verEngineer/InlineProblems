@@ -2,25 +2,19 @@ package org.overengineer.inlineproblems;
 
 import com.intellij.codeInsight.hints.presentation.InputHandler;
 import com.intellij.codeInsight.intention.impl.ShowIntentionActionsHandler;
-import com.intellij.ide.ui.AntialiasingType;
-import com.intellij.ide.ui.UISettings;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
 import com.intellij.openapi.editor.ScrollType;
-import com.intellij.openapi.editor.impl.FontInfo;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.ui.paint.EffectPainter;
 import lombok.Getter;
 import lombok.Setter;
-import org.jdesktop.swingx.action.ActionManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.overengineer.inlineproblems.entities.InlineProblem;
@@ -29,7 +23,6 @@ import org.overengineer.inlineproblems.utils.FontUtil;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.font.FontRenderContext;
 
 
 @Getter
@@ -78,7 +71,7 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
         this.isUseEditorFont = settings.isUseEditorFont();
         this.inlayFontSizeDelta = settings.getInlayFontSizeDelta();
         this.hovered = false;
-        this.actualStartOffset = problem.getActualStartffset();
+        this.actualStartOffset = problem.getActualStartOffset();
         this.clickableContext = settings.isClickableContext();
     }
 
@@ -88,14 +81,12 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
     }
 
     public int calcWidthInPixels(@NotNull Editor editor) {
-        var editorContext = FontInfo.getFontRenderContext(editor.getComponent());
-        var context = new FontRenderContext(editorContext.getTransform(),
-                AntialiasingType.getKeyForCurrentScope(false),
-                UISettings.getEditorFractionalMetricsHint());
+        return calcWidthInPixels(FontUtil.getLabelFontMetrics(editor));
+    }
 
-        var fontMetrics = FontInfo.getFontMetrics(FontUtil.getActiveFont(editor), context);
-
-        return fontMetrics.stringWidth(text) + WIDTH_OFFSET;
+    /** Overload for callers that already hold the metrics, see {@link FontUtil#getLabelFontMetrics}. */
+    public int calcWidthInPixels(@NotNull FontMetrics labelFontMetrics) {
+        return labelFontMetrics.stringWidth(text) + WIDTH_OFFSET;
     }
 
     @Override
@@ -196,24 +187,40 @@ public class InlineProblemLabel implements EditorCustomElementRenderer, InputHan
         if (!clickableContext) {
             return;
         }
-        if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
-            mouseEvent.consume();
-
-            var editor = inlay.getEditor();
-            editor.getCaretModel().moveToOffset(actualStartOffset);
-            editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
-
-            var action = ActionManager.getInstance().getAction(IdeActions.ACTION_SHOW_INTENTION_ACTIONS);
-            if (action == null) {
-                Project project = editor.getProject();
-                if (project == null) return;
-                PsiFile psiFileInEditor = PsiUtilBase.getPsiFileInEditor(editor, project);
-                if (psiFileInEditor == null) return;
-                new ShowIntentionActionsHandler().invoke(project, editor, psiFileInEditor, false);
-            } else {
-                ActionUtil.invokeAction((AnAction) action, editor.getComponent(), "EditorInlay", null, null);
-            }
+        Inlay<?> currentInlay = inlay;
+        if (currentInlay == null) {
+            return;
         }
+
+        if (mouseEvent.getButton() != MouseEvent.BUTTON1) {
+            return;
+        }
+
+        mouseEvent.consume();
+
+        Editor editor = currentInlay.getEditor();
+        editor.getCaretModel().moveToOffset(actualStartOffset);
+        editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
+
+        Project project = editor.getProject();
+
+        // The intentions are computed from the indexes, which are not available while indexing
+        if (project == null || DumbService.isDumb(project)) {
+            return;
+        }
+
+        PsiFile psiFileInEditor = PsiUtilBase.getPsiFileInEditor(editor, project);
+        if (psiFileInEditor == null) {
+            return;
+        }
+
+        /* Deliberately not routed through the action system. Every ActionUtil.invokeAction and
+         * performAction overload is deprecated as of 2025.3, so there is no non-deprecated way
+         * left to trigger IdeActions.ACTION_SHOW_INTENTION_ACTIONS programmatically. This handler
+         * is what that action delegates to and is not deprecated in either the 2025.1 baseline or
+         * 2025.3. It is also the path that actually ran in the released versions, because the
+         * action lookup used the wrong ActionManager and always returned null. */
+        new ShowIntentionActionsHandler().invoke(project, editor, psiFileInEditor, false);
     }
 
     @Override
