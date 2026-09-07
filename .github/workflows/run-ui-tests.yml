@@ -69,7 +69,7 @@ jobs:
       # framework writes for a failed run
       - name: Collect UI Test Results
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ui-test-results-${{ matrix.os }}
           path: |
