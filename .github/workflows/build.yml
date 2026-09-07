@@ -42,7 +42,7 @@ jobs:
 
       # Check out current repository
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Validate wrapper
       - name: Gradle Wrapper Validation
@@ -108,7 +108,7 @@ jobs:
 
       # Check out current repository
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Set up Java environment for the next steps
       - name: Setup Java
@@ -155,7 +155,7 @@ jobs:
 
       # Check out current repository
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Set up Java environment for the next steps
       - name: Setup Java
@@ -192,7 +192,7 @@ jobs:
 
       # Check out current repository
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Set up Java environment for the next steps
       - name: Setup Java
@@ -235,7 +235,7 @@ jobs:
 
       # Check out current repository
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Remove old release drafts by using the curl request for the available releases with draft flag
       - name: Remove Old Release Drafts
