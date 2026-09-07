@@ -26,7 +26,7 @@ public class PluginListener implements DynamicPluginListener {
             projectManager.scanAllOpenProjectsForUnity();
         }
 
-        if (settingsState.getEnabledListener() == Listener.MARKUP_MODEL_LISTENER) {
+        if (settingsState.getActiveListener() == Listener.MARKUP_MODEL_LISTENER) {
             if (descriptor.getPluginId().getIdString().equalsIgnoreCase(PLUGIN_ID)) {
                 listenerManager.installMarkupModelListenerOnAllProjects();
             }

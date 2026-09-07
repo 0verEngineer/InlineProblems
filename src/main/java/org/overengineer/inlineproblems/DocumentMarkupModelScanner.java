@@ -20,6 +20,7 @@ import org.overengineer.inlineproblems.entities.enums.Listener;
 import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.FileUtil;
+import org.overengineer.inlineproblems.utils.ProblemTextFilter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,15 +35,22 @@ public class DocumentMarkupModelScanner implements Disposable {
 
     private final Logger logger = Logger.getInstance(DocumentMarkupModelScanner.class);
 
-    private int delayMilliseconds = HighlightProblemListener.ADDITIONAL_MANUAL_SCAN_DELAY_MILLIS;
+    /* The periodic full scan is only a safety net when one of the event driven listeners is
+     * active, so it may run rarely. It used to run every 2 seconds, which meant rebuilding every
+     * problem of every open editor on the EDT that often. */
+    public static final int SAFETY_NET_SCAN_DELAY_MILLIS = 10_000;
+
+    /* Coalescing window for the per editor rescans. A daemon run fires thousands of markup events
+     * within a few hundred milliseconds, and all of them should end up in one rescan. */
+    private static final int RESCAN_MERGE_MILLIS = 100;
+
+    private int delayMilliseconds = SAFETY_NET_SCAN_DELAY_MILLIS;
 
     private static DocumentMarkupModelScanner instance;
 
     private final MergingUpdateQueue mergingUpdateQueue;
 
     private ScheduledFuture<?> scheduledFuture;
-
-    public static final String NAME = "ManualScanner";
 
     private DocumentMarkupModelScanner() {
         Disposer.register(problemManager, this);
@@ -51,7 +59,7 @@ public class DocumentMarkupModelScanner implements Disposable {
 
         mergingUpdateQueue = new MergingUpdateQueue(
                 "DocumentMarkupModelScannerQueue",
-                10,
+                RESCAN_MERGE_MILLIS,
                 true,
                 null,
                 this,
@@ -60,7 +68,7 @@ public class DocumentMarkupModelScanner implements Disposable {
         );
 
         SettingsState settingsState = SettingsState.getInstance();
-        if (settingsState.getEnabledListener() == Listener.MANUAL_SCANNING) {
+        if (settingsState.getActiveListener() == Listener.MANUAL_SCANNING) {
             delayMilliseconds = settingsState.getManualScannerDelay();
         }
 
@@ -76,38 +84,48 @@ public class DocumentMarkupModelScanner implements Disposable {
 
     @Override
     public void dispose() {
+        /* Without cancelling the future the scan keeps running after a plugin unload, and the
+         * stale static instance would make a reload end up with two scheduled scans. */
+        cancelScheduledFuture();
         mergingUpdateQueue.cancelAllUpdates();
+
+        if (instance == this) {
+            instance = null;
+        }
     }
 
+    /**
+     * Only the visible editors are scanned. A background tab is not analyzed by the daemon either,
+     * and once it becomes visible the daemon run that follows fires the markup events that trigger
+     * a rescan of it.
+     */
     public void scanForProblemsManually() {
         if (!settingsState.isEnableInlineProblem()) {
             return;
         }
 
         ProjectManager projectManager = ProjectManager.getInstanceIfCreated();
+        if (projectManager == null) {
+            return;
+        }
 
-        if (projectManager != null) {
-            List<InlineProblem> problems = new ArrayList<>();
-            for (var project : projectManager.getOpenProjects()) {
-                if (!project.isInitialized() || project.isDisposed())
+        for (var project : projectManager.getOpenProjects()) {
+            if (!project.isInitialized() || project.isDisposed())
+                continue;
+
+            for (var editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
+                if (!(editor instanceof TextEditor textEditor)) {
                     continue;
-
-                FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-                for (var editor : fileEditorManager.getAllEditors()) {
-
-                    if (editor instanceof TextEditor) {
-                        var textEditor = (TextEditor) editor;
-
-                        if (editor.getFile() == null ||
-                                FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
-                        ) {
-                            continue;
-                        }
-
-                        problems.addAll(getProblemsInEditor(textEditor));
-                    }
                 }
-                problemManager.updateFromNewActiveProblems(problems);
+
+                if (
+                        editor.getFile() == null ||
+                        FileUtil.ignoreFile(editor.getFile().getName(), textEditor.getEditor().getDocument().getLineCount())
+                ) {
+                    continue;
+                }
+
+                problemManager.updateFromNewActiveProblemsForTextEditor(getProblemsInEditor(textEditor), textEditor);
             }
         }
     }
@@ -124,16 +142,15 @@ public class DocumentMarkupModelScanner implements Disposable {
             return;
         }
 
-        mergingUpdateQueue.queue(new Update("scan") {
+        /* The editor is the identity of the update: queued rescans of the same editor collapse
+         * into one, while rescans of different editors stay independent. With a shared identity
+         * only one of several open editors got rescanned. */
+        mergingUpdateQueue.queue(new Update(textEditor) {
             @Override
             public void run() {
-                List<InlineProblem> problems = settingsState.isEnableInlineProblem() ? List.of() : getProblemsInEditor(textEditor);
+                List<InlineProblem> problems = settingsState.isEnableInlineProblem() ? getProblemsInEditor(textEditor) : List.of();
 
-                problemManager.updateFromNewActiveProblemsForProjectAndFile(
-                        problems,
-                        textEditor.getEditor().getProject(),
-                        textEditor.getFile().getPath()
-                );
+                problemManager.updateFromNewActiveProblemsForTextEditor(problems, textEditor);
             }
         });
     }
@@ -154,18 +171,14 @@ public class DocumentMarkupModelScanner implements Disposable {
                 .forDocument(document, editor.getProject(), false)
                 .getAllHighlighters();
 
-        List<String> problemTextBeginningFilterList = new ArrayList<>(
-                Arrays.asList(SettingsState.getInstance().getProblemFilterList().split(";"))
-        );
-
         Arrays.stream(highlighters)
                 .filter(h -> {
-                    if (h.isValid() && h.getErrorStripeTooltip() instanceof HighlightInfo) {
-                        HighlightInfo highlightInfo = (HighlightInfo) h.getErrorStripeTooltip();
-                        return highlightInfo.getDescription() != null &&
-                                !highlightInfo.getDescription().isEmpty() &&
-                                problemTextBeginningFilterList.stream()
-                                        .noneMatch(f -> highlightInfo.getDescription().stripLeading().toLowerCase().startsWith(f.toLowerCase())) &&
+                    if (h.isValid() && h.getErrorStripeTooltip() instanceof HighlightInfo highlightInfo) {
+                        String description = highlightInfo.getDescription();
+
+                        return description != null &&
+                                !description.isEmpty() &&
+                                !ProblemTextFilter.isFiltered(description) &&
                                 fileEndOffset >= highlightInfo.getStartOffset();
                     }
 
@@ -205,10 +218,15 @@ public class DocumentMarkupModelScanner implements Disposable {
     }
 
     private void cancelScheduledFuture() {
-        if (!scheduledFuture.cancel(false)) {
-            if (!scheduledFuture.cancel(true)) {
-                logger.warn("Unable to cancel scheduledFuture");
-            }
+        ScheduledFuture<?> future = scheduledFuture;
+        if (future == null) {
+            return;
+        }
+
+        scheduledFuture = null;
+
+        if (!future.cancel(false) && !future.isDone()) {
+            logger.warn("Unable to cancel the scheduled manual scan");
         }
     }
 

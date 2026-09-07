@@ -4,9 +4,11 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import lombok.Getter;
 import org.overengineer.inlineproblems.entities.DrawDetails;
+import org.overengineer.inlineproblems.entities.EditorDrawContext;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
@@ -15,8 +17,29 @@ import java.util.stream.Collectors;
 
 
 public class ProblemManager implements Disposable {
+    /* Entering and leaving the inlay batch mode costs about two full editor size computations,
+     * while staying out of it costs one size validation per changed inlay. Batching therefore only
+     * pays from a couple of changes on.
+     *
+     * The number the threshold is compared against is a lower bound: addProblem also removes and
+     * redraws the problems that already sit in the same line, which is not visible from the diff
+     * lists. Measured, a single added problem in a line that already had one ends up at three
+     * inlay operations, where batching and not batching cost about the same - so the imprecision
+     * does not matter in practice. */
+    private static final int BATCH_MODE_THRESHOLD = 2;
+
+    private static final Comparator<InlineProblem> HIGHEST_SEVERITY_FIRST =
+            (p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity());
+
     @Getter
     private final List<InlineProblem> activeProblems = new ArrayList<>();
+
+    /* Index over activeProblems for the "which problems sit in the same line" lookup, which runs
+     * once per added problem. Without it that is a scan of the whole list, so drawing a file with
+     * n problems costs O(n^2) - measured as a noticeable part of the initial draw of a file with
+     * 1268 problems. The line of a problem is final, so an entry never has to move while the
+     * problem is in the list. */
+    private final Map<TextEditor, Map<Integer, List<InlineProblem>>> problemsByEditorAndLine = new HashMap<>();
 
     private final InlineDrawer inlineDrawer = new InlineDrawer();
 
@@ -37,10 +60,11 @@ public class ProblemManager implements Disposable {
         inlineDrawer.undrawErrorLineHighlight(problem, problemsInLine);
         inlineDrawer.undrawInlineProblemLabel(problem);
 
-        if (!Collections.synchronizedList(activeProblems).remove(problem)) {
+        removeFromIndex(problem);
+
+        if (!activeProblems.remove(problem)) {
             logger.warn("Removal of problem failed, resetting");
             resetForEditor(problem.getTextEditor().getEditor());
-            return;
         }
     }
 
@@ -50,14 +74,21 @@ public class ProblemManager implements Disposable {
      * @param problem problem to add
      */
     public void addProblem(InlineProblem problem) {
-        problem.setDrawDetails(new DrawDetails(problem, problem.getTextEditor().getEditor()));
+        addProblem(problem, EditorDrawContext.forEditor(problem.getTextEditor().getEditor()));
+    }
+
+    /**
+     * To add problems, if there are existing problems in the same line, they will be removed and re-added to ensure the
+     * correct order (ordered by severity)
+     * @param problem problem to add
+     * @param context drawing data of the editor, shared by all problems drawn in one pass
+     */
+    public void addProblem(InlineProblem problem, EditorDrawContext context) {
+        problem.setDrawDetails(context.getDrawDetails(problem));
 
         List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
         problemsInLine.add(problem);
-
-        problemsInLine = problemsInLine.stream()
-                .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
-                .collect(Collectors.toList());
+        problemsInLine.sort(HIGHEST_SEVERITY_FIRST);
 
         problemsInLine.forEach(p -> {
             if (p != problem)
@@ -70,21 +101,20 @@ public class ProblemManager implements Disposable {
             problemsInLine.subList(maxProblemsPerLine, problemsInLine.size()).clear();
         }
 
-        /* This only works when using a method reference, if we move the code from the addProblemPrivate func into a lambda
-        *  it does not work like expected, that is because there are differences in the evaluation and the way it is called */
-        problemsInLine.forEach(this::addProblemPrivate);
+        problemsInLine.forEach(p -> addProblemPrivate(p, context));
 
         inlineDrawer.drawLineHighlighterAndGutterIcon(problemsInLine);
     }
 
-    private void addProblemPrivate(InlineProblem problem) {
+    private void addProblemPrivate(InlineProblem problem, EditorDrawContext context) {
         if (problem.getTextEditor().getEditor().getDocument().getLineCount() <= problem.getLine()) {
             logger.warn("Line count is less or equal than problem line, problem not added");
             return;
         }
 
-        inlineDrawer.drawProblemLabel(problem);
-        Collections.synchronizedList(activeProblems).add(problem);
+        inlineDrawer.drawProblemLabel(problem, context);
+        activeProblems.add(problem);
+        addToIndex(problem);
     }
 
     public boolean shouldProblemBeIgnored(int severity) {
@@ -130,7 +160,7 @@ public class ProblemManager implements Disposable {
 
         for (int additionalSeverity : settingsState.getAdditionalInfoSeverities()) {
             if (additionalSeverity == severity) {
-                problem.setSeverity(HighlightSeverity.INFO.myVal);
+                problem.setSeverity(HighlightSeverity.INFORMATION.myVal);
                 return;
             }
         }
@@ -138,40 +168,137 @@ public class ProblemManager implements Disposable {
 
     public void reset() {
         final List<InlineProblem> activeProblemSnapShot = List.copyOf(activeProblems);
-        activeProblemSnapShot.forEach(this::removeProblem);
+
+        runInInlayBatchMode(
+                activeProblemSnapShot.size(),
+                collectEditors(activeProblemSnapShot, List.of()),
+                () -> activeProblemSnapShot.forEach(this::removeProblem)
+        );
+    }
+
+    /**
+     * Removes all problems of the given project including their drawn elements. To be called
+     * while the project is closing, the editors are still alive at that point.
+     */
+    public void resetForProject(Project project) {
+        final List<InlineProblem> problemsToRemove = activeProblems.stream()
+                .filter(p -> Objects.equals(p.getProject(), project))
+                .collect(Collectors.toList());
+
+        runInInlayBatchMode(
+                problemsToRemove.size(),
+                collectEditors(problemsToRemove, List.of()),
+                () -> problemsToRemove.forEach(this::removeProblem)
+        );
+    }
+
+    /**
+     * Drops all problems that belong to an editor or project that is already gone. Their inlays
+     * and highlighters died with the editor, so nothing has to be undrawn - undrawing would
+     * even mean touching a disposed editor.
+     */
+    public void removeObsoleteProblems() {
+        final List<InlineProblem> obsoleteProblems = activeProblems.stream()
+                .filter(ProblemManager::isObsolete)
+                .collect(Collectors.toList());
+
+        if (obsoleteProblems.isEmpty()) {
+            return;
+        }
+
+        activeProblems.removeAll(obsoleteProblems);
+        obsoleteProblems.forEach(this::removeFromIndex);
+        logger.debug("Dropped " + obsoleteProblems.size() + " problem(s) of closed editors");
+    }
+
+    private static boolean isObsolete(InlineProblem problem) {
+        Project project = problem.getProject();
+        if (project == null || project.isDisposed()) {
+            return true;
+        }
+
+        return !problem.getTextEditor().isValid() || problem.getTextEditor().getEditor().isDisposed();
     }
 
     public void resetForEditor(Editor editor) {
-        final List<InlineProblem> activeProblemsSnapShot = List.copyOf(activeProblems);
-
-        activeProblemsSnapShot.stream()
+        final List<InlineProblem> problemsToRemove = activeProblems.stream()
                 .filter(aP -> aP.getTextEditor().getEditor().equals(editor))
-                .forEach(this::removeProblem);
+                .collect(Collectors.toList());
+
+        runInInlayBatchMode(
+                problemsToRemove.size(),
+                collectEditors(problemsToRemove, List.of()),
+                () -> problemsToRemove.forEach(this::removeProblem)
+        );
     }
 
-    public void updateFromNewActiveProblems(List<InlineProblem> problems) {
-        updateFromNewActiveProblems(problems, List.copyOf(activeProblems));
-    }
-
-    public void updateFromNewActiveProblemsForProjectAndFile(List<InlineProblem> problems, Project project, String filePath) {
+    /**
+     * Diffs the problems of a single editor. Filtering by project and file instead of by editor
+     * would break a split view: the snapshot would contain the problems of both editors showing
+     * the file, while the scan only ever covers one of them, so the two editors would keep
+     * removing each others problems.
+     */
+    public void updateFromNewActiveProblemsForTextEditor(List<InlineProblem> problems, TextEditor textEditor) {
         final List<InlineProblem> activeProblemsSnapShot = activeProblems.stream()
-                .filter(p -> p.getProject().equals(project) && p.getFile().equals(filePath))
+                .filter(p -> Objects.equals(p.getTextEditor(), textEditor))
                 .collect(Collectors.toList());
 
         updateFromNewActiveProblems(problems, activeProblemsSnapShot);
     }
 
+    /**
+     * @return a mutable copy, the caller is allowed to modify it (InlineDrawer removes the
+     *         problem that is being undrawn from it)
+     */
     private List<InlineProblem> getProblemsInLineForProblem(InlineProblem problem) {
-        return activeProblems.stream()
-                .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
-                .collect(Collectors.toList());
+        Map<Integer, List<InlineProblem>> problemsByLine = problemsByEditorAndLine.get(problem.getTextEditor());
+
+        if (problemsByLine == null) {
+            return new ArrayList<>();
+        }
+
+        List<InlineProblem> problemsInLine = problemsByLine.get(problem.getLine());
+
+        return problemsInLine == null ? new ArrayList<>() : new ArrayList<>(problemsInLine);
+    }
+
+    private void addToIndex(InlineProblem problem) {
+        problemsByEditorAndLine
+                .computeIfAbsent(problem.getTextEditor(), e -> new HashMap<>())
+                .computeIfAbsent(problem.getLine(), l -> new ArrayList<>())
+                .add(problem);
+    }
+
+    private void removeFromIndex(InlineProblem problem) {
+        Map<Integer, List<InlineProblem>> problemsByLine = problemsByEditorAndLine.get(problem.getTextEditor());
+
+        if (problemsByLine == null) {
+            return;
+        }
+
+        List<InlineProblem> problemsInLine = problemsByLine.get(problem.getLine());
+
+        if (problemsInLine == null) {
+            return;
+        }
+
+        problemsInLine.remove(problem);
+
+        // Empty entries would keep the editor referenced after its problems are gone
+        if (problemsInLine.isEmpty()) {
+            problemsByLine.remove(problem.getLine());
+        }
+
+        if (problemsByLine.isEmpty()) {
+            problemsByEditorAndLine.remove(problem.getTextEditor());
+        }
     }
 
     private List<InlineProblem> getProblemsInLineForProblemSorted(InlineProblem problem) {
-        return activeProblems.stream()
-                .filter(p -> Objects.equals(p.getTextEditor(), problem.getTextEditor()) && p.getLine() == problem.getLine())
-                .sorted((p1, p2) -> Integer.compare(p2.getSeverity(), p1.getSeverity()))
-                .collect(Collectors.toList());
+        List<InlineProblem> problemsInLine = getProblemsInLineForProblem(problem);
+        problemsInLine.sort(HIGHEST_SEVERITY_FIRST);
+
+        return problemsInLine;
     }
 
     /**
@@ -180,7 +307,6 @@ public class ProblemManager implements Disposable {
      * this function needs to be used.
      */
     private void updateFromNewActiveProblems(List<InlineProblem> newProblems, List<InlineProblem> activeProblemsSnapShot) {
-        final List<Integer> processedProblemHashCodes = new ArrayList<>();
         List<InlineProblem> usedProblems;
 
         if (settingsState.isShowOnlyHighestSeverityPerLine()) {
@@ -206,15 +332,122 @@ public class ProblemManager implements Disposable {
             usedProblems = newProblems;
         }
 
-        activeProblemsSnapShot.stream()
-                .filter(p -> !usedProblems.contains(p))
-                .forEach(p -> {
-                    processedProblemHashCodes.add(p.hashCode());
-                    removeProblem(p);
-                });
+        applyProblemDiff(usedProblems, activeProblemsSnapShot);
+    }
 
-        usedProblems.stream()
-                .filter(p -> !activeProblemsSnapShot.contains(p) && !processedProblemHashCodes.contains(p.hashCode()))
-                .forEach(this::addProblem);
+    /** Builds the drawing context once per editor instead of once per problem. */
+    private void drawProblems(List<InlineProblem> problems) {
+        final Map<Editor, EditorDrawContext> contexts = new HashMap<>();
+
+        for (InlineProblem problem : problems) {
+            Editor editor = problem.getTextEditor().getEditor();
+            addProblem(problem, contexts.computeIfAbsent(editor, EditorDrawContext::forEditor));
+        }
+    }
+
+    private List<Editor> collectEditors(List<InlineProblem> first, List<InlineProblem> second) {
+        final Set<Editor> editors = new LinkedHashSet<>();
+
+        for (InlineProblem problem : first) {
+            editors.add(problem.getTextEditor().getEditor());
+        }
+
+        for (InlineProblem problem : second) {
+            editors.add(problem.getTextEditor().getEditor());
+        }
+
+        editors.removeIf(Editor::isDisposed);
+
+        return new ArrayList<>(editors);
+    }
+
+    /**
+     * Runs the operation with the inlay models of the given editors in batch mode, but only if
+     * enough inlays are going to change for that to pay off.
+     * <p>
+     * Without batch mode every added or removed inlay makes the editor recalculate its preferred
+     * size (EditorSizeManager.validateSize, the hotspot in the traces of issue #96). Batch mode is
+     * not free either though: EditorSizeManager computes the full preferred size when it starts
+     * and drops its cache when it finishes, so entering and leaving costs roughly two full size
+     * computations. For a single changed inlay that is a loss, and for none at all - by far the
+     * most common case, since most scans find nothing to change - it is pure overhead.
+     */
+    private void runInInlayBatchMode(int expectedInlayOperations, List<Editor> editors, Runnable operation) {
+        if (expectedInlayOperations < BATCH_MODE_THRESHOLD) {
+            operation.run();
+            return;
+        }
+
+        runInInlayBatchMode(editors, 0, operation);
+    }
+
+    private void runInInlayBatchMode(List<Editor> editors, int index, Runnable operation) {
+        if (index >= editors.size()) {
+            operation.run();
+            return;
+        }
+
+        Editor editor = editors.get(index);
+
+        if (editor.isDisposed()) {
+            runInInlayBatchMode(editors, index + 1, operation);
+            return;
+        }
+
+        // InlayModel.execute already ignores a nested call, so no guard is needed here
+        editor.getInlayModel().execute(true, () -> runInInlayBatchMode(editors, index + 1, operation));
+    }
+
+    private void applyProblemDiff(List<InlineProblem> usedProblems, List<InlineProblem> activeProblemsSnapShot) {
+        /* Hash based lookups, the lists can hold thousands of problems and both loops below used
+         * to run a linear search per element. */
+        final Set<InlineProblem> usedProblemSet = new HashSet<>(usedProblems);
+        final Map<InlineProblem, InlineProblem> knownProblems = new HashMap<>();
+
+        for (InlineProblem problem : activeProblemsSnapShot) {
+            knownProblems.putIfAbsent(problem, problem);
+        }
+
+        final List<InlineProblem> problemsToRemove = new ArrayList<>();
+
+        for (InlineProblem problem : activeProblemsSnapShot) {
+            if (!usedProblemSet.contains(problem)) {
+                problemsToRemove.add(problem);
+            }
+        }
+
+        final List<InlineProblem> problemsToAdd = new ArrayList<>();
+
+        for (InlineProblem problem : usedProblems) {
+            InlineProblem knownProblem = knownProblems.get(problem);
+
+            /* The problem is already drawn and only its offsets may have shifted. Redrawing it
+             * would dispose and recreate its inlay for nothing, and every inlay change makes the
+             * editor recalculate its preferred size. */
+            if (knownProblem != null) {
+                knownProblem.refreshPositionFrom(problem);
+                continue;
+            }
+
+            problemsToAdd.add(problem);
+
+            // Also keeps a second, identical problem in the same batch from being drawn twice
+            knownProblems.put(problem, problem);
+        }
+
+        /* Deciding what changes before touching the editor is what allows the common case - a scan
+         * that finds nothing to redraw - to stay out of the inlay batch mode entirely. */
+        if (problemsToRemove.isEmpty() && problemsToAdd.isEmpty()) {
+            return;
+        }
+
+        runInInlayBatchMode(
+                problemsToRemove.size() + problemsToAdd.size(),
+                collectEditors(problemsToRemove, problemsToAdd),
+                () -> {
+                    problemsToRemove.forEach(this::removeProblem);
+                    drawProblems(problemsToAdd);
+                }
+        );
     }
 }
