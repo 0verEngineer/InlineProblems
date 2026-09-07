@@ -7,17 +7,14 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import lombok.Getter;
-import org.overengineer.inlineproblems.DocumentMarkupModelScanner;
 import org.overengineer.inlineproblems.bundles.SettingsBundle;
-import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
-import org.overengineer.inlineproblems.listeners.MarkupModelProblemListener;
+import org.overengineer.inlineproblems.entities.enums.Listener;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -67,6 +64,7 @@ public class SettingsComponent {
     private final JBCheckBox enableHtmlStripping = new JBCheckBox(SettingsBundle.message("settings.enableHtmlStripping"));
     private final JBCheckBox enableXmlUnescaping = new JBCheckBox(SettingsBundle.message("settings.enableXmlUnescaping"));
     private final JFormattedTextField inlayFontSizeDeltaText;
+    private final JFormattedTextField problemLineLengthOffsetPixels;
     private final JFormattedTextField manualScannerDelay;
     private final JFormattedTextField maxProblemsPerLine;
     private final JFormattedTextField maxFileLines;
@@ -78,8 +76,10 @@ public class SettingsComponent {
     private final JBTextField problemFilterList = new JBTextField();
     private final JBTextField fileExtensionBlacklist = new JBTextField();
 
-    private final String[] availableListeners = {HighlightProblemListener.NAME, MarkupModelProblemListener.NAME, DocumentMarkupModelScanner.NAME};
-    private final JComboBox<String> enabledListener = new ComboBox<>(availableListeners);
+    private static final List<Listener> availableListeners = List.of(Listener.values());
+    private final JComboBox<String> enabledListener = new ComboBox<>(
+            availableListeners.stream().map(Listener::getDisplayName).toArray(String[]::new)
+    );
 
     private final JBTextField additionalInfoSeverities = new JBTextField();
     private final JBTextField additionalWarningSeverities = new JBTextField();
@@ -89,76 +89,28 @@ public class SettingsComponent {
     @Getter
     private final JPanel settingsPanel;
 
+    /**
+     * Only builds the widgets. Their values come from {@link SettingsConfigurable#reset()}, which
+     * the platform calls after createComponent - having both do it meant three checkboxes were
+     * silently missing here (enableHtmlStripping, enableXmlUnescaping and
+     * showOnlyHighestSeverityPerLine, two of them enabled by default), so any path reaching
+     * apply() without a preceding reset() would have written false for them.
+     */
     public SettingsComponent() {
-        SettingsState settingsState = SettingsState.getInstance();
-
-        showErrors.setSelected(settingsState.isShowErrors());
-        highlightErrors.setSelected(settingsState.isHighlightErrors());
-        showErrorsInGutter.setSelected(settingsState.isShowErrorsInGutter());
-        errorTextColor.setSelectedColor(settingsState.getErrorTextColor());
-        errorLabelBackgroundColor.setSelectedColor(settingsState.getErrorBackgroundColor());
-        errorHighlightColor.setSelectedColor(settingsState.getErrorHighlightColor());
-
-        showWarnings.setSelected(settingsState.isShowWarnings());
-        highlightWarnings.setSelected(settingsState.isHighlightWarnings());
-        showWarningsInGutter.setSelected(settingsState.isShowWarningsInGutter());
-        warningTextColor.setSelectedColor(settingsState.getWarningTextColor());
-        warningLabelBackgroundColor.setSelectedColor(settingsState.getWarningBackgroundColor());
-        warningHighlightColor.setSelectedColor(settingsState.getWarningHighlightColor());
-
-        showWeakWarnings.setSelected(settingsState.isShowWeakWarnings());
-        highlightWeakWarnings.setSelected(settingsState.isHighlightWeakWarnings());
-        showWeakWarningsInGutter.setSelected(settingsState.isShowWeakWarningsInGutter());
-        weakWarningTextColor.setSelectedColor(settingsState.getWeakWarningTextColor());
-        weakWarningLabelBackgroundColor.setSelectedColor(settingsState.getWeakWarningBackgroundColor());
-        weakWarningHighlightColor.setSelectedColor(settingsState.getWeakWarningHighlightColor());
-
-        showInfos.setSelected(settingsState.isShowInfos());
-        highlightInfo.setSelected(settingsState.isHighlightInfos());
-        showInfosInGutter.setSelected(settingsState.isShowInfosInGutter());
-        infoTextColor.setSelectedColor(settingsState.getInfoTextColor());
-        infoLabelBackgroundColor.setSelectedColor(settingsState.getInfoBackgroundColor());
-        infoHighlightColor.setSelectedColor(settingsState.getInfoHighlightColor());
-
-        enableInlineProblem.setSelected(settingsState.isEnableInlineProblem());
-        enableInlineProblemsNotifications.setSelected(settingsState.isEnableInlineProblemsNotifications());
-
-        forceErrorsInSameLine.setSelected(settingsState.isForceProblemsInSameLine());
-        drawBoxesAroundProblemLabels.setSelected(settingsState.isDrawBoxesAroundErrorLabels());
-        roundedCornerBoxes.setSelected(settingsState.isRoundedCornerBoxes());
-
-        useEditorFont.setSelected(settingsState.isUseEditorFont());
-
         NumberFormat intFormat = NumberFormat.getIntegerInstance();
         intFormat.setGroupingUsed(false);
         NumberFormatter numberFormatter = new NumberFormatter(intFormat);
         numberFormatter.setValueClass(Integer.class); // Optional, ensures we always get a int value
 
         inlayFontSizeDeltaText = new JFormattedTextField(numberFormatter);
-        inlayFontSizeDeltaText.setText(Integer.toString(settingsState.getInlayFontSizeDelta()));
+
+        problemLineLengthOffsetPixels = new JFormattedTextField(numberFormatter);
 
         maxProblemsPerLine = new JFormattedTextField(numberFormatter);
-        maxProblemsPerLine.setText(Integer.toString(settingsState.getMaxProblemsPerLine()));
 
         manualScannerDelay = new JFormattedTextField(numberFormatter);
-        manualScannerDelay.setText(Integer.toString(settingsState.getManualScannerDelay()));
 
         maxFileLines = new JFormattedTextField(numberFormatter);
-        maxFileLines.setText(Integer.toString(settingsState.getMaxFileLines()));
-
-        fillProblemLabels.setSelected(settingsState.isFillProblemLabels());
-        boldProblemLabels.setSelected(settingsState.isBoldProblemLabels());
-        italicProblemLabels.setSelected(settingsState.isItalicProblemLabels());
-        clickableContext.setSelected(settingsState.isClickableContext());
-
-        additionalInfoSeverities.setText(settingsState.getAdditionalInfoSeveritiesAsString());
-        additionalWeakWarningSeverities.setText(settingsState.getAdditionalWeakWarningSeveritiesAsString());
-        additionalWarningSeverities.setText(settingsState.getAdditionalWarningSeveritiesAsString());
-        additionalErrorSeverities.setText(settingsState.getAdditionalErrorSeveritiesAsString());
-
-        problemFilterList.setText(settingsState.getProblemFilterList());
-        fileExtensionBlacklist.setText(settingsState.getFileExtensionBlacklist());
-        enabledListener.setSelectedItem(Optional.of(settingsState.getEnabledListener()));
 
         Dimension enabledListenerDimension = enabledListener.getPreferredSize();
         enabledListenerDimension.width += 100;
@@ -190,6 +142,8 @@ public class SettingsComponent {
                 .addComponent(enableXmlUnescaping, 0)
                 .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.inlaySizeDelta")), inlayFontSizeDeltaText)
                 .addTooltip(SettingsBundle.message("settings.inlaySizeDeltaTooltip"))
+                .addLabeledComponent(new JBLabel(SettingsBundle.message("settings.problemLineLengthOffsetLabel")), problemLineLengthOffsetPixels)
+                .addTooltip(SettingsBundle.message("settings.problemLineLengthOffsetTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.problemFilterListLabel")), problemFilterList)
                 .addTooltip(SettingsBundle.message("settings.problemFilterListTooltip"))
                 .addLabeledComponent(new JLabel(SettingsBundle.message("settings.fileExtensionBlacklistLabel")), fileExtensionBlacklist)
@@ -621,12 +575,19 @@ public class SettingsComponent {
         additionalWeakWarningSeverities.setText(newText);
     }
 
-    public int getEnabledListener() {
-        return enabledListener.getSelectedIndex();
+    public Listener getEnabledListener() {
+        int index = enabledListener.getSelectedIndex();
+
+        if (index < 0 || index >= availableListeners.size()) {
+            return Listener.DEFAULT;
+        }
+
+        return availableListeners.get(index);
     }
 
-    public void setEnabledListener(int index) {
-        enabledListener.setSelectedIndex(index);
+    public void setEnabledListener(Listener listener) {
+        // indexOf returns -1 for an unknown value, which falls back to the first entry
+        enabledListener.setSelectedIndex(Math.max(0, availableListeners.indexOf(listener)));
     }
 
     private List<Integer> getSeverityIntegerList(String text) {
@@ -668,6 +629,19 @@ public class SettingsComponent {
 
     public void setMaxProblemsPerLine(int max) {
         maxProblemsPerLine.setText(Integer.toString(Math.max(0, max)));
+    }
+
+    public int getProblemLineLengthOffsetPixels() {
+        try {
+            return Math.max(Integer.parseInt(problemLineLengthOffsetPixels.getText()), 0);
+        }
+        catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public void setProblemLineLengthOffsetPixels(int offset) {
+        problemLineLengthOffsetPixels.setText(Integer.toString(Math.max(0, offset)));
     }
 
     public int getMaxFileLines() {

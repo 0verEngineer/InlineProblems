@@ -1,29 +1,28 @@
 package org.overengineer.inlineproblems;
 
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.*;
-import com.intellij.openapi.editor.colors.EditorFontType;
+import com.intellij.openapi.editor.ex.MarkupModelEx;
 import com.intellij.openapi.editor.markup.*;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.Disposer;
+import org.overengineer.inlineproblems.entities.EditorDrawContext;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.SeverityUtil;
 
 import java.awt.Font;
-import java.awt.Canvas;
 import java.util.List;
-import java.util.Arrays;
 
 
 public class InlineDrawer {
 
-    public void drawProblemLabel(InlineProblem problem) {
+    public void drawProblemLabel(InlineProblem problem, EditorDrawContext context) {
         var drawDetails = problem.getDrawDetails();
         if (!drawDetails.isDrawProblem()) {
             return;
         }
 
-        SettingsState settings = SettingsState.getInstance();
+        SettingsState settings = context.getSettings();
         Editor editor = problem.getTextEditor().getEditor();
         var inlayModel = editor.getInlayModel();
 
@@ -48,27 +47,34 @@ public class InlineDrawer {
             existingInlineElementsWidth += existingElement.getWidthInPixels();
         }
 
-        int editorWidth = editor.getScrollingModel().getVisibleArea().width;
+        /* Width and metrics come from the context: they only depend on the editor, and obtaining
+         * them per problem - the label font in particular, whose construction builds a fallback
+         * chain - was the bulk of the cost of drawing a file with many problems. */
+        int editorWidth = context.getEditorWidth();
 
-        Font editorFont = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
-
-        int problemWidth = inlineProblemLabel.calcWidthInPixels(editor) +
-                new Canvas().getFontMetrics(editorFont).stringWidth(lineText) +
+        /* The line is measured with the font metrics instead of asking the editor for the x
+         * position of the line end: the drawing runs inside InlayModel.execute, and every call
+         * that needs the editor layout - offsetToXY among them - throws
+         * "Current operation is not permitted during batch inlay update" there. Batch mode exists
+         * precisely so the layout is not recomputed, so it cannot answer layout questions. */
+        int problemWidth = inlineProblemLabel.calcWidthInPixels(context.getLabelFontMetrics()) +
+                context.getEditorFontMetrics().stringWidth(lineText) +
                 existingInlineElementsWidth;
 
-        // We add 50 as offset here because the calculation is somehow not exact
-        if (problemWidth + 50 > editorWidth && !settings.isForceProblemsInSameLine())
+        /* The offset is added because the width calculation is not exact. It is configurable
+         * because the deviation depends on the font and the editor. */
+        if (problemWidth + settings.getProblemLineLengthOffsetPixels() > editorWidth && !settings.isForceProblemsInSameLine())
         {
             inlineProblemLabel.setBlockElement(true);
             problem.setBlockElement(true);
 
-            inlayModel.addBlockElement(
+            problem.setInlay(inlayModel.addBlockElement(
                     editor.getDocument().getLineStartOffset(problem.getLine()),
                     false,
                     true,
                     1,
                     inlineProblemLabel
-            );
+            ));
         }
         else {
             InlayProperties properties = new InlayProperties()
@@ -76,14 +82,12 @@ public class InlineDrawer {
                     .disableSoftWrapping(true)
                     .priority(1);
 
-            inlayModel.addAfterLineEndElement(
+            problem.setInlay(inlayModel.addAfterLineEndElement(
                     problem.getActualEndOffset(),
                     properties,
                     inlineProblemLabel
-            );
+            ));
         }
-
-        problem.setInlineProblemLabelHashCode(inlineProblemLabel.hashCode());
     }
 
     /** Draws the highlighter and the gutter icon for the currently shown problem in the line
@@ -130,20 +134,27 @@ public class InlineDrawer {
             highlighter.setGutterIconRenderer(new GutterRenderer(getGutterText(problemsInLine), drawDetails.getIcon()));
         }
 
-        problem.setProblemLineHighlighterHashCode(highlighter.hashCode());
+        problem.setLineHighlighter(highlighter);
     }
 
     /**
      * @param problem the problem
      * @param problemsInLine the problems in the same line as problem, null if no gutter icons are enabled, keep in mind that
-     *                       it still contains the problem itself
+     *                       it still contains the problem itself.
+     *                       <b>The list is modified:</b> the problem is removed from it before the
+     *                       gutter icon is redrawn for the ones that remain, so callers have to
+     *                       pass a list they own.
      */
     public void undrawErrorLineHighlight(InlineProblem problem, List<InlineProblem> problemsInLine) {
-        MarkupModel markupModel = problem.getTextEditor().getEditor().getMarkupModel();
+        RangeHighlighter lineHighlighter = problem.getLineHighlighter();
 
-        Arrays.stream(markupModel.getAllHighlighters())
-                .filter(h -> h.isValid() && h.hashCode() == problem.getProblemLineHighlighterHashCode())
-                .forEach(markupModel::removeHighlighter);
+        if (lineHighlighter != null) {
+            problem.setLineHighlighter(null);
+
+            if (lineHighlighter.isValid()) {
+                problem.getTextEditor().getEditor().getMarkupModel().removeHighlighter(lineHighlighter);
+            }
+        }
 
         // Gutter icon re-adding
         if (problemsInLine != null && problemsInLine.size() > 1) {
@@ -153,37 +164,20 @@ public class InlineDrawer {
     }
 
     public void undrawInlineProblemLabel(InlineProblem problem) {
-        Editor editor = problem.getTextEditor().getEditor();
-        Document document = editor.getDocument();
+        Inlay<?> inlay = problem.getInlay();
 
-        // Here is not checked if single or multi line, both are disposed because we do not have the info here
-        // We search for all elements because they can move
-        int documentLineStartOffset = document.getLineStartOffset(0);
-        int endLine = document.getLineCount() - 1;
-        if (endLine < 0) endLine = 0;
-        int documentLineEndOffset = document.getLineEndOffset(endLine);
-
-        if (problem.isBlockElement()) {
-            editor.getInlayModel()
-                    .getBlockElementsInRange(
-                            documentLineStartOffset,
-                            documentLineEndOffset
-                    )
-                    .stream()
-                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                    .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
-                    .forEach(Disposable::dispose);
+        if (inlay == null) {
+            return;
         }
-        else {
-            editor.getInlayModel()
-                    .getAfterLineEndElementsInRange(
-                            documentLineStartOffset,
-                            documentLineEndOffset
-                    )
-                    .stream()
-                    .filter(e -> problem.getInlineProblemLabelHashCode() == e.getRenderer().hashCode())
-                    .filter(e -> e.getRenderer() instanceof InlineProblemLabel)
-                    .forEach(Disposable::dispose);
+
+        problem.setInlay(null);
+
+        /* The inlay moves with the document, so the reference stays correct. Searching all
+         * elements of the document for a matching renderer hash code, as it was done before,
+         * is both slow (GitHub issue #96) and ambiguous on a hash collision, which could leave
+         * the label behind or dispose a foreign one (GitHub issues #38, #44). */
+        if (inlay.isValid()) {
+            Disposer.dispose(inlay);
         }
     }
 
@@ -219,13 +213,32 @@ public class InlineDrawer {
         int lineEndOffset = document.getLineEndOffset(line);
 
         MarkupModel markupModel = editor.getMarkupModel();
+
+        /* Only the highlighters overlapping the line are relevant. Materializing every
+         * highlighter of the editor was one of the hotspots in GitHub issue #96. */
+        if (markupModel instanceof MarkupModelEx markupModelEx) {
+            markupModelEx.processRangeHighlightersOverlappingWith(
+                    lineStartOffset,
+                    lineEndOffset,
+                    highlighter -> {
+                        removeOwnGutterIcon(highlighter);
+                        return true;
+                    }
+            );
+
+            return;
+        }
+
         for (RangeHighlighter highlighter : markupModel.getAllHighlighters()) {
             if (highlighter.getStartOffset() <= lineEndOffset && highlighter.getEndOffset() >= lineStartOffset) {
-                GutterIconRenderer gutterIconRenderer = highlighter.getGutterIconRenderer();
-                if (gutterIconRenderer instanceof GutterRenderer) {
-                    highlighter.setGutterIconRenderer(null);
-                }
+                removeOwnGutterIcon(highlighter);
             }
+        }
+    }
+
+    private void removeOwnGutterIcon(RangeHighlighter highlighter) {
+        if (highlighter.getGutterIconRenderer() instanceof GutterRenderer) {
+            highlighter.setGutterIconRenderer(null);
         }
     }
 }

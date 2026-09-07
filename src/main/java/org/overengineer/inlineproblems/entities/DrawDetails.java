@@ -22,7 +22,10 @@ public class DrawDetails {
     private boolean isDrawHighlighter = false;
     
     public DrawDetails(InlineProblem problem, Editor editor) {
-        SettingsState settings = SettingsState.getInstance();
+        this(problem, editor, SettingsState.getInstance());
+    }
+
+    public DrawDetails(InlineProblem problem, Editor editor, SettingsState settings) {
         int severity = problem.getSeverity();
 
         textColor = editor.getColorsScheme().getDefaultForeground();

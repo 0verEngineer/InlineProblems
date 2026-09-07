@@ -1,6 +1,19 @@
 .gradle
 .qodana
+.intellijPlatform
 build
+
+### Local only ###
+# Environment files with local tokens/secrets
+.env
+.env.*
+# Local review/planning notes
+IMPROVEMENTS.md
+improvements_offen.md
+idea.log
+# AI assistant working directories
+.claude/
+.aider*
 
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -11,6 +24,8 @@ build
 *.iml
 *.ipr
 out/
+# The IDE rewrites these on every version change, so they are not tracked
+.idea/
 !**/src/main/**/out/
 !**/src/test/**/out/
 

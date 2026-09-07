@@ -22,7 +22,7 @@ public class UnityProjectManager {
 
     private final List<InlineProblemProject> projects = new ArrayList<>();
 
-    private int enabledListenerBefore;
+    private Listener enabledListenerBefore;
 
     @Getter
     private final UnityProjectScanner unityProjectScanner = new UnityProjectScanner();
@@ -34,7 +34,7 @@ public class UnityProjectManager {
     private static UnityProjectManager instance;
 
     private UnityProjectManager() {
-        enabledListenerBefore = settings.getEnabledListener();
+        enabledListenerBefore = settings.getActiveListener();
     }
 
     public static UnityProjectManager getInstance() {
@@ -50,7 +50,7 @@ public class UnityProjectManager {
         projects.add(project);
 
         if (!isUnityProjectOpenedBefore && isAUnityProjectOpened()) {
-            handleUnityProjectOpened(project.getProject());
+            handleUnityProjectOpened(project.project());
         }
     }
 
@@ -58,7 +58,7 @@ public class UnityProjectManager {
         boolean isUnityProjectOpenedBefore = isAUnityProjectOpened();
 
         List<InlineProblemProject> projectsToRemove = projects.stream()
-                .filter(p -> p.getProject().equals(project))
+                .filter(p -> p.project().equals(project))
                 .collect(Collectors.toList());
 
         if (projectsToRemove.size() != 1)
@@ -75,25 +75,26 @@ public class UnityProjectManager {
         ProjectManager projectManager = ProjectManager.getInstance();
         if (projectManager != null) {
             for (var project : projectManager.getOpenProjects()) {
-                if (unityProjectScanner.isUnityProject(project))
-                    projectOpened(new InlineProblemProject(project, ProjectType.UNITY_GAME_ENGINE));
-                else
-                    projectOpened(new InlineProblemProject(project, ProjectType.DEFAULT));
+                ProjectType type = unityProjectScanner.isUnityProject(project)
+                        ? ProjectType.UNITY_GAME_ENGINE
+                        : ProjectType.DEFAULT;
+
+                projectOpened(new InlineProblemProject(project, type));
             }
         }
     }
 
     private boolean isAUnityProjectOpened() {
         return projects.stream()
-                .anyMatch(p -> p.getType().equals(ProjectType.UNITY_GAME_ENGINE));
+                .anyMatch(p -> p.type() == ProjectType.UNITY_GAME_ENGINE);
     }
 
     private void handleUnityProjectOpened(Project project) {
-        enabledListenerBefore = settings.getEnabledListener();
+        enabledListenerBefore = settings.getActiveListener();
         if (enabledListenerBefore == Listener.MANUAL_SCANNING)
             return;
 
-        settings.setEnabledListener(Listener.MANUAL_SCANNING);
+        settings.setActiveListener(Listener.MANUAL_SCANNING);
 
         ListenerManager listenerManager = ListenerManager.getInstance();
         listenerManager.resetAndRescan();
@@ -105,8 +106,8 @@ public class UnityProjectManager {
         if (enabledListenerBefore == Listener.MANUAL_SCANNING)
             return;
 
-        if (settings.getEnabledListener() == Listener.MANUAL_SCANNING) {
-            settings.setEnabledListener(enabledListenerBefore);
+        if (settings.getActiveListener() == Listener.MANUAL_SCANNING) {
+            settings.setActiveListener(enabledListenerBefore);
 
             ListenerManager listenerManager = ListenerManager.getInstance();
             listenerManager.resetAndRescan();

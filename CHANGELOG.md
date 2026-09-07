@@ -3,6 +3,35 @@
 # InlineProblems Changelog
 
 ## [Unreleased]
+### Added
+- Regex and glob support in the problem filter list: an entry starting with `re:` is a regular expression, an entry containing `*` or `?` is a glob, everything else still matches the beginning of the problem text ([#94](https://github.com/0verEngineer/InlineProblems/issues/94))
+- Problems are redrawn when the color scheme or the look and feel changes, so they follow an automatic switch between light and dark theme ([#61](https://github.com/0verEngineer/InlineProblems/issues/61))
+- The problem line length offset can be configured in the settings, the setting existed but was never read
+
+### Changed
+- Platform baseline raised from 2021.2.4 to 2025.1, since-build 251, sources target Java 21
+- Build migrated to the IntelliJ Platform Gradle Plugin 2.x and Gradle 9.7.1, so the project builds with current JDKs again
+- Large files got considerably faster ([#96](https://github.com/0verEngineer/InlineProblems/issues/96)). Measured on a file with 1268 problems: a full daemon run went from ~5000 inlay removals plus ~5000 additions down to none, a single edit from ~2000 inlay operations down to 3, and the initial draw from 149 ms to 81 ms
+- The periodic scan only covers the visible editors and runs every 10 seconds instead of every 2
+- The intention popup is opened directly instead of through the action system, every ActionUtil entry point for that is deprecated as of 2025.3
+- The active problem listener is stored as an enum instead of an int whose meaning depended on the order of the settings combo box
+- The IntelliJ Plugin Verifier runs in the CI again, it had silently been replaced by the plugin structure check
+- UI test setup ported from runIdeForUiTests to testIdeUi and the IntelliJ Starter framework
+
+### Fixed
+- The HighlightProblemListener never reported anything, and "Show only highest severity per line" removed the problems instead of drawing them, both because of an inverted check
+- Severities configured under "Additional severities" for infos were rendered as weak warnings
+- With more than one project open, every scan removed and redrew all problems of the other projects
+- "Enable notifications" could not be saved
+- "Enable XML unescaping" had no effect
+- Clicking a problem label looked the intention action up through the wrong ActionManager, so it only ever worked through its fallback
+- A file opened in a split view had its problems removed by the other editor on every scan
+- The fallback font was lost while building the label font, so characters the first font does not cover were rendered as boxes ([#58](https://github.com/0verEngineer/InlineProblems/issues/58))
+- Drawn inlays and highlighters are removed by reference instead of being searched by hash code, the likely cause of a gutter icon or a fixed problem staying visible ([#44](https://github.com/0verEngineer/InlineProblems/issues/44), [#38](https://github.com/0verEngineer/InlineProblems/issues/38))
+- Problems of closed editors and projects are cleaned up right away, a listener disposable leaked per opened file and the periodic scan kept running after a plugin unload
+- The Unity project detection left its file readers open
+- Colors with a low alpha value were serialized incorrectly
+- Three settings checkboxes were not initialized from the stored state
 
 ## [0.5.10]
 ### Fixed
