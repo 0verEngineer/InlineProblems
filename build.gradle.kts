@@ -11,7 +11,7 @@ plugins {
     id("org.jetbrains.intellij.platform") version "2.18.1"
     id("io.freefair.lombok") version "8.6"
     id("org.jetbrains.changelog") version "2.2.1"
-    id("org.jetbrains.qodana") version "2024.1.5"
+    id("org.jetbrains.qodana") version "2026.2.1"
 }
 
 group = properties("pluginGroup").get()
