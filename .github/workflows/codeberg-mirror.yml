@@ -1,13 +1,20 @@
 name: Codeberg Mirror
 
-on: [push]
+# The action pushes every ref anyway, and a Dependabot triggered run has no access to the
+# repository secrets, so its push cannot authenticate.
+on:
+  push:
+    branches:
+      - main
+      - release
 
 jobs:
   codeberg-mirror:
     name: Codeberg Mirror
     runs-on: ubuntu-latest
     steps:
-      - uses: yesolutions/mirror-action@master
+      # Pinned instead of @master: the action runs with the Codeberg credentials
+      - uses: yesolutions/mirror-action@v0.7.0
         with:
           REMOTE: 'https://codeberg.org/OverEngineer/InlineProblems'
           GIT_USERNAME: ${{ secrets.CODEBERG_USERNAME }}
