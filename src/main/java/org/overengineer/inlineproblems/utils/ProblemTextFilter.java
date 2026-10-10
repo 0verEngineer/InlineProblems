@@ -154,7 +154,7 @@ public final class ProblemTextFilter {
                 continue;
             }
 
-            if (literal.length() > 0) {
+            if (!literal.isEmpty()) {
                 regex.append(Pattern.quote(literal.toString()));
                 literal.setLength(0);
             }
@@ -162,7 +162,7 @@ public final class ProblemTextFilter {
             regex.append(c == '*' ? ".*" : ".");
         }
 
-        if (literal.length() > 0) {
+        if (!literal.isEmpty()) {
             regex.append(Pattern.quote(literal.toString()));
         }
 
