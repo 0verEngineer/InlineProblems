@@ -155,11 +155,13 @@ public class SettingsState implements PersistentStateComponent<SettingsState> {
         // filter list
         if (!filterListMigrationDone01) {
             List<String> newFilterListEntries = List.of("Consider unknown contexts non-blocking");
+            StringBuilder filterList = new StringBuilder(problemFilterList);
             for (String entry : newFilterListEntries) {
-                if (!problemFilterList.contains(entry)) {
-                    problemFilterList += ";" + entry;
+                if (filterList.indexOf(entry) < 0) {
+                    filterList.append(';').append(entry);
                 }
             }
+            problemFilterList = filterList.toString();
 
             filterListMigrationDone01 = true;
         }
