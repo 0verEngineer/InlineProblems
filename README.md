@@ -74,7 +74,7 @@ You can turn this plugin on and off with the keyboard shortcut `alt+u`, addition
     <li>
       <a href="#getting-started">Getting Started</a>
     </li>
-    <li><a href="#beta versions">Beta Versions</a></li>
+    <li><a href="#beta-versions">Beta Versions</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -94,6 +94,16 @@ You can turn this plugin on and off with the keyboard shortcut `alt+u`, addition
 ## Getting Started
 
 - Clone the repository and open it with IntelliJ
+- The plugin targets the IntelliJ Platform `2025.1.7` and Java 21 (see `gradle.properties`), and
+  builds with Gradle 9, so any JDK from 17 up to the current one works: `./gradlew buildPlugin`
+- Useful tasks:
+  - `buildPlugin` - builds the distribution ZIP
+  - `runIde` - starts a sandbox IDE with the plugin
+  - `verifyPluginStructure` - descriptor and archive structure check
+  - `verifyPlugin` - IntelliJ Plugin Verifier, binary compatibility against the IDE pinned in
+    `pluginVerifierIdeVersions`
+  - `printProductsReleases` - lists the IDE builds available for the verifier
+- Lombok is used, so the Lombok plugin has to be enabled in the development IDE
 
 
 
@@ -112,8 +122,10 @@ You can turn this plugin on and off with the keyboard shortcut `alt+u`, addition
 ## Roadmap
 
 - [ ] Multiline ErrorLabels (Inlays)
-- [ ] Delay before adding problems
-- [ ] Listen to changed width of editor and redraw labels if needed
+- [ ] Delay before adding problems ([#60](https://github.com/0verEngineer/InlineProblems/issues/60), [#78](https://github.com/0verEngineer/InlineProblems/issues/78))
+- [ ] Listen to changed width of editor and redraw labels if needed ([#57](https://github.com/0verEngineer/InlineProblems/issues/57))
+
+See the [open issues](https://github.com/0verEngineer/InlineProblems/issues) for the full list.
 
 
 
@@ -144,7 +156,7 @@ Project Link: [https://github.com/0verEngineer/InlineProblems](https://github.co
 [issues-shield]: https://img.shields.io/github/issues/0verEngineer/InlineProblems.svg?style=for-the-badge
 [issues-url]: https://github.com/0verEngineer/InlineProblems/issues
 [license-shield]: https://img.shields.io/github/license/0verEngineer/InlineProblems.svg?style=for-the-badge
-[license-url]: https://github.com/0verEngineer/InlineProblems/blob/master/LICENSE.txt
+[license-url]: https://github.com/0verEngineer/InlineProblems/blob/main/LICENSE
 [plugin-url]: https://plugins.jetbrains.com/plugin/20789-inlineproblems
 [plugin-version-shield]: https://img.shields.io/jetbrains/plugin/v/20789-inlineproblems.svg?style=for-the-badge
 [plugin-downloads-shield]: https://img.shields.io/jetbrains/plugin/d/20789-inlineproblems.svg?style=for-the-badge

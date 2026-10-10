@@ -62,5 +62,9 @@
                   topic="com.intellij.ide.plugins.DynamicPluginListener"/>
         <listener class="org.overengineer.inlineproblems.listeners.ProjectCloseListener"
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
+        <listener class="org.overengineer.inlineproblems.listeners.ThemeChangeListener"
+                  topic="com.intellij.openapi.editor.colors.EditorColorsListener"/>
+        <listener class="org.overengineer.inlineproblems.listeners.ThemeChangeListener"
+                  topic="com.intellij.ide.ui.LafManagerListener"/>
     </applicationListeners>
 </idea-plugin>
