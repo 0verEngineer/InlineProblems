@@ -30,7 +30,6 @@ import java.util.regex.PatternSyntaxException;
 public final class ProblemTextFilter {
 
     private static final String REGEX_PREFIX = "re:";
-    private static final int PATTERN_FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
 
     private static final Logger logger = Logger.getInstance(ProblemTextFilter.class);
 
@@ -120,7 +119,7 @@ public final class ProblemTextFilter {
         }
 
         try {
-            Pattern pattern = Pattern.compile(regex, PATTERN_FLAGS);
+            Pattern pattern = compileCaseInsensitive(regex);
             return text -> pattern.matcher(text).find();
         }
         catch (PatternSyntaxException e) {
@@ -130,8 +129,12 @@ public final class ProblemTextFilter {
     }
 
     private static Predicate<String> toGlobFilter(String glob) {
-        Pattern pattern = Pattern.compile(globToRegex(glob), PATTERN_FLAGS);
+        Pattern pattern = compileCaseInsensitive(globToRegex(glob));
         return text -> pattern.matcher(text).matches();
+    }
+
+    private static Pattern compileCaseInsensitive(String regex) {
+        return Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }
 
     /**
