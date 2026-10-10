@@ -7,7 +7,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import lombok.Getter;
-import org.overengineer.inlineproblems.entities.DrawDetails;
 import org.overengineer.inlineproblems.entities.EditorDrawContext;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.settings.SettingsState;

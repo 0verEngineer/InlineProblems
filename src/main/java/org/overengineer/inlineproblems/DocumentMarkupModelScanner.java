@@ -17,7 +17,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.overengineer.inlineproblems.entities.InlineProblem;
 import org.overengineer.inlineproblems.entities.enums.Listener;
-import org.overengineer.inlineproblems.listeners.HighlightProblemListener;
 import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.FileUtil;
 import org.overengineer.inlineproblems.utils.ProblemTextFilter;
