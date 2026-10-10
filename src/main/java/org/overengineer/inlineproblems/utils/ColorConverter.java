@@ -11,7 +11,7 @@ public class ColorConverter extends Converter<Color> {
     @Nullable
     @Override
     public Color fromString(@NotNull String value) {
-        if (value.isEmpty() || value.isBlank()) {
+        if (value.isBlank()) {
             return null;
         }
 
