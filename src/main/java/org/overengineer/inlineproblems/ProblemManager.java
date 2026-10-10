@@ -199,7 +199,7 @@ public class ProblemManager implements Disposable {
     public void removeObsoleteProblems() {
         final List<InlineProblem> obsoleteProblems = activeProblems.stream()
                 .filter(ProblemManager::isObsolete)
-                .collect(Collectors.toList());
+                .toList();
 
         if (obsoleteProblems.isEmpty()) {
             return;

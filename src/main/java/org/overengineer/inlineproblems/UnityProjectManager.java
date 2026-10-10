@@ -14,7 +14,6 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 // Only used in rider because of the unity projects
@@ -59,7 +58,7 @@ public class UnityProjectManager {
 
         List<InlineProblemProject> projectsToRemove = projects.stream()
                 .filter(p -> p.project().equals(project))
-                .collect(Collectors.toList());
+                .toList();
 
         if (projectsToRemove.size() != 1)
             logger.warn("ProjectManager projects to remove size: " + projectsToRemove.size());
