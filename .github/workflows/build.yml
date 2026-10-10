@@ -168,6 +168,7 @@ jobs:
       - name: Qodana - Code Inspection
         uses: JetBrains/qodana-action@v2026.2
         with:
+          pr-mode: false
           cache-default-branch-only: true
 
   # Run the plugin structure verification and the IntelliJ Plugin Verifier. Note the task names,
