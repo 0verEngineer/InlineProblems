@@ -67,12 +67,15 @@ intellijPlatform {
             }.joinToString("\n").let(::markdownToHTML)
         }
 
-        // Get the latest available change notes from the changelog file
+        /* The changelog section of the version, which the "Prepare release" workflow creates. The
+         * beta suffix is dropped, so 0.6.1-beta+RC12.1 shows the notes of 0.6.1. Without a section
+         * the unreleased one is used - not getLatest(), that is the previous release and was the
+         * reason why 0.6.0 was published with the notes of 0.5.10. */
         changeNotes = providers.provider {
+            val baseVersion = properties("pluginVersion").get().substringBefore('-').substringBefore('+')
             with(changelog) {
                 renderItem(
-                    getOrNull(properties("pluginVersion").get())
-                        ?: runCatching { getLatest() }.getOrElse { getUnreleased() },
+                    (getOrNull(baseVersion) ?: getUnreleased()).withHeader(false).withEmptySections(false),
                     Changelog.OutputType.HTML,
                 )
             }
@@ -135,12 +138,6 @@ intellijPlatform {
     }
 }
 
-// Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
-changelog {
-    groups.set(emptyList())
-    repositoryUrl.set(properties("pluginRepositoryUrl"))
-}
-
 // Configure Gradle Qodana Plugin - read more: https://github.com/JetBrains/gradle-qodana-plugin
 qodana {
     cachePath.set(file(".qodana").canonicalPath)
@@ -181,10 +178,6 @@ tasks {
     withType<JavaCompile> {
         sourceCompatibility = properties("javaVersion").get()
         targetCompatibility = properties("javaVersion").get()
-    }
-
-    publishPlugin {
-        dependsOn(patchChangelog)
     }
 
     runIde {
