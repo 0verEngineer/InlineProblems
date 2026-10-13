@@ -11,6 +11,7 @@ import org.overengineer.inlineproblems.settings.SettingsState;
 import org.overengineer.inlineproblems.utils.SeverityUtil;
 
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -214,6 +215,9 @@ public class InlineDrawer {
 
         MarkupModel markupModel = editor.getMarkupModel();
 
+        // Modifying a highlighter while iterating the markup model throws (GitHub issue #112)
+        List<RangeHighlighter> ownGutterIconHighlighters = new ArrayList<>();
+
         /* Only the highlighters overlapping the line are relevant. Materializing every
          * highlighter of the editor was one of the hotspots in GitHub issue #96. */
         if (markupModel instanceof MarkupModelEx markupModelEx) {
@@ -221,24 +225,28 @@ public class InlineDrawer {
                     lineStartOffset,
                     lineEndOffset,
                     highlighter -> {
-                        removeOwnGutterIcon(highlighter);
+                        if (hasOwnGutterIcon(highlighter)) {
+                            ownGutterIconHighlighters.add(highlighter);
+                        }
                         return true;
                     }
             );
-
-            return;
+        }
+        else {
+            for (RangeHighlighter highlighter : markupModel.getAllHighlighters()) {
+                if (highlighter.getStartOffset() <= lineEndOffset && highlighter.getEndOffset() >= lineStartOffset
+                        && hasOwnGutterIcon(highlighter)) {
+                    ownGutterIconHighlighters.add(highlighter);
+                }
+            }
         }
 
-        for (RangeHighlighter highlighter : markupModel.getAllHighlighters()) {
-            if (highlighter.getStartOffset() <= lineEndOffset && highlighter.getEndOffset() >= lineStartOffset) {
-                removeOwnGutterIcon(highlighter);
-            }
+        for (RangeHighlighter highlighter : ownGutterIconHighlighters) {
+            highlighter.setGutterIconRenderer(null);
         }
     }
 
-    private void removeOwnGutterIcon(RangeHighlighter highlighter) {
-        if (highlighter.getGutterIconRenderer() instanceof GutterRenderer) {
-            highlighter.setGutterIconRenderer(null);
-        }
+    private boolean hasOwnGutterIcon(RangeHighlighter highlighter) {
+        return highlighter.getGutterIconRenderer() instanceof GutterRenderer;
     }
 }
