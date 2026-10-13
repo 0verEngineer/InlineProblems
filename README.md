@@ -105,6 +105,15 @@ You can turn this plugin on and off with the keyboard shortcut `alt+u`, addition
   - `printProductsReleases` - lists the IDE builds available for the verifier
 - Lombok is used, so the Lombok plugin has to be enabled in the development IDE
 
+### Releasing
+1. Changes are listed in the `[Unreleased]` section of `CHANGELOG.md`
+2. Run the "Prepare Release" workflow from the Actions tab with the new version. It raises
+   `pluginVersion`, moves the `[Unreleased]` section under that version and opens a pull request
+   to `main`
+3. Merging it creates the release draft with the notes of that version
+4. The pull request `main -> release` publishes the beta
+5. Publishing the release draft publishes the plugin on the Marketplace
+
 
 
 <!-- BETA VERSIONS -->

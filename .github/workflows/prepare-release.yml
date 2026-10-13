@@ -1,0 +1,83 @@
+# GitHub Actions Workflow that prepares a release: it raises the pluginVersion, moves the Unreleased section of the
+# changelog under that version and opens a pull request to main with both. Once it is merged, the Build workflow
+# creates the release draft with the notes of that version, and the main -> release pull request publishes the beta.
+# Started by hand from the Actions tab.
+
+name: Prepare Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, e.g. 0.6.2
+        required: true
+        type: string
+
+jobs:
+
+  prepare-release:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      # Setup Java 21 environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: zulu
+          java-version: 21
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-home-cache-cleanup: true
+
+      # Raise the version and move the Unreleased section under it
+      - name: Patch Version and Changelog
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$VERSION' is not a version like 0.6.2"
+            exit 1
+          fi
+
+          UNRELEASED="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+          if [ -z "$(echo "$UNRELEASED" | tr -d '[:space:]')" ]; then
+            echo "::error::The Unreleased section of CHANGELOG.md is empty"
+            exit 1
+          fi
+
+          sed -i "/pluginVersion = / s/ = .*/ = $VERSION/" gradle.properties
+          ./gradlew patchChangelog
+
+      # Open the pull request to main. It is created with the GITHUB_TOKEN, so no workflows run for it
+      - name: Create Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          BRANCH="prepare-release-v$VERSION"
+
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+
+          git checkout -b "$BRANCH"
+          git commit -m "Prepare the $VERSION release" gradle.properties CHANGELOG.md
+          git push --set-upstream origin "$BRANCH"
+
+          mkdir -p build/tmp
+          ./gradlew getChangelog --project-version "$VERSION" --no-header --console=plain -q > build/tmp/release_note.txt
+          gh pr create \
+            --base main \
+            --title "Prepare the $VERSION release" \
+            --body-file build/tmp/release_note.txt
