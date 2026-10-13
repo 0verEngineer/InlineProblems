@@ -69,8 +69,10 @@ jobs:
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           NAME="$(echo "$PROPERTIES" | grep "^pluginName:" | cut -f2- -d ' ')"
-          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
-          
+          # The section of the version, which the "Prepare release" workflow creates, or the unreleased one without it
+          CHANGELOG="$(./gradlew getChangelog --project-version "$VERSION" --no-header --console=plain -q 2>/dev/null \
+            || ./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
           
