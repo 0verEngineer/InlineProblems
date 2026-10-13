@@ -3,8 +3,6 @@
 # InlineProblems Changelog
 
 ## [Unreleased]
-
-## [0.6.1]
 ### Fixed
 - "What's new" on the Marketplace showed the changes of the previous version, 0.6.0 listed the ones of 0.5.10
 - An IllegalStateException "Must not perform modifications while holding read lock/iterating" was thrown when a gutter icon was redrawn ([#112](https://github.com/0verEngineer/InlineProblems/issues/112))
