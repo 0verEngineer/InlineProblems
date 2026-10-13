@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+## [0.6.1]
+### Fixed
+- An IllegalStateException "Must not perform modifications while holding read lock/iterating" was thrown when a gutter icon was redrawn ([#112](https://github.com/0verEngineer/InlineProblems/issues/112))
+
 ## [0.6.0]
 ### Added
 - Regex and glob support in the problem filter list: an entry starting with `re:` is a regular expression, an entry containing `*` or `?` is a glob, everything else still matches the beginning of the problem text ([#94](https://github.com/0verEngineer/InlineProblems/issues/94))
