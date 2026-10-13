@@ -17,8 +17,10 @@ on:
   # Trigger the workflow on pushes to only the 'main' branch (this avoids duplicate checks being run e.g. for dependabot pull requests)
   push:
     branches: [main]
-  # Trigger the workflow on any pull request
+  # Trigger the workflow on any pull request, except the ones to 'release': their head is main, whose push build
+  #  already runs for the same commit and shows up in the pull request
   pull_request:
+    branches-ignore: [release]
 
 jobs:
 
@@ -69,8 +71,10 @@ jobs:
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           NAME="$(echo "$PROPERTIES" | grep "^pluginName:" | cut -f2- -d ' ')"
-          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
-          
+          # The section of the version, which the "Prepare release" workflow creates, or the unreleased one without it
+          CHANGELOG="$(./gradlew getChangelog --project-version "$VERSION" --no-header --console=plain -q 2>/dev/null \
+            || ./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
           

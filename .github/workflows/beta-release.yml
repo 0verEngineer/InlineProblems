@@ -28,6 +28,14 @@ jobs:
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           VERSION_WITH_BUILDNUMBER="$VERSION-beta+$BUILDNUMBER"
           echo "betaVersion=$VERSION-beta" >> $GITHUB_ENV
+
+          # Read before the version gets the beta suffix: the changelog section is named after the plain version
+          RELEASE_NOTE="./build/tmp/beta_release_note.txt"
+          mkdir -p "$(dirname "$RELEASE_NOTE")"
+          ./gradlew getChangelog --project-version "$VERSION" --no-header --console=plain -q > "$RELEASE_NOTE" 2>/dev/null \
+            || ./gradlew getChangelog --unreleased --no-header --console=plain -q > "$RELEASE_NOTE"
+          echo "releaseNote=$RELEASE_NOTE" >> $GITHUB_ENV
+
           sed -i "/pluginVersion = / s/ = .*/ = $VERSION_WITH_BUILDNUMBER/" gradle.properties
           echo "Version: $VERSION_WITH_BUILDNUMBER"
 
@@ -70,7 +78,7 @@ jobs:
             --target "${{ github.head_ref }}" \
             --title "v${{ env.betaVersion }}" \
             --prerelease \
-            --notes "This is a prerelease of the next version of the plugin. Checkout the pull request from master to release for the changelog."
+            --notes-file "${{ env.releaseNote }}"
 
       # Upload artifact as a release asset
       - name: Upload Release Asset
