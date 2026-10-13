@@ -106,13 +106,29 @@ You can turn this plugin on and off with the keyboard shortcut `alt+u`, addition
 - Lombok is used, so the Lombok plugin has to be enabled in the development IDE
 
 ### Releasing
-1. Changes are listed in the `[Unreleased]` section of `CHANGELOG.md`
-2. Run the "Prepare Release" workflow from the Actions tab with the new version. It raises
-   `pluginVersion`, moves the `[Unreleased]` section under that version and opens a pull request
-   to `main`
-3. Merging it creates the release draft with the notes of that version
-4. The pull request `main -> release` publishes the beta
-5. Publishing the release draft publishes the plugin on the Marketplace
+Branches: features are merged into `main`, `release` holds what is published. Both are protected,
+so everything goes through pull requests.
+
+1. **Changelog** - every change is listed in the `[Unreleased]` section of `CHANGELOG.md`, in the
+   pull request that makes it
+2. **Prepare** - run the "Prepare Release" workflow from the Actions tab with the new version,
+   e.g. `0.6.2`. It raises `pluginVersion` in `gradle.properties`, moves the `[Unreleased]` section
+   under `## [0.6.2]` and opens the pull request "Prepare the 0.6.2 release" to `main`. The
+   workflow stops if `[Unreleased]` is empty. No checks run on this pull request, it is created
+   with the `GITHUB_TOKEN`
+3. **Merge into `main`** - the Build workflow on `main` creates the release draft `v0.6.2` with the
+   notes of the `[0.6.2]` section. Every push to `main` replaces the draft
+4. **Beta** - open the pull request `main -> release`, titled "main -> release for 0.6.2" with the
+   changelog entry as description. The Beta Release workflow publishes `0.6.2-beta+RC<run>.<attempt>` to the
+   Marketplace `beta` channel and creates the GitHub prerelease `v0.6.2-beta` with the changelog.
+   Every new commit on the pull request publishes a new beta
+5. **Merge into `release`** - once the beta is fine. This has to happen before the next step: the
+   release draft targets `release`, and the tag is created there when the draft is published
+6. **Release** - publish the release draft `v0.6.2` on GitHub. The Release workflow publishes the
+   plugin to the Marketplace `default` and `beta` channels and attaches the ZIP to the release
+
+The "What's new" on the Marketplace comes from the changelog section of the version, for a beta
+too. Changes merged after step 2 belong under the version section, not under `[Unreleased]`.
 
 
 
