@@ -3,6 +3,12 @@
 # InlineProblems Changelog
 
 ## [Unreleased]
+
+## [0.6.1]
+### Fixed
+- An IllegalStateException "Must not perform modifications while holding read lock/iterating" was thrown when a gutter icon was redrawn ([#112](https://github.com/0verEngineer/InlineProblems/issues/112))
+
+## [0.6.0]
 ### Added
 - Regex and glob support in the problem filter list: an entry starting with `re:` is a regular expression, an entry containing `*` or `?` is a glob, everything else still matches the beginning of the problem text ([#94](https://github.com/0verEngineer/InlineProblems/issues/94))
 - Problems are redrawn when the color scheme or the look and feel changes, so they follow an automatic switch between light and dark theme ([#61](https://github.com/0verEngineer/InlineProblems/issues/61))
