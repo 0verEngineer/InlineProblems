@@ -3,6 +3,8 @@
 # InlineProblems Changelog
 
 ## [Unreleased]
+### Changed
+- The GitHub release draft is created when a release is merged into the release branch, no longer on every push to main, so it cannot be published before the code is on the release branch
 
 ## [0.6.1] - 2026-10-13
 
