@@ -116,14 +116,13 @@ so everything goes through pull requests.
    under `## [0.6.2]` and opens the pull request "Prepare the 0.6.2 release" to `main`. The
    workflow stops if `[Unreleased]` is empty. No checks run on this pull request, it is created
    with the `GITHUB_TOKEN`
-3. **Merge into `main`** - the Build workflow on `main` creates the release draft `v0.6.2` with the
-   notes of the `[0.6.2]` section. Every push to `main` replaces the draft
+3. **Merge into `main`**
 4. **Beta** - open the pull request `main -> release`, titled "main -> release for 0.6.2" with the
    changelog entry as description. The Beta Release workflow publishes `0.6.2-beta+RC<run>.<attempt>` to the
    Marketplace `beta` channel and creates the GitHub prerelease `v0.6.2-beta` with the changelog.
    Every new commit on the pull request publishes a new beta
-5. **Merge into `release`** - once the beta is fine. This has to happen before the next step: the
-   release draft targets `release`, and the tag is created there when the draft is published
+5. **Merge into `release`** - once the beta is fine. The Build workflow on `release` creates the
+   release draft `v0.6.2` with the notes of the `[0.6.2]` section, targeting the merged commit
 6. **Release** - publish the release draft `v0.6.2` on GitHub. The Release workflow publishes the
    plugin to the Marketplace `default` and `beta` channels and attaches the ZIP to the release
 
