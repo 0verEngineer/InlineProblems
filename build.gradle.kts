@@ -160,10 +160,6 @@ intellijPlatformTesting.testIdeUi.register("testIdeUi") {
 }
 
 tasks {
-    wrapper {
-        gradleVersion = properties("gradleVersion").get()
-    }
-
     test {
         useJUnitPlatform()
     }
