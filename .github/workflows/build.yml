@@ -25,7 +25,8 @@ on:
 
 jobs:
 
-  # Run Gradle Wrapper Validation Action to verify the wrapper's checksum
+  # Verify the wrapper's checksum: setup-gradle does that on its own (validate-wrappers defaults to true). The separate
+  #  gradle/wrapper-validation-action@v3 is gone, it fetched the checksums of all Gradle versions and timed out
   # Run verifyPlugin, IntelliJ Plugin Verifier, and test Gradle tasks
   # Build plugin and provide the artifact for the next workflow jobs
   build:
@@ -46,10 +47,6 @@ jobs:
       # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v7
-
-      # Validate wrapper
-      - name: Gradle Wrapper Validation
-        uses: gradle/wrapper-validation-action@v3
 
       # Setup Java 21 environment for the next steps
       - name: Setup Java
