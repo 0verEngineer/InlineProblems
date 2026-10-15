@@ -19,6 +19,19 @@ jobs:
           # Source branch
           ref: ${{ github.head_ref }}
 
+      # Setup Java 21 environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: zulu
+          java-version: 21
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-home-cache-cleanup: true
+
       # Manipulate gradle.properties pluginVersion property, appends '-buildNumber-beta'
       - name: Patch Gradle Properties
         shell: bash
@@ -38,19 +51,6 @@ jobs:
 
           sed -i "/pluginVersion = / s/ = .*/ = $VERSION_WITH_BUILDNUMBER/" gradle.properties
           echo "Version: $VERSION_WITH_BUILDNUMBER"
-
-      # Setup Java 21 environment for the next steps
-      - name: Setup Java
-        uses: actions/setup-java@v6
-        with:
-          distribution: zulu
-          java-version: 21
-
-      # Setup Gradle
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-home-cache-cleanup: true
 
       # Publish the plugin to the Marketplace, this should automatically use the 'beta' channel because we changed the
       #  version in gradle.properties to version-beta
