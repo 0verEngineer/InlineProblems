@@ -3,8 +3,18 @@
 # InlineProblems Changelog
 
 ## [Unreleased]
+
+### Added
+
+- Unit tests for the different problem detection strategies, making sure there are no duplicate IDs and that every ID maps back to its listener
+
 ### Changed
+
 - The GitHub release draft is created when a release is merged into the release branch, no longer on every push to main, so it cannot be published before the code is on the release branch
+
+### Fixed
+
+- JUnit 4 class could not be found when running tests due to a missing dependency in build.gradle.kts, JUnit 5 refers to JUnit 4 in IntelliJ
 
 ## [0.6.1] - 2026-10-13
 

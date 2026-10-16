@@ -43,6 +43,9 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:${properties("junitVersion").get()}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // JUnit 5 Test Framework refers to JUnit 4 - see IntelliJ Platform Gradle Plugin FAQ
+    // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-faq.html
+    testRuntimeOnly("junit:junit:4.13.2")
 }
 
 // Configure the IntelliJ Platform Gradle Plugin
