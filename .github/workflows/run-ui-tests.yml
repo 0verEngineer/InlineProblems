@@ -5,8 +5,7 @@
 # the old runIdeForUiTests setup there is no separate "start the IDE and wait for the robot server"
 # dance - the task is all that has to run.
 #
-# Note: there are no UI tests in the project yet, so the task currently runs an empty suite. The
-# workflow exists so that adding the first test under src/test is enough to get it covered here.
+# Tests are under src/test and require the JUnit 4 runtime dependency.
 #
 # Please check https://plugins.jetbrains.com/docs/intellij/testing-plugins.html for information
 # about testing plugins.
