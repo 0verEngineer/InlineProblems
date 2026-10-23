@@ -43,6 +43,9 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:${properties("junitVersion").get()}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // JUnit 5 Test Framework refers to JUnit 4 - see IntelliJ Platform Gradle Plugin FAQ
+    // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-faq.html
+    testRuntimeOnly("junit:junit:4.13.2")
 }
 
 // Configure the IntelliJ Platform Gradle Plugin
@@ -148,8 +151,7 @@ qodana {
  * Replaces the runIdeForUiTests task of the old gradle-intellij-plugin, which drove the IDE
  * through the robot-server plugin - the 2.x plugin uses the IntelliJ Starter framework.
  *
- * There are no UI tests yet, so the task currently runs an empty suite. The plumbing is here so
- * that adding the first test under src/test/java is all it takes. */
+ * Tests are under src/test and require the JUnit 4 runtime dependency. */
 intellijPlatformTesting.testIdeUi.register("testIdeUi") {
     task {
         useJUnitPlatform()
@@ -164,8 +166,8 @@ tasks {
         useJUnitPlatform()
     }
 
-    // Pointless without test sources, and running both instrumentation tasks in one build
-    // crashes InstrumentCodeTask ("1 >= 1"). instrumentCode still covers the shipped code.
+    // Running both instrumentation tasks in one build crashes InstrumentCodeTask ("1 >= 1").
+    // instrumentCode still covers the shipped code.
     named("instrumentTestCode") {
         enabled = false
     }
