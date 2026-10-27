@@ -1,6 +1,7 @@
 package org.overengineer.inlineproblems.utils;
 
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.overengineer.inlineproblems.settings.SettingsState;
 
 import java.util.ArrayList;
@@ -44,11 +45,19 @@ public final class ProblemTextFilter {
      * @return true if the problem should be ignored because it matches one of the filters
      */
     public static boolean isFiltered(String problemText) {
+        String rawFilterList = SettingsState.getInstance().getProblemFilterList();
+
+        return isFiltered(problemText, rawFilterList);
+    }
+
+    @VisibleForTesting
+    static boolean isFiltered(String problemText, String rawFilterList) {
         if (problemText == null) {
             return true;
         }
 
-        List<Predicate<String>> filters = getFilters();
+        List<Predicate<String>> filters = getFilters(rawFilterList);
+
         if (filters.isEmpty()) {
             return false;
         }
@@ -64,9 +73,7 @@ public final class ProblemTextFilter {
         return false;
     }
 
-    private static List<Predicate<String>> getFilters() {
-        String rawFilterList = SettingsState.getInstance().getProblemFilterList();
-
+    private static List<Predicate<String>> getFilters(String rawFilterList) {
         if (!Objects.equals(rawFilterList, cachedRawFilterList)) {
             cachedFilters = parse(rawFilterList);
             cachedRawFilterList = rawFilterList;

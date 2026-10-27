@@ -7,6 +7,7 @@
 ### Added
 
 - Unit tests for the different problem detection strategies, making sure there are no duplicate IDs and that every ID maps back to its listener
+- Unit tests for the problem filter list, covering text beginning, glob and `re:` entries as well as blank and invalid entries
 
 ### Changed
 
